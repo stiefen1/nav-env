@@ -1,5 +1,6 @@
 from shapely import Polygon, LineString, Geometry, affinity
 import numpy as np, matplotlib.pyplot as plt
+import pygame
 from copy import deepcopy
 
 
@@ -16,7 +17,7 @@ class GeometryWrapper:
 
     def plot(self, ax=None, **kwargs):
         """
-        Plot the path.
+        Plot the geometry.
         """
 
         if ax is None:
@@ -27,11 +28,20 @@ class GeometryWrapper:
     
     def scatter(self, ax=None, **kwargs):
         """
-        Scatter plot the path.
+        Scatter plot the geometry.
         """
         if ax is None:
             _, ax = plt.subplots()
         ax.scatter(*self.xy, **kwargs)
+        return ax
+    
+    def draw(self, ax=None, **kwargs):
+        """
+        Draw the geometry for pygame.
+        """
+        if ax is None:
+            ax = pygame.display.get_surface()
+        pygame.draw.polygon(ax, (0, 0, 0), self.xy, **kwargs)
         return ax
 
     def __call__(self) -> LineString:

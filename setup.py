@@ -12,7 +12,9 @@ setup(
         'numpy',
         'shapely',
         'matplotlib',
-        'scipy'
+        'scipy',
+        'pygame',
+        'networkx'
     ],
     classifiers=[
         'Programming Language :: Python :: 3',

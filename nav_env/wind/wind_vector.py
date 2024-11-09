@@ -4,80 +4,24 @@ Classes for representing wind vectors and collections of wind vectors, including
 
 import numpy as np
 from shapely import Point, Polygon
-from .utils import *
+from nav_env.geometry.utils import *
+from nav_env.geometry.vector import Vector
 
-class WindVector:
+
+class WindVector(Vector):
     """
     Represents a wind vector with position and velocity.
     """
     def __init__(self, position: np.ndarray | Point | tuple[float, float], *args, **kwargs):
-        self._parse_position(position)
-        self._parse_args(*args)
-        self._parse_kwargs(**kwargs)
+        super().__init__(position, *args, **kwargs)
 
     @property
-    def x(self) -> float:
-        return self._position[0]
+    def speed(self) -> float:
+        return self.intensity
     
-    @property
-    def y(self) -> float:
-        return self._position[1]
-    
-    @property
-    def vx(self) -> float:
-        return self._velocity[0]
-    
-    @property
-    def vy(self) -> float:
-        return self._velocity[1]
-    
-    @property
-    def position(self) -> tuple[float, float]:
-        return self._position
-
     @property
     def velocity(self) -> tuple[float, float]:
-        return self._velocity
-    
-    @property
-    def direction(self) -> float:
-        return get_direction_intensity_from_vector(self._velocity)[0]
-    
-    @property
-    def intensity(self) -> float:
-        return float(get_direction_intensity_from_vector(self._velocity)[1])
-
-    def _parse_position(self, position: np.ndarray | Point | tuple[float, float]):
-        """
-        Parse and validate the position input.
-        """
-        position: tuple = convert_any_to_tuple(position)
-        assert_tuple_2d_position(position)
-        self._position = position
-
-    def _parse_args(self, *args):
-        """
-        Parse additional positional arguments.
-        """
-        pass
-
-    def _parse_kwargs(self, **kwargs):
-        """
-        Parse keyword arguments for velocity or speed and direction.
-        """
-        keys = kwargs.keys()
-        if 'speed' in keys and 'direction' in keys:
-            velocity: tuple = get_vector_from_direction_intensity(kwargs['direction'], kwargs['speed'])
-        elif 'velocity' in keys:
-            velocity: tuple = convert_any_to_tuple(kwargs['velocity'])
-        else:
-            raise KeyError("You must provide either two float (speed, direction) or a numpy array representing wind velocity vector")
-        
-        assert_tuple_2d_vector(velocity)
-        self._velocity = velocity
-
-    def __str__(self) -> str:
-        return f"WindVector Object : Pos: {self.position} Vel: {self.velocity}"
+        return self.vector
 
 class WindVectorCollection:
     """
@@ -161,12 +105,12 @@ def test():
     velocity = get_vector_from_direction_intensity(direction, speed)
     
     # Check all the different ways of instantiating a WindVector
-    w11 = WindVector(p_numpy, speed=speed, direction=direction)
-    w12 = WindVector(p_shapely, speed=speed, direction=direction)
-    w13 = WindVector(p_tuple, speed=speed, direction=direction)
-    w21 = WindVector(p_numpy, velocity=velocity)
-    w22 = WindVector(p_numpy, velocity=velocity)
-    w23 = WindVector(p_tuple, velocity=velocity)
+    w11 = WindVector(p_numpy, intensity=speed, direction=direction)
+    w12 = WindVector(p_shapely, intensity=speed, direction=direction)
+    w13 = WindVector(p_tuple, intensity=speed, direction=direction)
+    w21 = WindVector(p_numpy, vector=velocity)
+    w22 = WindVector(p_numpy, vector=velocity)
+    w23 = WindVector(p_tuple, vector=velocity)
     ws = WindVectorCollection([w11, w12, w13, w21, w22, w23])
 
     # Compute error in position / velocity results

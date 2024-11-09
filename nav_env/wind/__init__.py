@@ -1,2 +1,1 @@
-from .wind_source import *
-from .wind_vector import *
+__all__ = ['wind_source', 'wind_vector']
