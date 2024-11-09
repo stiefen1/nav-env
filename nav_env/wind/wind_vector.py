@@ -126,7 +126,7 @@ class WindVectorCollection:
     
     @property
     def velocities_y(self) -> tuple:
-        return [vec.vx for vec in self._wind_vectors]
+        return [vec.vy for vec in self._wind_vectors]
 
     @property
     def domain(self) -> Polygon:

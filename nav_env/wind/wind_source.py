@@ -94,7 +94,7 @@ class MeasuredWindSource(WindSource):
         """
         Interpolate the wind vector at a given position using measured data.
         """
-        assert Point([x, y]).within(self.domain, f"Point ({x:.1f},{y:.1f}) is out of the domain")
+        assert Point([x, y]).within(self.domain), f"Point ({x:.1f},{y:.1f}) is out of the domain"
         vx = griddata(self._collection.positions, self._collection.velocities_x, (x, y), *args, **kwargs)
         vy = griddata(self._collection.positions, self._collection.velocities_y, (x, y), *args, **kwargs)
         return WindVector((x, y), velocity=(vx, vy))
