@@ -30,7 +30,7 @@ class MeasuredWindSource(VectorSource):
     """
     Wind source based on measured wind vectors.
     """
-    def __init__(self, measurements: list[WindVector]):
+    def __init__(self, measurements: list[WindVector]=[]):
         self._collection = WindVectorCollection(measurements)
         super().__init__(self._collection.domain)
 
@@ -46,10 +46,12 @@ class MeasuredWindSource(VectorSource):
     def __get_vector__(self, x: float, y: float, *args, **kwargs) -> WindVector:
         return self._interpolate(x, y, *args, **kwargs)
     
-    def plot(self, lim: tuple[tuple, tuple], nx=30, ny=30, *args, **kwargs):
-        self.__plot__(lim, nx, ny, *args, **kwargs)
+    def plot(self, lim: tuple[tuple, tuple], nx=30, ny=30, ax=None, *args, **kwargs):
+        if ax is None:
+            _, ax = plt.subplots()
+        ax = self.__plot__(lim, nx, ny, ax=ax, *args, **kwargs)
         for w in self._collection:
-            plt.quiver(w.x, w.y, w.vx, w.vy, color='red', scale=80)
+            ax.quiver(w.x, w.y, w.vx, w.vy, color='red', scale=80)
     
     @property
     def x_max(self) -> float:

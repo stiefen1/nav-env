@@ -74,3 +74,9 @@ class Vector:
 
     def __str__(self) -> str:
         return f"WindVector Object : Pos: {self.position} Vel: {self.vector}"
+    
+    def __mul__(self, other: float) -> "Vector":
+        return Vector(self.position, vector=(self.vx * other, self.vy * other))
+    
+    def __add__(self, other: "Vector") -> "Vector":
+        return Vector(self.position, vector=(self.vx + other.vx, self.vy + other.vy))

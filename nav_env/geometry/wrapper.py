@@ -1,7 +1,10 @@
-from shapely import Polygon, LineString, Geometry, affinity
+from shapely import Polygon, LineString, Geometry, affinity, Point
 import numpy as np, matplotlib.pyplot as plt
+import os
+os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"
 import pygame
 from copy import deepcopy
+from typing import Any
 
 
 class GeometryWrapper:
@@ -35,20 +38,27 @@ class GeometryWrapper:
         ax.scatter(*self.xy, **kwargs)
         return ax
     
-    def draw(self, ax=None, **kwargs):
+    def draw(self, screen, **kwargs):
         """
         Draw the geometry for pygame.
         """
-        if ax is None:
-            ax = pygame.display.get_surface()
-        pygame.draw.polygon(ax, (0, 0, 0), self.xy, **kwargs)
-        return ax
+        # print(self.xy)
+        pygame.draw.polygon(screen, (255, 0, 0), self.xy_as_list(self.xy), **kwargs)
+
+    def xy_as_list(self, xy) -> list:
+        return list(zip(*xy))
+    
+    def get_xy_as_list(self) -> list:
+        return self.xy_as_list(self.xy)
 
     def __call__(self) -> LineString:
         return self._geometry
     
     def __repr__(self) -> str:
         return f"GeometryWrapper({self._geometry})"
+    
+    def __len__(self) -> int:
+        return len(self.xy[0])
     
     @property
     def xy(self) -> tuple:
@@ -74,10 +84,18 @@ class GeometryWrapper:
         new._geometry = affinity.rotate(self._geometry, angle, origin=self.centroid, **kwargs)
         return new
     
+    def rotate_and_translate(self, x:float, y:float, angle:float, **kwargs) -> "GeometryWrapper":
+        new = deepcopy(self)
+        new._geometry = affinity.translate(affinity.rotate(new._geometry, angle, origin=self.centroid, **kwargs), x, y)
+        return new
+    
     """
     Wrapper for shapely methods. Inheritance is impossible due to the way Shapely is implemented.
     """
-    def interpolate(self, n_wpts:int) -> "GeometryWrapper":
+    def interpolate(self, coord, *args, **kwargs) -> Point:
+        return self._geometry.interpolate(coord, *args, **kwargs)
+    
+    def resample(self, n_wpts:int) -> "GeometryWrapper":
         new = deepcopy(self)
         new._geometry = self._geometry_type(self._geometry.interpolate(np.linspace(0, 1, n_wpts), normalized=True))
         return new

@@ -1,4 +1,4 @@
-from nav_env.obstacles.obstacles import Obstacle
+from nav_env.obstacles.obstacles import Obstacle, TimeVaryingObstacle
 import matplotlib.pyplot as plt
 import networkx as nx
 from copy import deepcopy
@@ -33,6 +33,14 @@ class ObstacleCollection:
         if recursive and some_obstacles_are_too_close(new_obstacles, min_distance):
             self.group_obstacles_closer_than(min_distance, recursive=True)
 
+    def get_group_of_obstacles_closer_than(self, min_distance:float) -> "ObstacleCollection":
+        """
+        Get a new collection of obstacles where obstacles closer than a given distance are combined.
+        """
+        new = deepcopy(self)
+        new.group_obstacles_closer_than(min_distance)
+        return new
+
     def buffer(self, distance:float, **kwargs) -> None:
         """
         Buffer the obstacles.
@@ -52,6 +60,13 @@ class ObstacleCollection:
             if text:
                 ax.text(*obs.centroid, f'{i}: {str(obs)}')
         return ax
+    
+    def draw(self, screen):
+        """
+        Draw the obstacles.
+        """
+        for obs in self._obstacles:
+            obs.draw(screen)
 
     def __getitem__(self, index: int) -> Obstacle:
         return self._obstacles[index]
@@ -65,6 +80,57 @@ class ObstacleCollection:
     def __iter__(self):
         for obs in self._obstacles:
             yield obs
+
+
+class TimeVaryingObstacleCollection:
+    def __init__(self, obstacles: list[TimeVaryingObstacle] = []):
+        self._obstacles = obstacles
+
+    def append(self, obstacle: TimeVaryingObstacle):
+        assert isinstance(obstacle, TimeVaryingObstacle), f"Obstacle must be an instance of Obstacle not {type(obstacle)}"
+        self._obstacles.append(obstacle)
+
+    def remove(self, obstacle: TimeVaryingObstacle):
+        self._obstacles.remove(obstacle)
+
+    def plot3(self, t:float, ax=None, **kwargs):
+        """
+        Plot the obstacles in 3D.
+        """
+        if ax is None:
+            _, ax = plt.subplots(subplot_kw={'projection': '3d'})
+
+        for obs in self._obstacles:
+            obs.plot3(t, ax=ax, **kwargs)
+        return ax
+    
+    def quiver_speed(self, ax=None, **kwargs):
+        """
+        Plot the speed of the obstacles.
+        """
+        if ax is None:
+            _, ax = plt.subplots()
+
+        for obs in self._obstacles:
+            obs.quiver_speed(ax=ax, **kwargs)
+        return ax
+
+    def __call__(self, t:float) -> ObstacleCollection:
+        return ObstacleCollection([obs(t) for obs in self._obstacles])
+
+    def __getitem__(self, index: int) -> Obstacle:
+        return self._obstacles[index]
+    
+    def __len__(self) -> int:
+        return len(self._obstacles)
+
+    def __repr__(self):
+        return f"ObstacleCollection({len(self._obstacles)} obstacles)"
+
+    def __iter__(self):
+        for obs in self._obstacles:
+            yield obs
+
 
 def get_graph_of_connected_obstacles(obstacles: ObstacleCollection, min_distance:float) -> nx.Graph:
     """
@@ -103,7 +169,7 @@ def some_obstacles_are_too_close(obstacles:list[Obstacle], min_distance:float) -
                     return True
     return False
 
-def test():
+def test_collection():
     from nav_env.obstacles.obstacles import Circle
     from nav_env.obstacles.obstacles import Obstacle
     import numpy as np
@@ -133,7 +199,43 @@ def test():
     obstacles.plot(text=True)
     plt.show()
 
+def test_time_varying_collection():
+    import time
+    o1 = TimeVaryingObstacle(lambda t: (t, -t, t*10), xy=[(0, 0), (2, 0), (2, 2), (0, 2)]).rotate(45).translate(0., 9.)
+    o2 = TimeVaryingObstacle(lambda t: (t, t, t*20), xy=[(0, 0), (2, 0), (2, 2), (0, 2)]).rotate(45).translate(0., 0.)
+    coll = TimeVaryingObstacleCollection([o1, o2])
+    ax = coll(0).plot()
+    ax.set_xlim(0, 10)
+    ax.set_ylim(0, 10)
+    plt.pause(1)
+
+    dt:float = 0.02
+    start = time.time()
+    while True:
+        start_loop = time.time()
+        ax.cla()
+        ax.set_xlim(0, 10)
+        ax.set_ylim(0, 10)
+        t = time.time() - start
+        coll(t).get_group_of_obstacles_closer_than(1.).plot(ax=ax)
+        
+        if (t % 1) > (1-dt):
+            inter = time.time()
+            print(t, inter - start)
+        
+        end = time.time()
+        if end - start_loop < dt:
+            plt.pause(dt - (end - start_loop))
+        else:
+            print("Loop took too long")
+            break
+
+        if t > 10:
+            break
+
 if __name__ == "__main__":
-    test()
+    # test_collection()
+    test_time_varying_collection()
+
 
     

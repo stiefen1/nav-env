@@ -19,10 +19,13 @@ class VectorSource(ABC):
         assert_tuple_2d_position(position)
         return self.__get_vector__(*position, *args, **kwargs)
     
-    def __plot__(self, lim: tuple[tuple, tuple], nx=30, ny=30, *args, **kwargs):
+    def __plot__(self, lim: tuple[tuple, tuple], nx=30, ny=30, ax=None, *args, **kwargs):
         """
         Plot the wind field over a specified range.
         """
+        if ax is None:
+            _, ax = plt.subplots()
+
         x_min, y_min = lim[0]
         x_max, y_max = lim[1]
         x_mean, y_mean = (x_min + x_max) / 2, (y_min + y_max) / 2
@@ -37,11 +40,17 @@ class VectorSource(ABC):
                     zz[j, i] = self((x[i], y[j]), *args, **kwargs).intensity
                 except:
                     zz[j, i] = np.nan
-        _, ax = plt.subplots()
         cont = ax.contourf(xx, yy, zz)
         plt.colorbar(cont)
         ax.set_xlim((x_min - x_mean) * 1.2 + x_mean, (x_max - x_mean) * 1.2 + x_mean)
         ax.set_ylim((y_min - y_mean) * 1.2 + y_mean, (y_max - y_mean) * 1.2 + y_mean)
+        return ax
+
+    def draw():
+        """
+        Draw the vector source for pygame.
+        """
+        pass
 
     def __repr__(self):
         return f"{self.__class__.__name__}"

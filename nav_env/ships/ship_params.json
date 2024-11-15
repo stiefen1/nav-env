@@ -1,0 +1,14 @@
+{
+    "mass": 50000.0,
+    "inertia": 200000.0,
+    "length": 300.0,
+    "width": 50.0,
+    "xg": 10.0,
+    "yg": 5.0,
+    "xw": 15.0,
+    "yw": 7.0,
+    "xg_prime": 12.0,
+    "yg_prime": 6.0,
+    "xw_prime": 18.0,
+    "yw_prime": 8.0
+}
