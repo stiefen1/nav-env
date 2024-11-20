@@ -33,15 +33,15 @@ class ObstacleCollection:
         if recursive and some_obstacles_are_too_close(new_obstacles, min_distance):
             self.group_obstacles_closer_than(min_distance, recursive=True)
 
-    def get_group_of_obstacles_closer_than(self, min_distance:float) -> "ObstacleCollection":
+    def get_group_of_obstacles_closer_than(self, min_distance:float, recursive:bool=False) -> "ObstacleCollection":
         """
         Get a new collection of obstacles where obstacles closer than a given distance are combined.
         """
         new = deepcopy(self)
-        new.group_obstacles_closer_than(min_distance)
+        new.group_obstacles_closer_than(min_distance, recursive=recursive)
         return new
 
-    def buffer(self, distance:float, **kwargs) -> None:
+    def buffer(self, distance:float, **kwargs) -> "ObstacleCollection":
         """
         Buffer the obstacles.
         """
