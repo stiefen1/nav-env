@@ -18,7 +18,7 @@ class GeometryWrapper:
         else:
             raise ValueError("Either xy or polygon must be provided.")
 
-    def plot(self, ax=None, **kwargs):
+    def plot(self, *args, ax=None, **kwargs):
         """
         Plot the geometry.
         """
@@ -26,24 +26,24 @@ class GeometryWrapper:
         if ax is None:
             _, ax = plt.subplots()
         
-        ax.plot(*self.xy, **kwargs)
+        ax.plot(*self.xy, *args, **kwargs)
         return ax
     
-    def scatter(self, ax=None, **kwargs):
+    def scatter(self, *args, ax=None, **kwargs):
         """
         Scatter plot the geometry.
         """
         if ax is None:
             _, ax = plt.subplots()
-        ax.scatter(*self.xy, **kwargs)
+        ax.scatter(*self.xy, *args, **kwargs)
         return ax
     
-    def draw(self, screen, **kwargs):
+    def draw(self, screen, *args, **kwargs):
         """
         Draw the geometry for pygame.
         """
         # print(self.xy)
-        pygame.draw.polygon(screen, (255, 0, 0), self.xy_as_list(self.xy), **kwargs)
+        pygame.draw.polygon(screen, (255, 0, 0), self.xy_as_list(self.xy), *args, **kwargs)
 
     def xy_as_list(self, xy) -> list:
         return list(zip(*xy))
