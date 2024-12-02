@@ -18,7 +18,7 @@ FPS = 60
 
 pygame.init()
 
-class BaseViz:
+class PyGameScreen:
     def __init__(self, obstacles: ObstacleCollection):
         self.drawable = obstacles
         self.screen = pygame.display.set_mode(SCREEN_SIZE)

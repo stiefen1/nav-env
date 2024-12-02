@@ -67,7 +67,8 @@ class Vector:
         elif 'vector' in keys:
             vector: tuple = convert_any_to_tuple(kwargs['vector'])
         else:
-            raise KeyError("You must provide either two float (speed, direction) or a numpy array representing wind velocity vector")
+            self._vector = None
+            return 
         
         assert_tuple_2d_vector(vector)
         self._vector = vector

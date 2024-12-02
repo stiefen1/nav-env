@@ -41,7 +41,7 @@ class VectorSource(ABC):
                 except:
                     zz[j, i] = np.nan
         cont = ax.contourf(xx, yy, zz)
-        plt.colorbar(cont)
+        # plt.colorbar(cont, ax=ax)
         ax.set_xlim((x_min - x_mean) * 1.2 + x_mean, (x_max - x_mean) * 1.2 + x_mean)
         ax.set_ylim((y_min - y_mean) * 1.2 + y_mean, (y_max - y_mean) * 1.2 + y_mean)
         return ax

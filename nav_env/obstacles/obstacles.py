@@ -2,6 +2,7 @@ from shapely import Polygon, Point
 from nav_env.geometry.wrapper import GeometryWrapper
 from typing import Callable
 import matplotlib.pyplot as plt
+from shapely import affinity
 
 class Obstacle(GeometryWrapper):
     def __init__(self, xy: list=None, polygon: Polygon=None, geometry_type: type=Polygon):
@@ -45,7 +46,42 @@ class Circle(Obstacle):
     def __repr__(self):
         return f"Circle({self.radius:.2f} at {self.center[0]:.2f}, {self.center[1]:.2f})"
     
-class TimeVaryingObstacle(Obstacle):
+class Ellipse(Obstacle):
+    def __init__(self, x, y, a, b):
+        super().__init__(polygon=affinity.scale(Point([x, y]).buffer(1), a, b))
+        self._a = a
+        self._b = b
+
+    @property
+    def a(self):
+        return self._a
+    
+    @property
+    def b(self):
+        return self._b
+    
+    @property
+    def center(self):
+        return self.centroid
+    
+    @a.setter
+    def a(self, value):
+        self._a = value
+        self._geometry = affinity.scale(Point(self.center).buffer(1), self._a, self._b)
+    
+    @b.setter
+    def b(self, value):
+        self._b = value
+        self._geometry = affinity.scale(Point(self.center).buffer(1), self._a, self._b)
+    
+    @center.setter
+    def center(self, value:tuple):
+        self.centroid = value
+    
+    def __repr__(self):
+        return f"Ellipse({self.a:.2f}, {self.b:.2f} at {self.center[0]:.2f}, {self.center[1]:.2f})"
+
+class ObstacleWithKinematics(Obstacle):
     """
     Model an obstacle that changes over time.
     """
@@ -71,7 +107,7 @@ class TimeVaryingObstacle(Obstacle):
     
     def quiver_speed(self, ax=None, c='b', **kwargs):
         """
-        Plot the speed of the obstacle at a given time.
+        Plot the speed of the obstacle.
         """
         if ax is None:
             _, ax = plt.subplots()
@@ -84,7 +120,10 @@ class TimeVaryingObstacle(Obstacle):
         return Obstacle(polygon=self._geometry).rotate_and_translate(*self._pose_fn(t))
 
     def __repr__(self):
-        return f"TimeVaryingObstacle({self.centroid[0]:.2f}, {self.centroid[1]:.2f}, {self.time:.2f})"
+        return f"ObstacleWithKinematics({self.centroid[0]:.2f}, {self.centroid[1]:.2f})"
+    
+    def get_pose_at(self, t) -> tuple[float, float, float]:
+        return self._pose_fn(t)
 
 def test_basic_obstacle():
     from matplotlib import pyplot as plt
@@ -104,16 +143,16 @@ def test_basic_obstacle():
 def show_time_varying_obstacle_as_3d():
     from matplotlib import pyplot as plt
     import numpy as np
-    from nav_env.obstacles.collection import TimeVaryingObstacleCollection, ObstacleCollection
+    from nav_env.obstacles.collection import ObstacleWithKinematicsCollection, ObstacleCollection
     from nav_env.obstacles.obstacles import Obstacle
     from scipy.spatial.transform import Rotation as R
 
-    o1 = TimeVaryingObstacle(pose_fn=lambda t: (t, t, 0), xy=[(0, 0), (2, 0), (2, 2), (0, 2)])
-    o2 = TimeVaryingObstacle(pose_fn=lambda t: (-2*t, -t, 0), xy=[(0, 0), (2, 0), (3, 1), (2, 2), (0, 2)]).rotate(40).translate(10, 5)
-    o3 = TimeVaryingObstacle(pose_fn=lambda t: (-1.2*t, -0.5*t, 0), xy=[(0, 0), (2, 0), (3, 1), (2, 2), (0, 2)]).rotate(40).translate(0, 5)
-    o4 = TimeVaryingObstacle(pose_fn=lambda t: (2*t, 0.2*t, 0), xy=[(0, 0), (2, 0), (3, 1), (2, 2), (0, 2)]).rotate(40).translate(-3, -5)
+    o1 = ObstacleWithKinematics(pose_fn=lambda t: (t, t, 0), xy=[(0, 0), (2, 0), (2, 2), (0, 2)])
+    o2 = ObstacleWithKinematics(pose_fn=lambda t: (-2*t, -t, 0), xy=[(0, 0), (2, 0), (3, 1), (2, 2), (0, 2)]).rotate(40).translate(10, 5)
+    o3 = ObstacleWithKinematics(pose_fn=lambda t: (-1.2*t, -0.5*t, 0), xy=[(0, 0), (2, 0), (3, 1), (2, 2), (0, 2)]).rotate(40).translate(0, 5)
+    o4 = ObstacleWithKinematics(pose_fn=lambda t: (2*t, 0.2*t, 0), xy=[(0, 0), (2, 0), (3, 1), (2, 2), (0, 2)]).rotate(40).translate(-3, -5)
     
-    coll = TimeVaryingObstacleCollection([o1, o2, o3, o4])
+    coll = ObstacleWithKinematicsCollection([o1, o2, o3, o4])
 
     fig = plt.figure()
     ax = fig.add_subplot(111, projection='3d')

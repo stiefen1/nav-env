@@ -46,7 +46,7 @@ class MeasuredWindSource(VectorSource):
     def __get_vector__(self, x: float, y: float, *args, **kwargs) -> WindVector:
         return self._interpolate(x, y, *args, **kwargs)
     
-    def plot(self, lim: tuple[tuple, tuple], nx=30, ny=30, ax=None, *args, **kwargs):
+    def plot(self, lim: tuple[tuple, tuple]=((-10, -10), (10, 10)), nx=30, ny=30, ax=None, *args, **kwargs):
         if ax is None:
             _, ax = plt.subplots()
         ax = self.__plot__(lim, nx, ny, ax=ax, *args, **kwargs)
@@ -90,7 +90,7 @@ def test():
 
     src = MeasuredWindSource([w1, w2, w3, w4, w5])
     lim = ((src.x_min, src.y_min), (src.x_max, src.y_max))
-    src.plot(lim, nx=20, ny=20, method='cubic')
+    src.plot(lim=lim, nx=20, ny=20, method='cubic')
     plt.show()
 
 if __name__ == "__main__":

@@ -1,4 +1,4 @@
-from nav_env.obstacles.obstacles import Obstacle, TimeVaryingObstacle
+from nav_env.obstacles.obstacles import Obstacle, ObstacleWithKinematics
 import matplotlib.pyplot as plt
 import networkx as nx
 from copy import deepcopy
@@ -82,18 +82,18 @@ class ObstacleCollection:
             yield obs
 
 
-class TimeVaryingObstacleCollection:
-    def __init__(self, obstacles: list[TimeVaryingObstacle] = []):
+class ObstacleWithKinematicsCollection:
+    def __init__(self, obstacles: list[ObstacleWithKinematics] = []):
         self._obstacles = obstacles
 
-    def append(self, obstacle: TimeVaryingObstacle):
-        assert isinstance(obstacle, TimeVaryingObstacle), f"Obstacle must be an instance of Obstacle not {type(obstacle)}"
+    def append(self, obstacle: ObstacleWithKinematics):
+        assert isinstance(obstacle, ObstacleWithKinematics), f"Obstacle must be an instance of Obstacle not {type(obstacle)}"
         self._obstacles.append(obstacle)
 
-    def remove(self, obstacle: TimeVaryingObstacle):
+    def remove(self, obstacle: ObstacleWithKinematics):
         self._obstacles.remove(obstacle)
 
-    def plot3(self, t:float, ax=None, **kwargs):
+    def plot3(self, t:float|tuple[float, float], ax=None, **kwargs):
         """
         Plot the obstacles in 3D.
         """
@@ -201,9 +201,9 @@ def test_collection():
 
 def test_time_varying_collection():
     import time
-    o1 = TimeVaryingObstacle(lambda t: (t, -t, t*10), xy=[(0, 0), (2, 0), (2, 2), (0, 2)]).rotate(45).translate(0., 9.)
-    o2 = TimeVaryingObstacle(lambda t: (t, t, t*20), xy=[(0, 0), (2, 0), (2, 2), (0, 2)]).rotate(45).translate(0., 0.)
-    coll = TimeVaryingObstacleCollection([o1, o2])
+    o1 = ObstacleWithKinematics(lambda t: (t, -t, t*10), xy=[(0, 0), (2, 0), (2, 2), (0, 2)]).rotate(45).translate(0., 9.)
+    o2 = ObstacleWithKinematics(lambda t: (t, t, t*20), xy=[(0, 0), (2, 0), (2, 2), (0, 2)]).rotate(45).translate(0., 0.)
+    coll = ObstacleWithKinematicsCollection([o1, o2])
     ax = coll(0).plot()
     ax.set_xlim(0, 10)
     ax.set_ylim(0, 10)
@@ -228,7 +228,7 @@ def test_time_varying_collection():
             plt.pause(dt - (end - start_loop))
         else:
             print("Loop took too long")
-            break
+            
 
         if t > 10:
             break
