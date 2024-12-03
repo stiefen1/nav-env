@@ -21,7 +21,7 @@ class ShipWithDynamicsBase(ABC):
         self._states = states
         self._physics = physics
         self._controller = controller
-        self._enveloppe = ShipEnveloppe(length=physics.length, width=physics.width)
+        self._enveloppe = ShipEnveloppe(length=physics.length, width=physics.width).rotate_and_translate(states.x, states.y, states.psi_deg)
         self._integrator = integrator
         self._derivatives = derivatives
         self._name = name
@@ -37,6 +37,7 @@ class ShipWithDynamicsBase(ABC):
         """
         Plot the ship.
         """
+        # TODO: Add forces / acceleration / speed / frame of reference to the plot
         return self._enveloppe.plot(**kwargs)
 
     def step(self, disturbances:DisturbanceCollection=DisturbanceCollection(), external_forces:GeneralizedForces=GeneralizedForces()):
@@ -126,7 +127,7 @@ class SimpleShip(ShipWithDynamicsBase):
         # x_dot = A * x, no acceleration
         self._derivatives.x_dot = self._states.x_dot
         self._derivatives.y_dot = self._states.y_dot
-        self._derivatives.psi_dot = self._states.psi_dot
+        self._derivatives.psi_dot_deg = self._states.psi_dot_deg
         self._derivatives.x_dot_dot = 0.
         self._derivatives.y_dot_dot = 0.
         self._derivatives.psi_dot_dot = 0.
@@ -148,16 +149,20 @@ class Ship(ShipWithDynamicsBase):
         self._derivatives = self._physics.get_time_derivatives(self._states)
 
 def test():
-    import matplotlib.pyplot as plt
     from nav_env.viz.matplotlib_screen import MatplotlibScreen as Screen
     from nav_env.environment.environment import NavigationEnvironment as Env
     from nav_env.ships.collection import ShipCollection
 
     dt = 0.03
-    x0 = ShipStates3(0., 0., 0., 1., 2., 10)
+    x0 = ShipStates3(0., 0., 180., 20., 20., 100.) # 0., 0., -180., 0., 10., 0. --> Effet d'emballement, comme si un coefficient de frotement était négatif
     ship = Ship(x0, integrator=Euler(dt))
-    xlim, ylim = (-300, -300), (300, 300)
-    env = Env(own_ships=ShipCollection([ship]))
+    # ship2 = Ship(ShipStates3(0., 0., -70., 10., 0., -20.), integrator=Euler(dt))
+    # ship3 = Ship(ShipStates3(10., -100., -30., 0., 0., 0.), integrator=Euler(dt))
+    # ship4 = Ship(ShipStates3(250., -200., 0., 0., 0., 60.), integrator=Euler(dt))
+    # ship5 = Ship(ShipStates3(250., 250., 80., -20., -20., 10.), integrator=Euler(dt))
+    lim = 300
+    xlim, ylim = (-lim, -lim), (lim, lim)
+    env = Env(own_ships=ShipCollection([ship]))#, ship2, ship3, ship4, ship5]))
     screen = Screen(env, lim=(xlim, ylim))
     screen.play(dt=dt, tf=20)
 

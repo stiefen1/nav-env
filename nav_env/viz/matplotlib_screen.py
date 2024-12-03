@@ -21,6 +21,11 @@ for t in range(T):
     env.render()
 
 """
+
+# TODO: Make Screen able to play any sort of playable object, not only environments. 
+# This would allow us to play a simulation of a single ship.
+# We could add element to the screen, in a "PlayableCollection" object for instance.
+
 class MatplotlibScreen:
     def __init__(self, env:NavigationEnvironment, lim:tuple[tuple, tuple]=((-10, -10), (10, 10)), ax=None):
         self._env = env

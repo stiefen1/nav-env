@@ -15,6 +15,7 @@ SCREEN_SIZE = (800, 600)
 SCREEN_COLOR = (100, 200, 255)
 FPS = 60
 
+# TODO: Regarder ce qu'on peut faire avec pygame.transform (https://www.pygame.org/docs/ref/transform.html) pour changer de référentiel / scale
 
 pygame.init()
 
@@ -84,7 +85,7 @@ def test():
         o = Obstacle(xy=xy).convex_hull().translate(np.random.uniform(xmin, xmax), np.random.uniform(ymin, ymax))
         obstacles.append(o)
 
-    viz = BaseViz(obstacles)
+    viz = PyGameScreen(obstacles)
     viz.run()
 
 if __name__ == "__main__":
