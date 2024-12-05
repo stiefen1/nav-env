@@ -186,7 +186,7 @@ class ShipPhysics:
         return ShipTimeDerivatives3(states.x_dot, states.y_dot, states.psi_dot_deg, float(acc_in_world_frame[0]), float(acc_in_world_frame[1]), float(acc_in_world_frame[2])), GeneralizedForces(f_in_world[0], f_in_world[1], 0., 0., 0., f_in_world[2])
 
     def __repr__(self) -> str:
-        return f"{type(self).__name__} Object"
+        return "{} Object".format(type(self).__name__)
 
     @property
     def inv_mass_matrix(self) -> np.ndarray:
@@ -284,21 +284,21 @@ class ShipPhysics:
     def rho_a(self) -> float:
         return self._rho_a
     
-def test():
-    # Load the ship parameters from json file
+# def test():
+#     # Load the ship parameters from json file
 
-    ship_physics = ShipPhysics()
-    print(ship_physics)
-    print(ship_physics.inv_mass_matrix)
-    print(ship_physics.coriolis_matrix(1, 2, 3))
-    print(ship_physics.coriolis_added_mass_matrix(1, 2))
-    print(ship_physics.linear_damping_matrix)
-    print(ship_physics.nonlinear_damping_matrix(1, 2, 3))
+#     ship_physics = ShipPhysics()
+#     print(ship_physics)
+#     print(ship_physics.inv_mass_matrix)
+#     print(ship_physics.coriolis_matrix(1, 2, 3))
+#     print(ship_physics.coriolis_added_mass_matrix(1, 2))
+#     print(ship_physics.linear_damping_matrix)
+#     print(ship_physics.nonlinear_damping_matrix(1, 2, 3))
 
-    state = ShipStates3(1., 2., 3., 4., 5., 6.)
-    wind = WindVector((0., 0.), vector=(1., 0.))
+#     state = ShipStates3(1., 2., 3., 4., 5., 6.)
+#     wind = WindVector((0., 0.), vector=(1., 0.))
 
-    print(ship_physics.get_time_derivatives_and_forces(state, wind))
+#     print(ship_physics.get_time_derivatives_and_forces(state, wind))
 
-if __name__ == "__main__":
-    test()
+# if __name__ == "__main__":
+#     test()

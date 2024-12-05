@@ -3,7 +3,8 @@ from nav_env.ships.states import ShipStates3, ShipTimeDerivatives3
 from nav_env.wind.wind_vector import WindVector
 from nav_env.water.water_vector import WaterVector
 from nav_env.ships.params import ShipPhysicalParams
-from nav_env.ships.physics import ShipPhysics
+# from physics import ShipPhysics
+import nav_env.ships.physics as phy
 from nav_env.obstacles.ship import ShipEnveloppe
 from nav_env.obstacles.collection import ObstacleCollection
 from nav_env.simulation.integration import Integrator, Euler
@@ -16,7 +17,7 @@ from copy import deepcopy
 class ShipWithDynamicsBase(ABC):
     def __init__(self,
                  states:ShipStates3,
-                 physics:ShipPhysics=None,
+                 physics:phy.ShipPhysics=None,
                  controller:ControllerBase=None,
                  integrator:Integrator=None,
                  derivatives:ShipTimeDerivatives3=None,
@@ -24,7 +25,7 @@ class ShipWithDynamicsBase(ABC):
                  ):
         self._states = states
         self._initial_states = deepcopy(states)
-        self._physics = physics or ShipPhysics()
+        self._physics = physics or phy.ShipPhysics()
         self._controller = controller or Controller()
         self._integrator = integrator or Euler()
         self._derivatives = derivatives or ShipTimeDerivatives3()
@@ -174,7 +175,7 @@ class ShipWithDynamicsBase(ABC):
         return self._states.x, self._states.y
     
     @property
-    def physics(self) -> ShipPhysics:
+    def physics(self) -> phy.ShipPhysics:
         return self._physics
     
     @property
@@ -188,7 +189,7 @@ class ShipWithDynamicsBase(ABC):
 class SimpleShip(ShipWithDynamicsBase):
     def __init__(self,
                  states:ShipStates3 = None,
-                 physics:ShipPhysics = None,
+                 physics:phy.ShipPhysics = None,
                  controller:ControllerBase = None,
                  integrator:Integrator = None,
                  derivatives:ShipTimeDerivatives3 = None, 
@@ -212,7 +213,7 @@ class SimpleShip(ShipWithDynamicsBase):
 class Ship(ShipWithDynamicsBase):
     def __init__(self, 
                  states:ShipStates3 = None,
-                 physics:ShipPhysics = None,
+                 physics:phy.ShipPhysics = None,
                  controller:ControllerBase = None,
                  integrator:Integrator = None,
                  derivatives:ShipTimeDerivatives3 = None, 
