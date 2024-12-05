@@ -17,6 +17,12 @@ class GeneralizedForces(Command):
         Plot the generalized forces.
         """
         return self.__plot__(xy, ['f_x', 'f_y'], *args, ax=ax, **kwargs)
+    
+    def draw(self, screen, xy, *args, scale=1, unit_scale=1, **kwargs):
+        """
+        Draw the vector for pygame.
+        """
+        self.__draw__(screen, xy, ['f_x', 'f_y'], *args, scale=scale, unit_scale=unit_scale, **kwargs)
 
     @property
     def f_x(self) -> float:

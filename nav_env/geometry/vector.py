@@ -2,6 +2,7 @@ import numpy as np
 from shapely import Point
 from nav_env.geometry.utils import *
 import matplotlib.pyplot as plt
+import pygame
 
 class Vector:
     """
@@ -20,6 +21,16 @@ class Vector:
             _, ax = plt.subplots()
         ax.quiver(self.x, self.y, self.vx, self.vy, **kwargs)
         return ax
+    
+    def draw(self, screen:pygame.Surface, *args, scale=1, **kwargs):
+        """
+        Draw the vector for pygame.
+        """
+        x, y = self.position
+        vx, vy = self.vector
+        x_end = x + vx * scale
+        y_end = y + vy * scale
+        pygame.draw.line(screen, (0, 255, 0), (x, y), (x_end, y_end), *args, **kwargs)
 
     @property
     def x(self) -> float:

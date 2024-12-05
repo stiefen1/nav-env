@@ -73,12 +73,12 @@ class ObstacleCollection:
                 ax.text(*obs.centroid, f'{i}: {str(obs)}')
         return ax
     
-    def draw(self, screen):
+    def draw(self, screen, scale=1, **kwargs):
         """
         Draw the obstacles.
         """
         for obs in self._obstacles:
-            obs.draw(screen)
+            obs.draw(screen, scale=scale)
 
     def __getitem__(self, index: int) -> Obstacle:
         return self._obstacles[index]

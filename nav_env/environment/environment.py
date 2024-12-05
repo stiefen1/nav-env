@@ -48,14 +48,16 @@ class NavigationEnvironment:
         ax.set_ylim((lim[0][1], lim[1][1]))
         return ax
     
-    def draw(self, t:float, screen, *args, **kwargs):
+    def draw(self, t:float, screen, own_ship_physics=['enveloppe', 'frame', 'acceleration', 'velocity', 'forces'], target_ship_physics=['enveloppe'], scale=1, **kwargs):
         """
         Draw the environment for pygame.
         """
-        self._shore.draw(screen, *args, **kwargs)
-        self._obstacles(t).draw(screen, *args, **kwargs)
-        self._wind_source.draw(screen, *args, **kwargs)
-        self._water_source.draw(screen, *args, **kwargs)
+        self._shore.draw(screen, scale=scale, **kwargs)
+        self._obstacles(t).draw(screen, scale=scale, **kwargs)
+        self._own_ships.draw(screen, keys=own_ship_physics, scale=scale, **kwargs)
+        self._target_ships.draw(screen, keys=target_ship_physics, scale=scale, **kwargs)
+        # self._wind_source.draw(screen, **kwargs)
+        # self._water_source.draw(screen, **kwargs)
     
     def __repr__(self):
         return f"NavigationEnvironment({len(self._obstacles)} obstacles, {self._wind_source})"

@@ -13,6 +13,7 @@ from nav_env.control.controller import ControllerBase, Controller
 from nav_env.control.states import DeltaStates
 import matplotlib.pyplot as plt
 from copy import deepcopy
+import pygame
 
 class ShipWithDynamicsBase(ABC):
     def __init__(self,
@@ -50,11 +51,20 @@ class ShipWithDynamicsBase(ABC):
         self._dx = None
         self._generalized_forces = GeneralizedForces()
 
-    def draw(self):
+    def draw(self, screen, *args, scale=1, keys=['enveloppe'], **kwargs):
         """
         Draw the ship for pygame.
         """
-        pass
+        if 'enveloppe' in keys:
+            self._enveloppe.draw(screen, *args, scale=scale, color=(10, 10, 10), **kwargs)
+        if 'frame' in keys:
+            self.draw_frame(screen, *args, scale=scale, **kwargs)
+        if 'velocity' in keys:
+            self._states.draw(screen, *args, scale=scale, color=(255, 165, 0), **kwargs)
+        if 'acceleration' in keys:
+            self._derivatives.draw_acc(screen, self._states.xy, *args, scale=scale, color=(160, 32, 240), **kwargs)
+        if 'forces' in keys:
+            self._generalized_forces.draw(screen, self._states.xy, *args, scale=scale, unit_scale=1e-4, color=(0, 0, 0), **kwargs)
 
     def plot(self, keys=['enveloppe'], ax=None, **kwargs):
         """
@@ -88,6 +98,28 @@ class ShipWithDynamicsBase(ABC):
         ax.quiver(*self._states.xy, *R[0, :], color='r', **kwargs)
         ax.quiver(*self._states.xy, *R[1, :], color='g', **kwargs)
         return ax
+    
+    def draw_frame(self, screen, *args, scale=1, **kwargs):
+        """
+        Draw the ship frame for pygame.
+        """
+        R = self._physics.rotation_matrix(self._states.psi_rad, dim=2)
+        screen_size = screen.get_size()
+        x, y = self._states.x, self._states.y
+        pygame.draw.line(screen, 
+                         (255, 0, 0),
+                         (scale*x + screen_size[0] // 2,
+                         screen_size[1] // 2 - scale*y),
+                         (scale*x + screen_size[0] // 2 + 100*scale*R[0, 0],
+                          screen_size[1] // 2 - scale*y - 100*scale*R[1, 0]),
+                          *args, **kwargs)
+        pygame.draw.line(screen,
+                         (0, 255, 0),
+                         (scale*x + screen_size[0] // 2,
+                          screen_size[1] // 2 - scale*y),
+                          (scale*x + screen_size[0] // 2 + 100*scale*R[0, 1],
+                           screen_size[1] // 2 - scale*y - 100*scale*R[1, 1]),
+                           *args, **kwargs)
 
     def step(self, wind:WindVector, water:WaterVector, external_forces:GeneralizedForces=GeneralizedForces(), update_enveloppe=True):
         """
@@ -228,7 +260,8 @@ class Ship(ShipWithDynamicsBase):
         self._derivatives, self._generalized_forces = self._physics.get_time_derivatives_and_forces(self._states, wind, water, external_forces=external_forces)
 
 def test():
-    from nav_env.viz.matplotlib_screen import MatplotlibScreen as Screen
+    # from nav_env.viz.matplotlib_screen import MatplotlibScreen as Screen
+    from nav_env.viz.pygame_screen import PyGameScreen as Screen
     from nav_env.environment.environment import NavigationEnvironment as Env
     from nav_env.ships.collection import ShipCollection
     from nav_env.wind.wind_source import UniformWindSource
@@ -236,20 +269,19 @@ def test():
     from nav_env.risk.ttg import TTG
     import time
 
-    dt = 0.1
+    dt = 0.05
     x0 = ShipStates3(0., 0., 180., 0., 0., 30.) # 0., 0., -180., 0., 10., 0. --> Effet d'emballement, comme si un coefficient de frotement était négatif
 
-    
 
     obs1 = Circle(0, 40, 50)
     ship = Ship(x0, integrator=Euler(dt), name="Ship1")
     ship2 = Ship(ShipStates3(-150., 50., -70., 10., 0., -20.), integrator=Euler(dt), name="Ship2")
-    # ship3 = Ship(ShipStates3(10., -100., -30., 0., 0., 0.), integrator=Euler(dt), name="Ship3")
-    # ship4 = Ship(ShipStates3(250., -200., 0., 0., 0., 60.), integrator=Euler(dt), name="Ship4")
+    ship3 = Ship(ShipStates3(10., -100., -30., 0., 0., 0.), integrator=Euler(dt), name="Ship3")
+    ship4 = Ship(ShipStates3(250., -200., 0., 0., 0., 60.), integrator=Euler(dt), name="Ship4")
     ship5 = Ship(ShipStates3(250., 250., 80., -20., -20., 10.), integrator=Euler(dt), name="Ship5")
     lim = 300
     xlim, ylim = (-lim, -lim), (lim, lim)
-    env = Env(own_ships=ShipCollection([ship]), wind_source=UniformWindSource(10, 45), shore=ObstacleCollection([obs1]))
+    env = Env(own_ships=ShipCollection([ship, ship2]), target_ships=ShipCollection([ship3, ship4, ship5]), wind_source=UniformWindSource(10, 45), shore=ObstacleCollection([obs1]))
 
     # env = Env(own_ships=ShipCollection([ship, ship2]), target_ships=ShipCollection([ship5]), wind_source=UniformWindSource(10, 45), shore=ObstacleCollection([obs1]))
 
@@ -262,7 +294,7 @@ def test():
     print(f"TTG: {ttg:.2f} computed in {end - start:.2f}s")
     ship2.reset()
 
-    screen = Screen(env, lim=(xlim, ylim))
+    screen = Screen(env, scale=1, lim=(xlim     , ylim))
     screen.play(dt=dt, tf=50)                 
 
 if __name__ == "__main__":

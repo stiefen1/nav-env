@@ -46,7 +46,7 @@ class VectorSource(ABC):
         ax.set_ylim((y_min - y_mean) * 1.2 + y_mean, (y_max - y_mean) * 1.2 + y_mean)
         return ax
     
-    def quiver(self, lim: tuple[tuple, tuple], *args, nx=10, ny=10, ax=None, **kwargs):
+    def quiver(self, lim: tuple[tuple, tuple], *args, nx=3, ny=3, ax=None, **kwargs):
         """
         Plot the wind field over a specified range.
         """

@@ -32,12 +32,12 @@ class ShipCollection:
 
         return ax
     
-    def draw(self, screen):
+    def draw(self, screen, keys=['enveloppe'], scale=1, **kwargs):
         """
         Draw the ships.
         """
         for ship in self._ships:
-            ship.draw(screen)
+            ship.draw(screen, keys=keys, scale=scale, **kwargs)
 
     def get_except(self, ship: ShipWithDynamicsBase):
         """

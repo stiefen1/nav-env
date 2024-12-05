@@ -10,6 +10,12 @@ class ShipStates3(States):
         Plot the state vector.
         """
         return self.__plot__(self.xy, ['x_dot', 'y_dot'], *args, ax=ax, **kwargs)
+    
+    def draw(self, screen, *args, scale=1, unit_scale=10, color=(255, 0, 0), **kwargs):
+        """
+        Draw the vector for pygame.
+        """
+        self.__draw__(screen, self.xy, ['x_dot', 'y_dot'], *args, scale=scale, unit_scale=unit_scale, color=color, **kwargs)
 
     @property
     def x(self) -> float:
@@ -107,6 +113,12 @@ class ShipTimeDerivatives3(TimeDerivatives):
         Plot the state vector.
         """
         return self.__plot__(xy, ['x_dot', 'y_dot'], *args, ax=ax, **kwargs)
+    
+    def draw_acc(self, screen, xy, *args, scale=1, unit_scale=50, color=(255, 0, 0), **kwargs):
+        """
+        Draw the vector for pygame.
+        """
+        self.__draw__(screen, xy, ['x_dot_dot', 'y_dot_dot'], *args, scale=scale, unit_scale=unit_scale, color=color, **kwargs)
 
     @property
     def x_dot(self) -> float:

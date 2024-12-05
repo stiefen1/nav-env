@@ -2,6 +2,7 @@ from dataclasses import dataclass
 import numpy as np
 from abc import abstractmethod, ABC
 import matplotlib.pyplot as plt
+import pygame
 
 """
 Ideal usage:
@@ -30,6 +31,22 @@ class BaseStateVector(ABC):
         
         ax.quiver(*xy, self.__dict__[keys[0]], self.__dict__[keys[1]], *args, **kwargs)
         return ax
+    
+    def __draw__(self, screen:pygame.Surface, xy, keys, *args, color=(0, 255, 0), scale=1, unit_scale=1, **kwargs):
+        """
+        Draw the vector for pygame.
+        """
+        vx, vy = self.__dict__[keys[0]], self.__dict__[keys[1]]
+        x, y = xy
+        screen_size = screen.get_size()
+
+        x = scale * x + screen_size[0] // 2
+        y = screen_size[1] // 2 - scale * y
+
+        x_tip = x + unit_scale * scale * vx
+        y_tip = y - unit_scale * scale * vy
+
+        pygame.draw.line(screen, color, (x, y), (x_tip, y_tip), *args, **kwargs)
 
     def __mul__wrapper__(self, scalar:float, output_type):
         new_values = tuple([value * scalar for value in self.__dict__.values()])

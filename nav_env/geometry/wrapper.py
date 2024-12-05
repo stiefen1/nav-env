@@ -37,13 +37,15 @@ class GeometryWrapper:
             _, ax = plt.subplots()
         ax.scatter(*self.xy, *args, **kwargs)
         return ax
-    
-    def draw(self, screen, *args, **kwargs):
+
+    def draw(self, screen:pygame.Surface, *args, scale=1, color=(255, 0, 0), **kwargs):
         """
         Draw the geometry for pygame.
         """
-        # print(self.xy)
-        pygame.draw.polygon(screen, (255, 0, 0), self.xy_as_list(self.xy), *args, **kwargs)
+        screen_size = screen.get_size()
+        transformed_points = [(scale*x + screen_size[0] // 2, screen_size[1] // 2 - scale*y) for x, y in self.get_xy_as_list()]
+        pygame.draw.polygon(screen, color, transformed_points, *args, width=scale, **kwargs)
+
 
     def xy_as_list(self, xy) -> list:
         return list(zip(*xy))
