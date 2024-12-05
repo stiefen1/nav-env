@@ -2,7 +2,8 @@ from abc import ABC, abstractmethod
 from nav_env.ships.states import ShipStates3, ShipTimeDerivatives3
 from nav_env.wind.wind_vector import WindVector
 from nav_env.water.water_vector import WaterVector
-from nav_env.ships.params import ShipPhysicalParams, ShipPhysics
+from nav_env.ships.params import ShipPhysicalParams
+from nav_env.ships.physics import ShipPhysics
 from nav_env.obstacles.ship import ShipEnveloppe
 from nav_env.obstacles.collection import ObstacleCollection
 from nav_env.simulation.integration import Integrator, Euler
@@ -10,7 +11,6 @@ from nav_env.control.command import GeneralizedForces
 from nav_env.control.controller import ControllerBase, Controller
 from nav_env.control.states import DeltaStates
 import matplotlib.pyplot as plt
-from math import cos, sin
 from copy import deepcopy
 
 class ShipWithDynamicsBase(ABC):
@@ -67,11 +67,11 @@ class ShipWithDynamicsBase(ABC):
         if 'frame' in keys:
             self.plot_frame(ax=ax, **kwargs)
         if 'acceleration' in keys:
-            self._derivatives.plot_acc(self._states.xy, ax=ax, color='blue', **kwargs)
+            self._derivatives.plot_acc(self._states.xy, ax=ax, color='purple', angles='xy', scale_units='xy', scale=5e-3, **kwargs)
         if 'velocity' in keys:
-            self._states.plot(ax=ax, color='black', **kwargs)
+            self._states.plot(ax=ax, color='orange', angles='xy', scale_units='xy', scale=1e-1,  **kwargs)
         if 'forces' in keys:
-            self._generalized_forces.plot(self._states.xy, ax=ax, color='orange', **kwargs)
+            self._generalized_forces.plot(self._states.xy, ax=ax, color='black', angles='xy', scale_units='xy', scale=1e3, **kwargs)
 
         # print(self.name, self._physics.generalized_forces.f_x / self._derivatives.x_dot_dot, self._physics.generalized_forces.f_y / self._derivatives.y_dot_dot)
         return ax
@@ -236,7 +236,7 @@ def test():
     import time
 
     dt = 0.1
-    x0 = ShipStates3(0., 0., 180., 0., 0., 0.) # 0., 0., -180., 0., 10., 0. --> Effet d'emballement, comme si un coefficient de frotement était négatif
+    x0 = ShipStates3(0., 0., 180., 0., 0., 30.) # 0., 0., -180., 0., 10., 0. --> Effet d'emballement, comme si un coefficient de frotement était négatif
 
     
 
@@ -248,7 +248,9 @@ def test():
     ship5 = Ship(ShipStates3(250., 250., 80., -20., -20., 10.), integrator=Euler(dt), name="Ship5")
     lim = 300
     xlim, ylim = (-lim, -lim), (lim, lim)
-    env = Env(own_ships=ShipCollection([ship, ship2]), target_ships=ShipCollection([ship5]), wind_source=UniformWindSource(10, 45), shore=ObstacleCollection([obs1]))
+    env = Env(own_ships=ShipCollection([ship]), wind_source=UniformWindSource(10, 45), shore=ObstacleCollection([obs1]))
+
+    # env = Env(own_ships=ShipCollection([ship, ship2]), target_ships=ShipCollection([ship5]), wind_source=UniformWindSource(10, 45), shore=ObstacleCollection([obs1]))
 
     start = time.time()
     # TODO: Make TTG work with multiple environment in parallel

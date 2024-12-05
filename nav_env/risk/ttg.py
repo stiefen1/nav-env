@@ -242,8 +242,8 @@ def show_ttg_contour_under_constant_uniform_perturbations():
     from nav_env.wind.wind_source import UniformWindSource
     from nav_env.risk.ttg import TTGUnderConstantUniformPerturbations
 
-    shore = ObstacleCollection([Circle(300., -0., 50.), Ellipse(800, -200, 40, 80)])
-    ship = Ship(integrator=Euler(1.), states=ShipStates3(0., 0., 60., 10., 10., 0.))
+    shore = ObstacleCollection([Circle(300., -0., 50.), Ellipse(400, -200, 40, 80)])
+    ship = Ship(integrator=Euler(1.), states=ShipStates3(0., 0., 60., 30., 10., 0.))
     wind_source = UniformWindSource(50, -50)
     env = NavigationEnvironment(wind_source=wind_source, shore=shore)  # Create a list of ships
     ttg_uniform = TTGUnderConstantUniformPerturbations(ship, env, t_max=100., precision_sec=0.1)
@@ -271,6 +271,6 @@ def show_ttg_contour_under_constant_uniform_perturbations():
 
 # Example usage
 if __name__ == "__main__":
-    test_parallel_ttg()
+    # test_parallel_ttg()
     # test_ttg_under_constant_uniform_perturbations()
-    # show_ttg_contour_under_constant_uniform_perturbations()
+    show_ttg_contour_under_constant_uniform_perturbations()
