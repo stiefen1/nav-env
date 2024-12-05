@@ -1,7 +1,5 @@
 from nav_env.environment.environment import NavigationEnvironment
-import time, matplotlib.pyplot as plt
-from nav_env.ships.ship import ShipWithDynamicsBase
-from nav_env.obstacles.ship import ShipWithKinematics
+import matplotlib.pyplot as plt, time
 
 # Maybe not the best architecture
 # Ideally we would have one class that runs simulation
@@ -29,32 +27,55 @@ for t in range(T):
 class MatplotlibScreen:
     def __init__(self, env:NavigationEnvironment, lim:tuple[tuple, tuple]=((-10, -10), (10, 10)), ax=None):
         self._env = env
+        self._lim = lim
         self._lim_x = (lim[0][0], lim[1][0])
         self._lim_y = (lim[0][1], lim[1][1])
+        self._dx = abs(self._lim_x[1] - self._lim_x[0]) # Maybe will be used for scaling vectors
+        self._dy = abs(self._lim_y[1] - self._lim_y[0])
         self._ax = ax
 
-    def play(self, t0:float=0, tf:float=10, dt:float=0.03, ax=None):
+    def play(self,
+             t0:float=0,
+             tf:float=10,
+             dt:float=0.03,
+             ax=None,
+             own_ships_physics=['enveloppe', 'frame', 'acceleration', 'velocity', 'forces'],
+             target_ships_physics=['enveloppe'],
+             **kwargs
+             ):
         """
         Play the environment during an interval of time.
         """
         if ax is None:
             _, ax = plt.subplots()
 
-        t_initial = time.time()
+        t = t0
         while True:
+            loop_start = time.time()
             ax.cla()
             ax.set_xlim(*self._lim_x)
             ax.set_ylim(*self._lim_y)
-            t = time.time() - t_initial
             self._env.step()
-            self._env.plot(t+t0, ax=ax)
+            self._env.plot(t, self._lim, own_ship_physics=own_ships_physics, target_ship_physics=target_ships_physics, ax=ax)
             ax.set_title(f"t = {t:.2f}")
-            plt.pause(dt)
+            t += dt
 
             if t > tf:
                 ax.set_title(f"t = {tf:.2f} : Done")
                 plt.waitforbuttonpress(120)
                 break
+
+            loop_end = time.time()
+            # print(f"{t:.2f} | Loop time: {loop_end - loop_start}")
+            plt.pause(max(1e-9, dt - (loop_end - loop_start)))
+
+    @property
+    def lim_x(self) -> tuple:
+        return self._lim_x
+    
+    @property
+    def lim_y(self) -> tuple:
+        return self._lim_y
 
             
 

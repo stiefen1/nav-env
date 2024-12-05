@@ -13,9 +13,8 @@ class RiskMetric(ABC):
     def plot(self, ax=None, **kwargs):
         pass
 
-    @abstractmethod
     def __repr__(self):
-        return "RiskMetric"
+        return f"{type(self).__name__} risk metric"
     
     @property
     def env(self):

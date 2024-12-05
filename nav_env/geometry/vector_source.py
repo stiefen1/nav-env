@@ -19,7 +19,7 @@ class VectorSource(ABC):
         assert_tuple_2d_position(position)
         return self.__get_vector__(*position, *args, **kwargs)
     
-    def __plot__(self, lim: tuple[tuple, tuple], nx=30, ny=30, ax=None, *args, **kwargs):
+    def __plot__(self, lim: tuple[tuple, tuple], *args, nx=10, ny=10, ax=None, **kwargs):
         """
         Plot the wind field over a specified range.
         """
@@ -44,6 +44,25 @@ class VectorSource(ABC):
         # plt.colorbar(cont, ax=ax)
         ax.set_xlim((x_min - x_mean) * 1.2 + x_mean, (x_max - x_mean) * 1.2 + x_mean)
         ax.set_ylim((y_min - y_mean) * 1.2 + y_mean, (y_max - y_mean) * 1.2 + y_mean)
+        return ax
+    
+    def quiver(self, lim: tuple[tuple, tuple], *args, nx=10, ny=10, ax=None, **kwargs):
+        """
+        Plot the wind field over a specified range.
+        """
+        if ax is None:
+            _, ax = plt.subplots()
+
+        x_min, y_min = lim[0]
+        x_max, y_max = lim[1]
+        x_mean, y_mean = (x_min + x_max) / 2, (y_min + y_max) / 2
+        
+        x = np.linspace(x_min, x_max, nx)
+        y = np.linspace(y_min, y_max, ny)
+        for xi in x:
+            for yi in y:
+                vec = self((xi, yi))
+                ax.quiver(vec.x, vec.y, vec.vx, vec.vy, **kwargs)
         return ax
 
     def draw():

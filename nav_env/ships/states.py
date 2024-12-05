@@ -5,6 +5,12 @@ class ShipStates3(States):
     def __init__(self, x:float=0., y:float=0., psi_deg:float=0., x_dot:float=0., y_dot:float=0., psi_dot_deg:float=0.):
         super().__init__(x=x, y=y, psi_deg=psi_deg, x_dot=x_dot, y_dot=y_dot, psi_dot_deg=psi_dot_deg)
 
+    def plot(self, *args, ax=None, **kwargs):
+        """
+        Plot the state vector.
+        """
+        return self.__plot__(self.xy, ['x_dot', 'y_dot'], *args, ax=ax, **kwargs)
+
     @property
     def x(self) -> float:
         return self['x']
@@ -89,6 +95,18 @@ class ShipStates3(States):
 class ShipTimeDerivatives3(TimeDerivatives):
     def __init__(self, x_dot:float=0., y_dot:float=0., psi_dot_deg:float=0., x_dot_dot:float=0., y_dot_dot:float=0., psi_dot_dot:float=0.):
         super().__init__(x_dot=x_dot, y_dot=y_dot, psi_dot_deg=psi_dot_deg, x_dot_dot=x_dot_dot, y_dot_dot=y_dot_dot, psi_dot_dot=psi_dot_dot)
+
+    def plot_acc(self, xy, *args, ax=None, **kwargs):
+        """
+        Plot the state vector.
+        """
+        return self.__plot__(xy, ['x_dot_dot', 'y_dot_dot'], *args, ax=ax, **kwargs)
+    
+    def plot_vel(self, xy, *args, ax=None, **kwargs):
+        """
+        Plot the state vector.
+        """
+        return self.__plot__(xy, ['x_dot', 'y_dot'], *args, ax=ax, **kwargs)
 
     @property
     def x_dot(self) -> float:

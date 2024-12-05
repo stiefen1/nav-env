@@ -16,13 +16,13 @@
         "help": "To be used in the linear damping matrix Dl = diag([mass / linear_friction_surge, mass / linear_friction_sway, inertia_z / linear_friction_yaw])",
         "surge": 130,
         "sway": 18,
-        "yaw": 90
+        "yaw": 0.01
     },
     "nonlinear_friction_coefficient": {
         "help": "The nonlinear friction model is represented as D(v) * V, with D(v) = diag(ku * u, kv * v, kr * r). ku, kv, kr corresponds to the coefficient stored here.",
         "surge": 2400, 
         "sway": 4000,
-        "yaw": 400
+        "yaw": 1
     },
     "added_mass_coefficient": {
         "help": "Allow to compute added mass in surge (mass * surge_coeff), sway (mass * sway_coeff) and yaw (i_z * yaw): ",

@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 import numpy as np
 from abc import abstractmethod, ABC
-
+import matplotlib.pyplot as plt
 
 """
 Ideal usage:
@@ -19,6 +19,17 @@ class BaseStateVector(ABC):
         else:
             for i, value in enumerate(args):
                 self.__dict__[f'x{i+1}'] = value
+
+    def __plot__(self, xy, keys, *args, ax=None, **kwargs):
+        """
+        Plot the state vector.
+        """
+
+        if ax is None:
+            _, ax = plt.subplots()
+        
+        ax.quiver(*xy, self.__dict__[keys[0]], self.__dict__[keys[1]], *args, **kwargs)
+        return ax
 
     def __mul__wrapper__(self, scalar:float, output_type):
         new_values = tuple([value * scalar for value in self.__dict__.values()])

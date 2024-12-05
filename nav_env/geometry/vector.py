@@ -1,6 +1,7 @@
 import numpy as np
 from shapely import Point
 from nav_env.geometry.utils import *
+import matplotlib.pyplot as plt
 
 class Vector:
     """
@@ -10,6 +11,15 @@ class Vector:
         self._parse_position(position)
         self._parse_args(*args)
         self._parse_kwargs(**kwargs)
+
+    def quiver(self, ax=None, **kwargs):
+        """
+        Plot the vector as a quiver.
+        """
+        if ax is None:
+            _, ax = plt.subplots()
+        ax.quiver(self.x, self.y, self.vx, self.vy, **kwargs)
+        return ax
 
     @property
     def x(self) -> float:
@@ -74,7 +84,10 @@ class Vector:
         self._vector = vector
 
     def __str__(self) -> str:
-        return f"WindVector Object : Pos: {self.position} Vel: {self.vector}"
+        return f"WindVector Object : Pos: {", ".join(f"{p:.3f}" for p in self.position)} Vel: {", ".join(f"{p:.3f}" for p in self.vector)}"
+    
+    def __repr__(self) -> str:
+        return self.__str__()
     
     def __mul__(self, other: float) -> "Vector":
         return Vector(self.position, vector=(self.vx * other, self.vy * other))

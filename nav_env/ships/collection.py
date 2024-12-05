@@ -1,16 +1,35 @@
 from nav_env.ships.ship import SimpleShip, ShipWithDynamicsBase
 from copy import deepcopy
+import matplotlib.pyplot as plt
+# from nav_env.environment.disturbances import DisturbanceCollection
+from nav_env.control.command import GeneralizedForces
+from nav_env.wind.wind_source import WindSource
+from nav_env.water.water_source import WaterSource
 
 class ShipCollection:
-    def __init__(self, ships: list[ShipWithDynamicsBase] = []):
-        self._ships = ships
+    def __init__(self, ships: list[ShipWithDynamicsBase] = None):
+        self._ships = ships or []
 
-    def plot(self, ax=None, **kwargs):
+    def step(self, wind:WindSource, water:WaterSource, external_forces:GeneralizedForces=GeneralizedForces()):
+        """
+        Step all ships.
+        """
+        for ship in self._ships:
+            xy = ship.states.xy
+            # print(ship.name, xy)
+            ship.step(wind(xy), water(xy), external_forces=external_forces)
+
+    def plot(self, ax=None, keys=['enveloppe'], **kwargs):
         """
         Plot the ships.
         """
+        if ax is None:
+            _, ax = plt.subplots()
+
         for ship in self._ships:
-            ship.plot(ax=ax, **kwargs)
+            ship.plot(ax=ax, keys=keys, **kwargs)
+            # print(ship.name, ship.physics.generalized_forces.f_x / ship.derivatives.x_dot_dot, ship.physics.generalized_forces.f_y / ship.derivatives.y_dot_dot)
+
         return ax
     
     def draw(self, screen):
@@ -56,10 +75,9 @@ class ShipCollection:
 
 def test():
     # TODO: Fix issue with __dict__when printing ships[0]
-    from nav_env.ships.states import ShipStates3
-    ship1 = SimpleShip(ShipStates3(), None)
-    ship2 = SimpleShip(ShipStates3(), None)
-    ship3 = SimpleShip(ShipStates3(), None)
+    ship1 = SimpleShip()
+    ship2 = SimpleShip()
+    ship3 = SimpleShip()
     ships = ShipCollection([ship1, ship2])
     new_coll = ships.get_except(ship2)
     ships.append(ship3)

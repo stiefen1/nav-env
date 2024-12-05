@@ -2,49 +2,50 @@ from nav_env.ships.collection import ShipCollection
 from nav_env.obstacles.collection import ObstacleWithKinematicsCollection, ObstacleCollection
 from nav_env.geometry.vector_source import VectorSource
 from nav_env.water.water_source import WaterSource
-from nav_env.wind.wind_source import MeasuredWindSource
+from nav_env.wind.wind_source import WindSource
 import matplotlib.pyplot as plt
-from nav_env.environment.disturbances import DisturbanceCollection
+from nav_env.control.command import GeneralizedForces
 
 
 class NavigationEnvironment:
     def __init__(self,
-                 own_ships:ShipCollection = ShipCollection(),
-                 target_ships:ShipCollection = ShipCollection(),
-                 obstacles: ObstacleWithKinematicsCollection = ObstacleWithKinematicsCollection(),
-                 shore: ObstacleCollection = ObstacleCollection(),
-                 wind_source:VectorSource = MeasuredWindSource(),
-                 water_source:WaterSource = WaterSource()
+                 own_ships:ShipCollection = None,
+                 target_ships:ShipCollection = None,
+                 obstacles: ObstacleWithKinematicsCollection = None,
+                 shore: ObstacleCollection = None,
+                 wind_source:WindSource = None,
+                 water_source:WaterSource = None
                  ): 
-        self._own_ships, self._target_ships = own_ships, target_ships # We allow to have multiple own ships
-        self._obstacles = obstacles # TODO: Separate shore from moving obstacles as we might want to consider them separately, e.g. for TTG
-        self._shore = shore
-        self._wind_source = wind_source
-        self._water_source = water_source
+        self._own_ships = own_ships or ShipCollection()
+        self._target_ships = target_ships or ShipCollection()
+        self._obstacles = obstacles or ObstacleWithKinematicsCollection() # TODO: Separate shore from moving obstacles as we might want to consider them separately, e.g. for TTG
+        self._shore = shore or ObstacleCollection()
+        self._wind_source = wind_source or WindSource()
+        self._water_source = water_source or WaterSource()
 
-    def step(self, external_forces:DisturbanceCollection=DisturbanceCollection()):
+    def step(self, external_forces:GeneralizedForces=GeneralizedForces()):
         """
         Step the environment.
         """
         # a ship also contains a controller
         # the environment only applies external conditions such as wind, water, obstacles
-        for ship in self._own_ships:
-            # wind = self._wind_source(ship.position)
-            # water = self._water_source(ship.position)
-            ship.step(DisturbanceCollection(), external_forces=external_forces)
+        self._own_ships.step(self._wind_source, self._water_source, external_forces=external_forces)
+        self._target_ships.step(self._wind_source, self._water_source, external_forces=external_forces)
 
-    def plot(self, t:float, ax=None, **kwargs):
+    def plot(self, t:float, lim:tuple, ax=None, own_ship_physics=['enveloppe', 'frame', 'acceleration', 'velocity', 'forces'], target_ship_physics=['enveloppe'], **kwargs):
         """
         Plot the environment.
         """
         if ax is None:
             _, ax = plt.subplots()
         self._shore.plot(ax=ax, **kwargs)
-        self._own_ships.plot(ax=ax, **kwargs)
-        self._target_ships.plot(ax=ax, **kwargs)
+        self._own_ships.plot(ax=ax, keys=own_ship_physics, **kwargs)
+        self._target_ships.plot(ax=ax, keys=target_ship_physics, **kwargs)
         self._obstacles(t).plot(ax=ax, **kwargs)
-        # self._wind_source.plot(ax=ax, **kwargs)
+        self._wind_source.quiver(lim, ax=ax, facecolor='grey', alpha=0.1, **kwargs)
         # self._water_source.plot(ax=ax, **kwargs)
+        ax.set_xlim((lim[0][0], lim[1][0]))
+        ax.set_ylim((lim[0][1], lim[1][1]))
         return ax
     
     def draw(self, t:float, screen, *args, **kwargs):
@@ -68,7 +69,7 @@ class NavigationEnvironment:
         return self._obstacles
     
     @property
-    def wind_source(self) -> VectorSource:
+    def wind_source(self) -> WindSource:
         return self._wind_source
     
     @property

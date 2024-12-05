@@ -46,8 +46,20 @@ class ObstacleCollection:
         Buffer the obstacles.
         """
         return ObstacleCollection([obs.buffer(distance, **kwargs) for obs in self._obstacles])
+    
+    def intersection(self, other, **kwargs) -> list:
+        """
+        Get the intersection of the obstacles with another geometry.
+        """
+        return [obs.intersection(other, **kwargs) for obs in self._obstacles]
+    
+    def translate(self, x:float, y:float) -> "ObstacleCollection":
+        """
+        Translate the obstacles.
+        """
+        return ObstacleCollection([obs.translate(x, y) for obs in self._obstacles])
 
-    def plot(self, ax=None, text=False, **kwargs):
+    def plot(self, *args, ax=None, text=False, **kwargs):
         """
         Plot the obstacles.
         """
@@ -56,7 +68,7 @@ class ObstacleCollection:
             _, ax = plt.subplots()
         
         for i, obs in enumerate(self._obstacles):
-            obs.plot(ax=ax, **kwargs)
+            obs.plot(*args, ax=ax, **kwargs)
             if text:
                 ax.text(*obs.centroid, f'{i}: {str(obs)}')
         return ax

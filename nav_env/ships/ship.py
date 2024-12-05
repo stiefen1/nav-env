@@ -1,31 +1,53 @@
 from abc import ABC, abstractmethod
 from nav_env.ships.states import ShipStates3, ShipTimeDerivatives3
-from nav_env.geometry.vector import Vector
+from nav_env.wind.wind_vector import WindVector
+from nav_env.water.water_vector import WaterVector
 from nav_env.ships.params import ShipPhysicalParams, ShipPhysics
 from nav_env.obstacles.ship import ShipEnveloppe
 from nav_env.obstacles.collection import ObstacleCollection
 from nav_env.simulation.integration import Integrator, Euler
 from nav_env.control.command import GeneralizedForces
 from nav_env.control.controller import ControllerBase, Controller
-from nav_env.environment.disturbances import DisturbanceCollection
+from nav_env.control.states import DeltaStates
+import matplotlib.pyplot as plt
+from math import cos, sin
+from copy import deepcopy
 
 class ShipWithDynamicsBase(ABC):
     def __init__(self,
                  states:ShipStates3,
-                 physics:ShipPhysics=ShipPhysics(),
-                 controller:ControllerBase=Controller(),
-                 integrator:Integrator=Euler(),
-                 derivatives:ShipTimeDerivatives3=ShipTimeDerivatives3(),
+                 physics:ShipPhysics=None,
+                 controller:ControllerBase=None,
+                 integrator:Integrator=None,
+                 derivatives:ShipTimeDerivatives3=None,
                  name:str="ShipWithDynamicsBase"
                  ):
         self._states = states
-        self._physics = physics
-        self._controller = controller
-        self._enveloppe = ShipEnveloppe(length=physics.length, width=physics.width).rotate_and_translate(states.x, states.y, states.psi_deg)
-        self._integrator = integrator
-        self._derivatives = derivatives
+        self._initial_states = deepcopy(states)
+        self._physics = physics or ShipPhysics()
+        self._controller = controller or Controller()
+        self._integrator = integrator or Euler()
+        self._derivatives = derivatives or ShipTimeDerivatives3()
+        self._enveloppe = self.get_initial_enveloppe()
         self._name = name
         self._dx = None # Initialize differential to None
+        self._accumulated_dx = DeltaStates(0., 0., 0., 0., 0., 0.) # Initialize accumulated differential to 0
+        self._generalized_forces = GeneralizedForces() # Initialize generalized forces acting on the ship to 0
+
+    def get_initial_enveloppe(self):
+        """
+        Initialize the enveloppe.
+        """
+        return ShipEnveloppe(length=self._physics.length, width=self._physics.width).rotate_and_translate(self._states.x, self._states.y, self._states.psi_deg)
+
+    def reset(self):
+        """
+        Reset the ship to its initial state.
+        """
+        self._states = deepcopy(self._initial_states)
+        self._enveloppe = self.get_initial_enveloppe()
+        self._dx = None
+        self._generalized_forces = GeneralizedForces()
 
     def draw(self):
         """
@@ -33,20 +55,54 @@ class ShipWithDynamicsBase(ABC):
         """
         pass
 
-    def plot(self, **kwargs):
+    def plot(self, keys=['enveloppe'], ax=None, **kwargs):
         """
-        Plot the ship.
+        Plot the ship. Add 'enveloppe', 'frame', 'acceleration', 'velocity', 'forces' to keys to plot the corresponding elements.
         """
         # TODO: Add forces / acceleration / speed / frame of reference to the plot
-        return self._enveloppe.plot(**kwargs)
+        if ax is None:
+            _, ax = plt.subplots()
+        if 'enveloppe' in keys:
+            self._enveloppe.plot(ax=ax, **kwargs)
+        if 'frame' in keys:
+            self.plot_frame(ax=ax, **kwargs)
+        if 'acceleration' in keys:
+            self._derivatives.plot_acc(self._states.xy, ax=ax, color='blue', **kwargs)
+        if 'velocity' in keys:
+            self._states.plot(ax=ax, color='black', **kwargs)
+        if 'forces' in keys:
+            self._generalized_forces.plot(self._states.xy, ax=ax, color='orange', **kwargs)
 
-    def step(self, disturbances:DisturbanceCollection=DisturbanceCollection(), external_forces:GeneralizedForces=GeneralizedForces()):
+        # print(self.name, self._physics.generalized_forces.f_x / self._derivatives.x_dot_dot, self._physics.generalized_forces.f_y / self._derivatives.y_dot_dot)
+        return ax
+    
+    def plot_frame(self, ax=None, **kwargs):
+        """
+        Plot the ship frame.
+        """
+        if ax is None:
+            _, ax = plt.subplots()
+
+        R = self._physics.rotation_matrix(self._states.psi_rad, dim=2)
+        ax.quiver(*self._states.xy, *R[0, :], color='r', **kwargs)
+        ax.quiver(*self._states.xy, *R[1, :], color='g', **kwargs)
+        return ax
+
+    def step(self, wind:WindVector, water:WaterVector, external_forces:GeneralizedForces=GeneralizedForces(), update_enveloppe=True):
         """
         Step the ship.
         """
-        self.update_derivatives(disturbances, external_forces)
+        self.update_derivatives(wind, water, external_forces)
         self.integrate()
-        self.update_enveloppe()
+
+        # This is a trick, to control when to update the enveloppe
+        # Since it is very time consuming, we can update it only when we need it
+        # using self._accumulated_dx 
+        if update_enveloppe:
+            self.update_enveloppe()
+        else:
+            self._accumulated_dx += self._dx
+            
         
     def integrate(self):
         """
@@ -60,6 +116,15 @@ class ShipWithDynamicsBase(ABC):
         else:
             raise UserWarning(f"self._dx is None, you must first call integrate()")
 
+    def update_enveloppe_from_accumulation(self):
+        """
+        Update the enveloppe from the accumulated differential.
+
+        WARNING!!! DONT USE THIS METHOD UNLESS YOU KNOW EXACTLY WHAT YOU ARE DOING
+        """
+        self._enveloppe = self._enveloppe.rotate_and_translate(self._accumulated_dx[0], self._accumulated_dx[1], self._accumulated_dx[2])
+        self._accumulated_dx = DeltaStates(0., 0., 0., 0., 0., 0.)
+
     def collide(self, obstacle:ObstacleCollection) -> bool:
         """
         Check if the ship collides with an obstacle.
@@ -70,7 +135,7 @@ class ShipWithDynamicsBase(ABC):
         return False
 
     @abstractmethod
-    def update_derivatives(self, disturbances:DisturbanceCollection, external_forces:GeneralizedForces):
+    def update_derivatives(self, wind:WindVector, water:WaterVector, external_forces:GeneralizedForces):
         """
         Update the derivatives of the states.
         """
@@ -108,19 +173,31 @@ class ShipWithDynamicsBase(ABC):
     def position(self) -> tuple:
         return self._states.x, self._states.y
     
+    @property
+    def physics(self) -> ShipPhysics:
+        return self._physics
+    
+    @property
+    def generalized_forces(self) -> GeneralizedForces:
+        """
+        Get the generalized forces acting on the ship.
+        """
+        return self._generalized_forces
+    
 
 class SimpleShip(ShipWithDynamicsBase):
     def __init__(self,
-                 states:ShipStates3 = ShipStates3(),
-                 physics:ShipPhysics = ShipPhysics(),
-                 controller:ControllerBase=Controller(),
-                 integrator:Integrator=Euler(),
-                 derivatives:ShipTimeDerivatives3=ShipTimeDerivatives3(), 
+                 states:ShipStates3 = None,
+                 physics:ShipPhysics = None,
+                 controller:ControllerBase = None,
+                 integrator:Integrator = None,
+                 derivatives:ShipTimeDerivatives3 = None, 
                  name:str="SimpleShip"
                  ):
+        states = states or ShipStates3()
         super().__init__(states=states, physics=physics, controller=controller, integrator=integrator, derivatives=derivatives, name=name)
 
-    def update_derivatives(self, disturbances:DisturbanceCollection, external_forces:GeneralizedForces):
+    def update_derivatives(self, wind:WindVector, water:WaterVector, external_forces:GeneralizedForces):
         """
         Update the derivatives of the states.
         """
@@ -134,57 +211,56 @@ class SimpleShip(ShipWithDynamicsBase):
 
 class Ship(ShipWithDynamicsBase):
     def __init__(self, 
-                 states:ShipStates3 = ShipStates3(),
-                 physics:ShipPhysics = ShipPhysics(),
-                 controller:ControllerBase=Controller(),
-                 integrator:Integrator=Euler(),
-                 derivatives:ShipTimeDerivatives3=ShipTimeDerivatives3(), 
+                 states:ShipStates3 = None,
+                 physics:ShipPhysics = None,
+                 controller:ControllerBase = None,
+                 integrator:Integrator = None,
+                 derivatives:ShipTimeDerivatives3 = None, 
                  name:str="Ship"):
+        states = states or ShipStates3()
         super().__init__(states=states, physics=physics, controller=controller, integrator=integrator, derivatives=derivatives, name=name)
 
-    def update_derivatives(self, disturbances:DisturbanceCollection, external_forces:GeneralizedForces):
+    def update_derivatives(self, wind:WindVector, water:WaterVector, external_forces:GeneralizedForces):
         """
         Update the derivatives of the states.
         """
-        self._derivatives = self._physics.get_time_derivatives(self._states)
+        self._derivatives, self._generalized_forces = self._physics.get_time_derivatives_and_forces(self._states, wind, water, external_forces=external_forces)
 
 def test():
     from nav_env.viz.matplotlib_screen import MatplotlibScreen as Screen
     from nav_env.environment.environment import NavigationEnvironment as Env
     from nav_env.ships.collection import ShipCollection
+    from nav_env.wind.wind_source import UniformWindSource
+    from nav_env.obstacles.obstacles import Circle
+    from nav_env.risk.ttg import TTG
+    import time
 
-    dt = 0.03
-    x0 = ShipStates3(0., 0., 180., 20., 20., 100.) # 0., 0., -180., 0., 10., 0. --> Effet d'emballement, comme si un coefficient de frotement était négatif
-    ship = Ship(x0, integrator=Euler(dt))
-    # ship2 = Ship(ShipStates3(0., 0., -70., 10., 0., -20.), integrator=Euler(dt))
-    # ship3 = Ship(ShipStates3(10., -100., -30., 0., 0., 0.), integrator=Euler(dt))
-    # ship4 = Ship(ShipStates3(250., -200., 0., 0., 0., 60.), integrator=Euler(dt))
-    # ship5 = Ship(ShipStates3(250., 250., 80., -20., -20., 10.), integrator=Euler(dt))
+    dt = 0.1
+    x0 = ShipStates3(0., 0., 180., 0., 0., 0.) # 0., 0., -180., 0., 10., 0. --> Effet d'emballement, comme si un coefficient de frotement était négatif
+
+    
+
+    obs1 = Circle(0, 40, 50)
+    ship = Ship(x0, integrator=Euler(dt), name="Ship1")
+    ship2 = Ship(ShipStates3(-150., 50., -70., 10., 0., -20.), integrator=Euler(dt), name="Ship2")
+    # ship3 = Ship(ShipStates3(10., -100., -30., 0., 0., 0.), integrator=Euler(dt), name="Ship3")
+    # ship4 = Ship(ShipStates3(250., -200., 0., 0., 0., 60.), integrator=Euler(dt), name="Ship4")
+    ship5 = Ship(ShipStates3(250., 250., 80., -20., -20., 10.), integrator=Euler(dt), name="Ship5")
     lim = 300
     xlim, ylim = (-lim, -lim), (lim, lim)
-    env = Env(own_ships=ShipCollection([ship]))#, ship2, ship3, ship4, ship5]))
+    env = Env(own_ships=ShipCollection([ship, ship2]), target_ships=ShipCollection([ship5]), wind_source=UniformWindSource(10, 45), shore=ObstacleCollection([obs1]))
+
+    start = time.time()
+    # TODO: Make TTG work with multiple environment in parallel
+    # TODO: Make Environment able to generate copy of it with perturbations (wind, water) -> Maybe create StochasticEnvironment, StochasticWind, StochasticWater, etc.. ?
+    risk = TTG(env)
+    ttg = risk.calculate(ship2, t_max=100., dt=dt, precision_sec=5)
+    end = time.time()
+    print(f"TTG: {ttg:.2f} computed in {end - start:.2f}s")
+    ship2.reset()
+
     screen = Screen(env, lim=(xlim, ylim))
-    screen.play(dt=dt, tf=20)
-
-    # ax = ship.plot()
-    # ax.set_xlim(*xlim)
-    # ax.set_ylim(*ylim)
-    # plt.waitforbuttonpress()
-    # t = 0
-    # while t<10:
-    #     action = GeneralizedForces() # TODO: Add wind / water influence 
-    #     ship.step(action)
-    #     t += dt
-    #     ax.cla()
-    #     ship.plot(ax=ax)
-    #     ax.set_xlim(*xlim)
-    #     ax.set_ylim(*ylim)
-    #     plt.pause(dt)
-    #     if t % 1 < dt:
-    #         print(f"{t:.2f} - {ship}")
-            
-
-        
+    screen.play(dt=dt, tf=50)                 
 
 if __name__ == "__main__":
     test()

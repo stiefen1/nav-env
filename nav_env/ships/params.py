@@ -43,12 +43,8 @@ class ShipPhysics:
         self._t_surge, self._t_sway, self._t_yaw = self.__get_mass_over_linear_friction_coefficients()
         self._ku, self._kv, self._kr = self.__get_nonlinear_friction_coefficients()
         self._rho_a, self._cx, self._cy, self._cn = self.__get_wind_coefficients()
-        self._coriolis_matrix_fn = self.__get_coriolis_matrix_fn()
         self._inv_mass_matrix = self.__get_inv_mass_matrix()
-        self._coriolis_added_matrix_fn = self.__get_coriolis_added_matrix_fn()
         self._linear_damping_matrix = self.__get_linear_damping_matrix()
-        self._nonlinear_damping_matrix_fn = self.__get_nonlinear_damping_matrix_fn()
-        self._rotation_matrix_fn = self.__get_rotation_matrix_fn()
 
     def __get_moment_of_inertia_about_z(self):
         l = self._params.dimensions['length']
@@ -86,23 +82,19 @@ class ShipPhysics:
                 [0., self._mass * self._x_g, self._i_z + self._n_dr]
             ]))
 
-    def __get_coriolis_matrix_fn(self):
-        def coriolis_matrix_fn(x_dot, y_dot, psi_dot_rad):
-            return np.array([
+    def __get_coriolis_matrix(self, x_dot, y_dot, psi_dot_rad):
+        return np.array([
                 [0., 0., -self._mass * (self._x_g * psi_dot_rad + y_dot)],
                 [0., 0., self._mass * x_dot],
                 [self._mass * (self._x_g * psi_dot_rad + y_dot), -self._mass * x_dot, 0.]
-            ])
-        return coriolis_matrix_fn
+                ])
 
-    def __get_coriolis_added_matrix_fn(self):
-        def coriolis_added_matrix_fn(u_r, v_r):
-            return np.array([
-                [0., 0., self._y_dv * v_r],
-                [0., 0., -self._x_du * u_r],
-                [-self._y_dv * v_r, self._x_du * u_r, 0.]
-            ])
-        return coriolis_added_matrix_fn
+    def __get_coriolis_added_matrix(self, u_r, v_r):
+        return np.array([
+            [0., 0., self._y_dv * v_r],
+            [0., 0., -self._x_du * u_r],
+            [-self._y_dv * v_r, self._x_du * u_r, 0.]
+        ])
     
     def __get_linear_damping_matrix(self):
         return np.array([
@@ -111,24 +103,19 @@ class ShipPhysics:
             [0., 0., self._i_z / self._t_yaw]
         ])
     
-    def __get_nonlinear_damping_matrix_fn(self):
-        def nonlinear_damping_matrix_fn(x_dot, y_dot, psi_dot_rad):
-            return np.array([
-                [self._ku * np.abs(x_dot), 0., 0.],
-                [0., self._kv * np.abs(y_dot), 0.],
-                [0., 0., self._kr * np.abs(psi_dot_rad)]
-            ])
-        return nonlinear_damping_matrix_fn
+    def __get_nonlinear_damping_matrix(self, x_dot, y_dot, psi_dot_rad):
+        return np.array([
+            [self._ku * np.abs(x_dot), 0., 0.],
+            [0., self._kv * np.abs(y_dot), 0.],
+            [0., 0., self._kr * np.abs(psi_dot_rad)]
+        ])
     
-    def __get_rotation_matrix_fn(self):
-        def rotation_matrix_fn(psi_rad, dim:int=3):
-            # psi_rad -= np.pi/2
-            return np.array([
-                [-np.sin(psi_rad), np.cos(psi_rad), 0.],
-                [np.cos(psi_rad), np.sin(psi_rad), 0.],
-                [0., 0., -1.]
-            ])[0:dim, 0:dim] # Transpose or not, it doesn't change anything!!! This transformation is correct!
-        return rotation_matrix_fn
+    def __get_rotation_matrix(self, psi_rad, dim:int=3):
+        return np.array([
+            [-np.sin(psi_rad), np.cos(psi_rad), 0.],
+            [np.cos(psi_rad), np.sin(psi_rad), 0.],
+            [0., 0., -1.]
+        ])[0:dim, 0:dim] # Transpose or not, it doesn't change anything!!! This transformation is correct!
     
     def get_wind_force(self, wind:WindVector, x_dot:float, y_dot:float, yaw:float) -> GeneralizedForces:
         """
@@ -166,12 +153,18 @@ class ShipPhysics:
         """
         return GeneralizedForces()
     
-    def get_time_derivatives(self, states:ShipStates3, wind:WindVector=WindVector((0., 0.), vector=(0., 0.)), water:WaterVector=WaterVector((0., 0.), vector=(0., 0.)), control_forces:GeneralizedForces=GeneralizedForces(), external_forces:GeneralizedForces=GeneralizedForces()) -> ShipTimeDerivatives3:
+    def get_time_derivatives_and_forces(self,
+                             states:ShipStates3,
+                             wind:WindVector=WindVector((0., 0.), vector=(0., 0.)),
+                             water:WaterVector=WaterVector((0., 0.), vector=(0., 0.)),
+                             control_forces:GeneralizedForces=GeneralizedForces(),
+                             external_forces:GeneralizedForces=GeneralizedForces()
+                             ) -> tuple[ShipTimeDerivatives3, GeneralizedForces]:
         """
         All inputs are in the world frame.
         """
-        R2d = self._rotation_matrix_fn(states.psi_rad, dim=2)
-        R3d = self._rotation_matrix_fn(states.psi_rad, dim=3)
+        R2d = self.__get_rotation_matrix(states.psi_rad, dim=2)
+        R3d = self.__get_rotation_matrix(states.psi_rad, dim=3)
         pose_dot_in_ship_frame = np.dot(R3d, states.vel)
 
         states_in_ship_frame = ShipStates3(0., 0., 0., *pose_dot_in_ship_frame)
@@ -192,38 +185,29 @@ class ShipPhysics:
         # print(f"u_r: {u_r:.2f}, v_r: {v_r:.2f}")
 
         # Compute matrices linked to the ship dynamics
-        Crb = self._coriolis_matrix_fn(states_in_ship_frame.x_dot, states_in_ship_frame.y_dot, states_in_ship_frame.psi_dot_rad)
-        Ca = self._coriolis_added_matrix_fn(u_r, v_r)
+        Crb = self.__get_coriolis_matrix(states_in_ship_frame.x_dot, states_in_ship_frame.y_dot, states_in_ship_frame.psi_dot_rad)
+        Ca = self.__get_coriolis_added_matrix(u_r, v_r)
         Dl = self._linear_damping_matrix
-        Dnl = self._nonlinear_damping_matrix_fn(*vel_relative_to_current_in_ship_frame)
+        Dnl = self.__get_nonlinear_damping_matrix(*vel_relative_to_current_in_ship_frame)
 
-        # Compute the time derivatives of the states
-        # acc = np.dot(
-        #     self._inv_mass_matrix,
-        #     - np.dot(Crb, states_in_ship_frame.vel)
-        #     - np.dot(Ca, vel_relative_to_current)
-        #     - np.dot(Dl + Dnl, vel_relative_to_current)
-        #     + total_force.uvn
-        # )
+        f1 = -(Crb @ states_in_ship_frame.vel)
+        f2 = -(Ca @ vel_relative_to_current_in_ship_frame)
+        f3 = -(Dl @ vel_relative_to_current_in_ship_frame)
+        f4 = -(Dnl @ vel_relative_to_current_in_ship_frame)
+        f5 = np.array(total_force_in_ship_frame.uvn)
 
-        acc1 = -self._inv_mass_matrix @ (Crb @ states_in_ship_frame.vel)
-        acc2 = -self._inv_mass_matrix @ (Ca @ vel_relative_to_current_in_ship_frame)
-        acc3 = -self._inv_mass_matrix @ (Dl @ vel_relative_to_current_in_ship_frame)
-        acc4 = -self._inv_mass_matrix @ (Dnl @ vel_relative_to_current_in_ship_frame)
-        acc5 = self._inv_mass_matrix @ total_force_in_ship_frame.uvn
-        acc = acc1 + acc2 + acc3 + acc4 + acc5
+        # Sum all forces acting on the ship
+        f = f1 + f2 + f3 + f4 + f5
 
-        idx = 0
-        # print((R3d @ acc5)[idx])
-        # print((R3d @ acc1)[idx], (R3d @ acc2)[idx], (R3d @ acc3)[idx], (R3d @ acc4)[idx], (R3d @ acc5)[idx], (R3d @ acc)[idx])
-        # print(f"acc1: {(R3d @ acc1)[idx]:.2f}, acc2: {(R3d @ acc2)[idx]:.2f}, acc3: {(R3d @ acc3)[idx]:.2f}, acc4: {(R3d @ acc4)[idx]:.2f}, acc5: {(R3d @ acc5)[idx]:.2f}, acc: {(R3d @ acc)[idx]:.2f}")
+        # Compute the acceleration in the ship frame
+        acc = self._inv_mass_matrix @ f
 
-        # Transform the acceleration back to the world frame
+        # Transform the acceleration / forces back to the world frame
+        f_in_world = R3d @ f
         acc_in_world_frame = R3d @ acc
-        # print(acc_in_world_frame)
 
         # TODO: Make the resulting forces plottable
-        return ShipTimeDerivatives3(states.x_dot, states.y_dot, states.psi_dot_deg, float(acc_in_world_frame[0]), float(acc_in_world_frame[1]), float(acc_in_world_frame[2]))
+        return ShipTimeDerivatives3(states.x_dot, states.y_dot, states.psi_dot_deg, float(acc_in_world_frame[0]), float(acc_in_world_frame[1]), float(acc_in_world_frame[2])), GeneralizedForces(f_in_world[0], f_in_world[1], 0., 0., 0., f_in_world[2])
 
     def __repr__(self):
         return f"{type(self).__name__} Object"
@@ -234,11 +218,11 @@ class ShipPhysics:
 
     @property
     def coriolis_matrix(self):
-        return self._coriolis_matrix_fn
+        return self.__get_coriolis_matrix
     
     @property
     def coriolis_added_mass_matrix(self):
-        return self._coriolis_added_matrix_fn
+        return self.__get_coriolis_added_matrix
     
     @property
     def linear_damping_matrix(self):
@@ -246,11 +230,11 @@ class ShipPhysics:
 
     @property
     def nonlinear_damping_matrix(self):
-        return self._nonlinear_damping_matrix_fn
+        return self.__get_nonlinear_damping_matrix
     
     @property
     def rotation_matrix(self):
-        return self._rotation_matrix_fn
+        return self.__get_rotation_matrix
 
     @property
     def i_z(self):
@@ -323,6 +307,7 @@ class ShipPhysics:
     @property
     def rho_a(self):
         return self._rho_a
+    
 
 
 def test():
@@ -339,7 +324,7 @@ def test():
     state = ShipStates3(1., 2., 3., 4., 5., 6.)
     wind = WindVector((0., 0.), vector=(1., 0.))
 
-    print(ship_physics.get_time_derivatives(state, wind))
+    print(ship_physics.get_time_derivatives_and_forces(state, wind))
 
 
 

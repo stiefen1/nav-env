@@ -11,7 +11,7 @@ from nav_env.obstacles.collection import ObstacleCollection
 from nav_env.obstacles.obstacles import Obstacle, Circle
 
 
-SCREEN_SIZE = (800, 600)
+SCREEN_SIZE = (600, 450)
 SCREEN_COLOR = (100, 200, 255)
 FPS = 60
 
@@ -41,7 +41,30 @@ class PyGameScreen:
                         self.drawable.group_obstacles_closer_than(self.value)
 
             self.screen.fill(SCREEN_COLOR)
-            self.draw()
+            # self.draw()
+
+            # Create a new surface to draw on
+            draw_surface = pygame.Surface(SCREEN_SIZE)
+            draw_surface.fill(SCREEN_COLOR)
+
+            # Translate the origin to the center of the screen
+            translated_surface = pygame.Surface(SCREEN_SIZE)
+            translated_surface.fill(SCREEN_COLOR)
+            translated_surface.blit(draw_surface, (SCREEN_SIZE[0] // 2, SCREEN_SIZE[1] // 2))
+
+            # Flip the y-axis
+            flipped_surface = pygame.transform.flip(translated_surface, False, True)
+
+            # Apply additional transformations (e.g., scaling, rotating)
+            scaled_surface = pygame.transform.scale(flipped_surface, SCREEN_SIZE)
+            rotated_surface = pygame.transform.rotate(scaled_surface, 180)  # Example rotation angle
+
+            # Draw the objects onto the transformed surface
+            self.drawable.draw(rotated_surface)
+
+            # Blit the transformed surface onto the main screen
+            self.screen.blit(rotated_surface, (0, 0))
+
             pygame.display.flip()
             self.clock.tick(FPS)
             pygame.display.update()
@@ -63,7 +86,7 @@ class PyGameScreen:
         self.run()
 
 def test():
-    from nav_env.obstacles.obstacles import Circle
+    from nav_env.obstacles.obstacles import Circle, Ellipse
     from nav_env.obstacles.obstacles import Obstacle
     import numpy as np
 
@@ -74,6 +97,7 @@ def test():
     xmax, ymax = lim[1]
     rmin, rmax = 1, 20
     obsmin, obsmax = -30, 30
+    np.random.seed(0)
 
     obstacles = ObstacleCollection()
     for _ in range(Ncircle):
@@ -84,6 +108,11 @@ def test():
         xy = np.random.uniform(obsmin, obsmax, (8, 2))
         o = Obstacle(xy=xy).convex_hull().translate(np.random.uniform(xmin, xmax), np.random.uniform(ymin, ymax))
         obstacles.append(o)
+
+    obstacles.append(Ellipse(100, 100, 50, 10))
+    # obstacles.append(Ellipse(-100, 100, 10, 50))
+    # obstacles.append(Ellipse(100, -100, 50, 10))
+    # obstacles.append(Ellipse(-100, -100, 10, 50))
 
     viz = PyGameScreen(obstacles)
     viz.run()

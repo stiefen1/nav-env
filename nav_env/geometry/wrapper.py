@@ -55,7 +55,7 @@ class GeometryWrapper:
         return self._geometry
     
     def __repr__(self) -> str:
-        return f"GeometryWrapper({self._geometry})"
+        return f"{type(self).__name__}({self._geometry})"
     
     def __len__(self) -> int:
         return len(self.xy[0])
@@ -65,6 +65,14 @@ class GeometryWrapper:
         if isinstance(self._geometry, Polygon):
             return self._geometry.exterior.coords.xy
         return self._geometry.xy
+    
+    @property
+    def exterior(self) -> LineString:
+        if isinstance(self._geometry, Polygon):
+            return self._geometry.exterior
+        elif isinstance(self._geometry, LineString):
+            return self._geometry
+        raise ValueError(f"Geometry must be a Polygon or LineString not {type(self._geometry).__name__}")
     
     @property
     def centroid(self) -> tuple:
