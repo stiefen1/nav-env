@@ -6,7 +6,7 @@ setup(
     description='A package for modelling and simulating navigation environments.',
     author='Stephen Monnet',
     author_email='stephen-monnet@hotmail.com',
-    url='https://github.com/stiefen1/pso_path_planning', 
+    url='https://github.com/stiefen1/nav-env', 
     packages=find_packages(),
     install_requires=[
         'numpy',
@@ -21,5 +21,5 @@ setup(
         'License :: OSI Approved :: MIT License',
         'Operating System :: OS Independent',
     ],
-    python_requires='>=3.6',
+    python_requires='>=3.6'
 )
