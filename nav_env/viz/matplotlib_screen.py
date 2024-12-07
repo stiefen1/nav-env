@@ -25,7 +25,7 @@ for t in range(T):
 # We could add element to the screen, in a "PlayableCollection" object for instance.
 
 class MatplotlibScreen:
-    def __init__(self, env:NavigationEnvironment, lim:tuple[tuple, tuple]=((-10, -10), (10, 10)), ax=None):
+    def __init__(self, env:NavigationEnvironment, lim:tuple[tuple, tuple]=((-10, -10), (10, 10)), scale:float=1, ax=None):
         self._env = env
         self._lim = lim
         self._lim_x = (lim[0][0], lim[1][0])
@@ -33,6 +33,7 @@ class MatplotlibScreen:
         self._dx = abs(self._lim_x[1] - self._lim_x[0]) # Maybe will be used for scaling vectors
         self._dy = abs(self._lim_y[1] - self._lim_y[0])
         self._ax = ax
+        self._scale = scale
 
     def play(self,
              t0:float=0,

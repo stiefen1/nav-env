@@ -8,7 +8,7 @@ class RiskMetric(ABC):
     @abstractmethod
     def calculate(self, *args, **kwargs) -> float:
         pass
-
+    
     @abstractmethod
     def plot(self, ax=None, **kwargs):
         pass
@@ -19,3 +19,4 @@ class RiskMetric(ABC):
     @property
     def env(self):
         return self._env
+

@@ -208,7 +208,6 @@ def test_ttg_under_constant_uniform_perturbations():
     import time
     from nav_env.simulation.integration import Euler
     from nav_env.wind.wind_source import UniformWindSource
-    from math import pi
     from nav_env.obstacles.obstacles import Circle, Ellipse
     from nav_env.obstacles.collection import ObstacleCollection
     import matplotlib.pyplot as plt

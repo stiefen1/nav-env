@@ -5,8 +5,9 @@ os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"
 import pygame
 from copy import deepcopy
 from typing import Any
+import warnings
 
-
+DEFAULT_IMAGE_SIZE = (100, 100)
 class GeometryWrapper:
     def __init__(self, xy: list=None, polygon: Geometry=None, geometry_type: type=Geometry):
         if polygon is None and xy is not None:
@@ -17,6 +18,7 @@ class GeometryWrapper:
             self._geometry_type = type(polygon)
         else:
             raise ValueError("Either xy or polygon must be provided.")
+        
 
     def plot(self, *args, ax=None, **kwargs):
         """

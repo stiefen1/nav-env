@@ -10,7 +10,9 @@ from nav_env.obstacles.obstacles import Obstacle
 from typing import Callable
 from math import atan2, pi
 from copy import deepcopy
+import os, pathlib, sys
 
+PATH_TO_DEFAULT_IMG = os.path.join(pathlib.Path(__file__).parent.parent, "ships", "ship.png")
 
 DEFAULT_TARGET_SHIP_LENGTH = 10.
 DEFAULT_TARGET_SHIP_WIDTH = 4.
@@ -50,12 +52,13 @@ class ShipEnveloppe(Obstacle):
                  length: float=DEFAULT_TARGET_SHIP_LENGTH,
                  width: float=DEFAULT_TARGET_SHIP_WIDTH,
                  ratio: float=DEFAULT_TARGET_SHIP_RATIO,
+                 img:str=PATH_TO_DEFAULT_IMG
                  ):
         
         if xy is None:
             xy = get_target_ship_domain(length, width, ratio)
 
-        super().__init__(xy=xy)
+        super().__init__(xy=xy, img=img)
 
 class ShipWithKinematics(ObstacleWithKinematics):
     """

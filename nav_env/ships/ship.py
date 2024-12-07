@@ -51,7 +51,7 @@ class ShipWithDynamicsBase(ABC):
         self._dx = None
         self._generalized_forces = GeneralizedForces()
 
-    def draw(self, screen, *args, scale=1, keys=['enveloppe'], **kwargs):
+    def draw(self, screen:pygame.Surface, *args, scale=1, keys=['enveloppe'], **kwargs):
         """
         Draw the ship for pygame.
         """
@@ -260,12 +260,12 @@ class Ship(ShipWithDynamicsBase):
         self._derivatives, self._generalized_forces = self._physics.get_time_derivatives_and_forces(self._states, wind, water, external_forces=external_forces)
 
 def test():
-    # from nav_env.viz.matplotlib_screen import MatplotlibScreen as Screen
-    from nav_env.viz.pygame_screen import PyGameScreen as Screen
+    from nav_env.viz.matplotlib_screen import MatplotlibScreen as Screen
+    # from nav_env.viz.pygame_screen import PyGameScreen as Screen
     from nav_env.environment.environment import NavigationEnvironment as Env
     from nav_env.ships.collection import ShipCollection
     from nav_env.wind.wind_source import UniformWindSource
-    from nav_env.obstacles.obstacles import Circle
+    from nav_env.obstacles.obstacles import Circle, Ellipse
     from nav_env.risk.ttg import TTG
     import time
 
@@ -274,27 +274,30 @@ def test():
 
 
     obs1 = Circle(0, 40, 50)
+    obs2 = Ellipse(-50, -50, 100, 20)
+
     ship = Ship(x0, integrator=Euler(dt), name="Ship1")
-    ship2 = Ship(ShipStates3(-150., 50., -70., 10., 0., -20.), integrator=Euler(dt), name="Ship2")
+    ship2 = Ship(ShipStates3(-150., 50., -70., 10., 0., -10.), integrator=Euler(dt), name="Ship2")
     ship3 = Ship(ShipStates3(10., -100., -30., 0., 0., 0.), integrator=Euler(dt), name="Ship3")
     ship4 = Ship(ShipStates3(250., -200., 0., 0., 0., 60.), integrator=Euler(dt), name="Ship4")
     ship5 = Ship(ShipStates3(250., 250., 80., -20., -20., 10.), integrator=Euler(dt), name="Ship5")
     lim = 300
     xlim, ylim = (-lim, -lim), (lim, lim)
-    env = Env(own_ships=ShipCollection([ship, ship2]), target_ships=ShipCollection([ship3, ship4, ship5]), wind_source=UniformWindSource(10, 45), shore=ObstacleCollection([obs1]))
+    env = Env(own_ships=ShipCollection([ship, ship2]), target_ships=ShipCollection([ship3, ship4, ship5]), wind_source=UniformWindSource(10, 45), shore=ObstacleCollection([obs1, obs2]))
 
     # env = Env(own_ships=ShipCollection([ship, ship2]), target_ships=ShipCollection([ship5]), wind_source=UniformWindSource(10, 45), shore=ObstacleCollection([obs1]))
 
     start = time.time()
     # TODO: Make TTG work with multiple environment in parallel
     # TODO: Make Environment able to generate copy of it with perturbations (wind, water) -> Maybe create StochasticEnvironment, StochasticWind, StochasticWater, etc.. ?
+    
     risk = TTG(env)
     ttg = risk.calculate(ship2, t_max=100., dt=dt, precision_sec=5)
     end = time.time()
     print(f"TTG: {ttg:.2f} computed in {end - start:.2f}s")
     ship2.reset()
 
-    screen = Screen(env, scale=1, lim=(xlim     , ylim))
+    screen = Screen(env, scale=1, lim=(xlim, ylim))
     screen.play(dt=dt, tf=50)                 
 
 if __name__ == "__main__":
