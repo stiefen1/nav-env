@@ -27,4 +27,4 @@ Don't forget to change <env-name> with the name you would like to use for your e
 ```python nav_env\ships\setup.py build_ext --inplace```
 
 # Examples
-To verify everything is correctly installed, run one of the examples [here](\examples)!
+To verify everything is correctly installed, run one of the examples [here](/examples/)!
