@@ -1,7 +1,7 @@
 from nav_env.control.states import States, TimeDerivatives
 from math import pi
 
-class ShipStates3(States):
+class States3(States):
     def __init__(self, x:float=0., y:float=0., psi_deg:float=0., x_dot:float=0., y_dot:float=0., psi_dot_deg:float=0.):
         super().__init__(x=x, y=y, psi_deg=psi_deg, x_dot=x_dot, y_dot=y_dot, psi_dot_deg=psi_dot_deg)
 
@@ -98,7 +98,7 @@ class ShipStates3(States):
     def psi_dot_rad(self, value:float):
         self['psi_dot_deg'] = value * 180 / pi # Convert to degrees to store
 
-class ShipTimeDerivatives3(TimeDerivatives):
+class TimeDerivatives3(TimeDerivatives):
     def __init__(self, x_dot:float=0., y_dot:float=0., psi_dot_deg:float=0., x_dot_dot:float=0., y_dot_dot:float=0., psi_dot_dot:float=0.):
         super().__init__(x_dot=x_dot, y_dot=y_dot, psi_dot_deg=psi_dot_deg, x_dot_dot=x_dot_dot, y_dot_dot=y_dot_dot, psi_dot_dot=psi_dot_dot)
 
@@ -169,7 +169,7 @@ class ShipTimeDerivatives3(TimeDerivatives):
         self['psi_dot_dot'] = value
 
 def test():
-    states = ShipStates3(x=1., y=2., psi_deg=3., x_dot=4., y_dot=5., psi_dot_deg=6.)
+    states = States3(x=1., y=2., psi_deg=3., x_dot=4., y_dot=5., psi_dot_deg=6.)
     print(states)
     states = 3 * states - states / 2
     print(states)
