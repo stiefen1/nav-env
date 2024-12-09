@@ -36,11 +36,11 @@ class ShipWithDynamicsBase(ABC):
         self._accumulated_dx = DeltaStates(0., 0., 0., 0., 0., 0.) # Initialize accumulated differential to 0
         self._generalized_forces = GeneralizedForces() # Initialize generalized forces acting on the ship to 0
 
-    def get_initial_enveloppe(self):
-        """
-        Initialize the enveloppe.
-        """
-        return ShipEnveloppe(length=self._physics.length, width=self._physics.width).rotate_and_translate(self._states.x, self._states.y, self._states.psi_deg)
+    # def get_initial_enveloppe(self):
+    #     """
+    #     Initialize the enveloppe.
+    #     """
+    #     return ShipEnveloppe(length=self._physics.length, width=self._physics.width).rotate_and_translate(self._states.x, self._states.y, self._states.psi_deg)
 
     def reset(self):
         """

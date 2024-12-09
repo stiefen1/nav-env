@@ -1,4 +1,4 @@
-from nav_env.control.states import States, TimeDerivatives
+from nav_env.control.states import States, TimeDerivatives, DeltaStates
 from math import pi
 
 class States3(States):
@@ -97,6 +97,85 @@ class States3(States):
     @psi_dot_rad.setter
     def psi_dot_rad(self, value:float):
         self['psi_dot_deg'] = value * 180 / pi # Convert to degrees to store
+
+class DeltaStates3(DeltaStates):
+    def __init__(self, dx:float=0, dy:float=0, dpsi_deg:float=0, dx_dot:float=0, dy_dot:float=0, dpsi_dot_deg:float=0):
+        super().__init__(dx=dx, dy=dy, dpsi_deg=dpsi_deg, dx_dot=dx_dot, dy_dot=dy_dot, dpsi_dot_deg=dpsi_dot_deg)
+
+    @property
+    def dx(self) -> float:
+        return self['dx']
+    
+    @dx.setter
+    def dx(self, value:float):
+        self['dx'] = value
+
+    @property
+    def dy(self) -> float:
+        return self['dy']
+    
+    @dy.setter
+    def dy(self, value:float):
+        self['dy'] = value
+
+    @property
+    def dxy(self) -> tuple[float, float]:
+        return self.dx, self.dy
+    
+    @property
+    def dpsi_deg(self) -> float:
+        return self['dpsi_deg']
+    
+    @dpsi_deg.setter
+    def dpsi_deg(self, value:float):
+        self['dpsi_deg'] = value
+
+    @property
+    def dpsi_rad(self) -> float:
+        return self['dpsi_deg'] * pi / 180
+    
+    @dpsi_rad.setter
+    def dpsi_rad(self, value:float):
+        self['dpsi_deg'] = value * 180 / pi
+
+    @property
+    def dx_dot(self) -> float:
+        return self['dx_dot']
+    
+    @dx_dot.setter
+    def dx_dot(self, value:float):
+        self['dx_dot'] = value
+
+    @property
+    def dy_dot(self) -> float:
+        return self['dy_dot']
+    
+    @dy_dot.setter
+    def dy_dot(self, value:float):
+        self['dy_dot'] = value
+
+    @property
+    def dxy_dot(self) -> tuple[float, float]:
+        return self.dx_dot, self.dy_dot
+    
+    @property
+    def dpsi_dot_deg(self) -> float:
+        return self['dpsi_dot_deg']
+    
+    @dpsi_dot_deg.setter
+    def dpsi_dot_deg(self, value:float):
+        self['dpsi_dot_deg'] = value
+    
+    @property
+    def dpsi_dot_rad(self) -> float:
+        return self['dpsi_dot_deg'] * pi / 180
+    
+    @dpsi_dot_rad.setter
+    def dpsi_dot_rad(self, value:float):
+        self['dpsi_dot_deg'] = value * 180 / pi
+
+    
+
 
 class TimeDerivatives3(TimeDerivatives):
     def __init__(self, x_dot:float=0., y_dot:float=0., psi_dot_deg:float=0., x_dot_dot:float=0., y_dot_dot:float=0., psi_dot_dot:float=0.):

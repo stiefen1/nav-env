@@ -86,20 +86,29 @@ class GeometryWrapper:
     def centroid(self, value: tuple) -> None:
         self._geometry = affinity.translate(self._geometry, value[0] - self.centroid[0], value[1] - self.centroid[1])
 
-    def translate(self, x: float, y: float, **kwargs) -> "GeometryWrapper":
+    def get_translate(self, x: float, y: float, **kwargs) -> "GeometryWrapper":
         new = deepcopy(self)
         new._geometry = affinity.translate(self._geometry, x, y, **kwargs)
         return new
     
-    def rotate(self, angle: float, **kwargs) -> "GeometryWrapper":
+    def get_rotate(self, angle: float, **kwargs) -> "GeometryWrapper":
         new = deepcopy(self)
         new._geometry = affinity.rotate(self._geometry, angle, origin=self.centroid, **kwargs)
         return new
     
-    def rotate_and_translate(self, x:float, y:float, angle:float, **kwargs) -> "GeometryWrapper":
+    def get_rotate_and_translate(self, x:float, y:float, angle:float, **kwargs) -> "GeometryWrapper":
         new = deepcopy(self)
         new._geometry = affinity.translate(affinity.rotate(new._geometry, angle, origin=self.centroid, **kwargs), x, y)
         return new
+    
+    def translate(self, x: float, y: float, **kwargs) -> "GeometryWrapper":
+        self._geometry = affinity.translate(self._geometry, x, y, **kwargs)
+    
+    def rotate(self, angle: float, **kwargs) -> "GeometryWrapper":
+        self._geometry = affinity.rotate(self._geometry, angle, origin=self.centroid, **kwargs)
+    
+    def rotate_and_translate(self, x:float, y:float, angle:float, **kwargs) -> "GeometryWrapper":
+        self._geometry = affinity.translate(affinity.rotate(self._geometry, angle, origin=self.centroid, **kwargs), x, y)
     
     """
     Wrapper for shapely methods. Inheritance is impossible due to the way Shapely is implemented.

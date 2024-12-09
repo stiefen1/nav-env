@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 from shapely import affinity
 
 class Obstacle(GeometryWrapper):
-    def __init__(self, xy: list=None, polygon: Polygon=None, geometry_type: type=Polygon, img:str=None):
+    def __init__(self, *args, xy: list=None, polygon: Polygon=None, geometry_type: type=Polygon, img:str=None, **kwargs):
         super().__init__(xy=xy, polygon=polygon, geometry_type=geometry_type)
 
     def distance_to_obstacle(self, x:float, y:float) -> float:
@@ -19,7 +19,7 @@ class Obstacle(GeometryWrapper):
         return p.distance(self._geometry.exterior)
     
     def __repr__(self):
-        return f"Obstacle({self.centroid[0]:.2f}, {self.centroid[1]:.2f})"
+        return f"{type(self).__name__}({self.centroid[0]:.2f}, {self.centroid[1]:.2f})"
 
 class Circle(Obstacle):
     def __init__(self, x, y, radius):

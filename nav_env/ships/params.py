@@ -2,7 +2,7 @@ from dataclasses import dataclass
 import json, os, pathlib
 
 PATH_TO_DEFAULT_JSON = os.path.join(pathlib.Path(__file__).parent, "default_ship_params.json")
-PATH_TO_DEFAULT_NEW_JSON = os.path.join(pathlib.Path(__file__).parent, "new_ship_params.json")
+DEFAULT_PATH_TO_NEW_JSON = os.path.join(pathlib.Path(__file__).parent, "new_ship_params.json")
 
 @dataclass
 class ShipPhysicalParams:
@@ -26,7 +26,7 @@ class ShipPhysicalParams:
     
     @staticmethod
     def default():
-        return ShipPhysicalParams.load_from_json(PATH_TO_DEFAULT_NEW_JSON)
+        return ShipPhysicalParams.load_from_json(DEFAULT_PATH_TO_NEW_JSON)
 
 
 def test():

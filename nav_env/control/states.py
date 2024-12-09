@@ -3,6 +3,7 @@ import numpy as np
 from abc import abstractmethod, ABC
 import matplotlib.pyplot as plt
 import pygame
+from copy import deepcopy
 
 """
 Ideal usage:
@@ -111,6 +112,10 @@ class BaseStateVector(ABC):
     @property
     def dim(self) -> int:
         return len(self.__dict__)
+    
+    def __repr__(self):
+        return f"{type(self).__name__}({self.__dict__})"
+    
 
 
 class States(BaseStateVector): # We use state space representation \dot{x} = f(x, u)
@@ -128,7 +133,7 @@ class States(BaseStateVector): # We use state space representation \dot{x} = f(x
         elif isinstance(other, BaseStateVector):
             return self.__add__wrapper__(-1 * other, self.keys, DeltaStates)
         raise TypeError(f"Cannot substract {type(self).__name__} object with {type(other).__name__}")
-
+    
 class DeltaStates(BaseStateVector):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
