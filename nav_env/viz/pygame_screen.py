@@ -51,8 +51,8 @@ class PyGameScreen:
              t0:float=0,
              tf:float=10,
              dt:float=0.03,
-             own_ship_physics=['enveloppe', 'frame', 'acceleration', 'velocity', 'forces'],
-             target_ship_physics=['enveloppe'],
+             own_ships_verbose=['enveloppe', 'frame', 'acceleration', 'velocity', 'forces'],
+             target_ships_verbose=['enveloppe'],
              **kwargs
              ):
         """
@@ -77,7 +77,7 @@ class PyGameScreen:
                 self.env.step()
                 t += dt
 
-            self.env.draw(t, self.screen, own_ship_physics=own_ship_physics, target_ship_physics=target_ship_physics, scale=self._scale, **kwargs)
+            self.env.draw(t, self.screen, own_ship_physics=own_ships_verbose, target_ship_physics=target_ships_verbose, scale=self._scale, **kwargs)
             pygame.display.flip()
             
             elapsed_time = (pygame.time.get_ticks() - start_time) / 1000

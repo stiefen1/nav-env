@@ -5,6 +5,7 @@ from copy import deepcopy
 
 class ObstacleCollection:
     def __init__(self, obstacles: list[Obstacle] = []):
+        assert isinstance(obstacles, list), f"Expected list got {type(obstacles).__name__}"
         self._obstacles = obstacles
 
     def append(self, obstacle: Obstacle):
@@ -96,6 +97,7 @@ class ObstacleCollection:
 
 class ObstacleWithKinematicsCollection:
     def __init__(self, obstacles: list[ObstacleWithKinematics] = []):
+        assert isinstance(obstacles, list), f"Expected list got {type(obstacles).__name__}"
         self._obstacles = obstacles
 
     def append(self, obstacle: ObstacleWithKinematics):

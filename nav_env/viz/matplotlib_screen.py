@@ -40,8 +40,8 @@ class MatplotlibScreen:
              tf:float=10,
              dt:float=0.03,
              ax=None,
-             own_ships_physics=['enveloppe', 'frame', 'acceleration', 'velocity', 'forces'],
-             target_ships_physics=['enveloppe'],
+             own_ships_verbose=['enveloppe', 'frame', 'acceleration', 'velocity', 'forces'],
+             target_ships_verbose=['enveloppe'],
              **kwargs
              ):
         """
@@ -57,7 +57,7 @@ class MatplotlibScreen:
             ax.set_xlim(*self._lim_x)
             ax.set_ylim(*self._lim_y)
             self._env.step()
-            self._env.plot(t, self._lim, own_ship_physics=own_ships_physics, target_ship_physics=target_ships_physics, ax=ax)
+            self._env.plot(t, self._lim, own_ship_physics=own_ships_verbose, target_ship_physics=target_ships_verbose, ax=ax)
             ax.set_title(f"t = {t:.2f}")
             t += dt
 

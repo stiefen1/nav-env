@@ -2517,6 +2517,7 @@ static const char __pyx_k_typing[] = "typing";
 static const char __pyx_k_vector[] = "vector";
 static const char __pyx_k_x_du_2[] = "x_du";
 static const char __pyx_k_y_dv_2[] = "y_dv";
+static const char __pyx_k_States3[] = "States3";
 static const char __pyx_k_h_front[] = "h_front";
 static const char __pyx_k_imatmul[] = "__imatmul__";
 static const char __pyx_k_inertia[] = "inertia";
@@ -2549,7 +2550,6 @@ static const char __pyx_k_vx_in_ship[] = "vx_in_ship";
 static const char __pyx_k_vy_in_ship[] = "vy_in_ship";
 static const char __pyx_k_wind_force[] = "wind_force";
 static const char __pyx_k_ShipPhysics[] = "ShipPhysics";
-static const char __pyx_k_ShipStates3[] = "ShipStates3";
 static const char __pyx_k_WaterVector[] = "WaterVector";
 static const char __pyx_k_psi_dot_deg[] = "psi_dot_deg";
 static const char __pyx_k_psi_dot_rad[] = "psi_dot_rad";
@@ -2578,6 +2578,7 @@ static const char __pyx_k_ShipPhysics_mass[] = "ShipPhysics.mass";
 static const char __pyx_k_ShipPhysics_n_dr[] = "ShipPhysics.n_dr";
 static const char __pyx_k_ShipPhysics_x_du[] = "ShipPhysics.x_du";
 static const char __pyx_k_ShipPhysics_y_dv[] = "ShipPhysics.y_dv";
+static const char __pyx_k_TimeDerivatives3[] = "TimeDerivatives3";
 static const char __pyx_k_proj_area_side_2[] = "proj_area_side";
 static const char __pyx_k_GeneralizedForces[] = "GeneralizedForces";
 static const char __pyx_k_ShipPhysics_rho_a[] = "ShipPhysics.rho_a";
@@ -2599,7 +2600,6 @@ static const char __pyx_k_ShipPhysics_t_surge[] = "ShipPhysics.t_surge";
 static const char __pyx_k_get_coriolis_matrix[] = "__get_coriolis_matrix";
 static const char __pyx_k_get_inv_mass_matrix[] = "__get_inv_mass_matrix";
 static const char __pyx_k_get_rotation_matrix[] = "__get_rotation_matrix";
-static const char __pyx_k_ShipTimeDerivatives3[] = "ShipTimeDerivatives3";
 static const char __pyx_k_nav_env_ships_params[] = "nav_env.ships.params";
 static const char __pyx_k_nav_env_ships_states[] = "nav_env.ships.states";
 static const char __pyx_k_states_in_ship_frame[] = "states_in_ship_frame";
@@ -2667,7 +2667,7 @@ static const char __pyx_k_ShipPhysics_get_time_derivatives[] = "ShipPhysics.get_
 static const char __pyx_k_ShipPhysics_linear_damping_matri[] = "ShipPhysics.linear_damping_matrix";
 static const char __pyx_k_ShipPhysics_nonlinear_damping_ma[] = "ShipPhysics.nonlinear_damping_matrix";
 static const char __pyx_k_mass_over_linear_friction_coeffi[] = "mass_over_linear_friction_coefficient";
-static const char __pyx_k_tuple_ShipTimeDerivatives3_Gener[] = "tuple[ShipTimeDerivatives3, GeneralizedForces]";
+static const char __pyx_k_tuple_TimeDerivatives3_Generaliz[] = "tuple[TimeDerivatives3, GeneralizedForces]";
 /* #### Code section: decls ### */
 static PyObject *__pyx_pf_7nav_env_5ships_7physics___defaults__(CYTHON_UNUSED PyObject *__pyx_self); /* proto */
 static PyObject *__pyx_pf_7nav_env_5ships_7physics_11ShipPhysics___init__(CYTHON_UNUSED PyObject *__pyx_self, PyObject *__pyx_v_self, PyObject *__pyx_v_path_to_physical_params); /* proto */
@@ -2808,8 +2808,8 @@ typedef struct {
   PyObject *__pyx_n_s_ShipPhysics_x_du;
   PyObject *__pyx_n_s_ShipPhysics_x_g;
   PyObject *__pyx_n_s_ShipPhysics_y_dv;
-  PyObject *__pyx_n_s_ShipStates3;
-  PyObject *__pyx_n_s_ShipTimeDerivatives3;
+  PyObject *__pyx_n_s_States3;
+  PyObject *__pyx_n_s_TimeDerivatives3;
   PyObject *__pyx_n_s_WaterVector;
   PyObject *__pyx_n_s_WindVector;
   PyObject *__pyx_kp_u__2;
@@ -2966,7 +2966,7 @@ typedef struct {
   PyObject *__pyx_n_s_tau_v;
   PyObject *__pyx_n_s_test;
   PyObject *__pyx_n_s_total_force_in_ship_frame;
-  PyObject *__pyx_kp_s_tuple_ShipTimeDerivatives3_Gener;
+  PyObject *__pyx_kp_s_tuple_TimeDerivatives3_Generaliz;
   PyObject *__pyx_kp_s_tuple_float_float_float;
   PyObject *__pyx_kp_s_tuple_float_float_float_float;
   PyObject *__pyx_n_s_typing;
@@ -3171,8 +3171,8 @@ static int __pyx_m_clear(PyObject *m) {
   Py_CLEAR(clear_module_state->__pyx_n_s_ShipPhysics_x_du);
   Py_CLEAR(clear_module_state->__pyx_n_s_ShipPhysics_x_g);
   Py_CLEAR(clear_module_state->__pyx_n_s_ShipPhysics_y_dv);
-  Py_CLEAR(clear_module_state->__pyx_n_s_ShipStates3);
-  Py_CLEAR(clear_module_state->__pyx_n_s_ShipTimeDerivatives3);
+  Py_CLEAR(clear_module_state->__pyx_n_s_States3);
+  Py_CLEAR(clear_module_state->__pyx_n_s_TimeDerivatives3);
   Py_CLEAR(clear_module_state->__pyx_n_s_WaterVector);
   Py_CLEAR(clear_module_state->__pyx_n_s_WindVector);
   Py_CLEAR(clear_module_state->__pyx_kp_u__2);
@@ -3329,7 +3329,7 @@ static int __pyx_m_clear(PyObject *m) {
   Py_CLEAR(clear_module_state->__pyx_n_s_tau_v);
   Py_CLEAR(clear_module_state->__pyx_n_s_test);
   Py_CLEAR(clear_module_state->__pyx_n_s_total_force_in_ship_frame);
-  Py_CLEAR(clear_module_state->__pyx_kp_s_tuple_ShipTimeDerivatives3_Gener);
+  Py_CLEAR(clear_module_state->__pyx_kp_s_tuple_TimeDerivatives3_Generaliz);
   Py_CLEAR(clear_module_state->__pyx_kp_s_tuple_float_float_float);
   Py_CLEAR(clear_module_state->__pyx_kp_s_tuple_float_float_float_float);
   Py_CLEAR(clear_module_state->__pyx_n_s_typing);
@@ -3512,8 +3512,8 @@ static int __pyx_m_traverse(PyObject *m, visitproc visit, void *arg) {
   Py_VISIT(traverse_module_state->__pyx_n_s_ShipPhysics_x_du);
   Py_VISIT(traverse_module_state->__pyx_n_s_ShipPhysics_x_g);
   Py_VISIT(traverse_module_state->__pyx_n_s_ShipPhysics_y_dv);
-  Py_VISIT(traverse_module_state->__pyx_n_s_ShipStates3);
-  Py_VISIT(traverse_module_state->__pyx_n_s_ShipTimeDerivatives3);
+  Py_VISIT(traverse_module_state->__pyx_n_s_States3);
+  Py_VISIT(traverse_module_state->__pyx_n_s_TimeDerivatives3);
   Py_VISIT(traverse_module_state->__pyx_n_s_WaterVector);
   Py_VISIT(traverse_module_state->__pyx_n_s_WindVector);
   Py_VISIT(traverse_module_state->__pyx_kp_u__2);
@@ -3670,7 +3670,7 @@ static int __pyx_m_traverse(PyObject *m, visitproc visit, void *arg) {
   Py_VISIT(traverse_module_state->__pyx_n_s_tau_v);
   Py_VISIT(traverse_module_state->__pyx_n_s_test);
   Py_VISIT(traverse_module_state->__pyx_n_s_total_force_in_ship_frame);
-  Py_VISIT(traverse_module_state->__pyx_kp_s_tuple_ShipTimeDerivatives3_Gener);
+  Py_VISIT(traverse_module_state->__pyx_kp_s_tuple_TimeDerivatives3_Generaliz);
   Py_VISIT(traverse_module_state->__pyx_kp_s_tuple_float_float_float);
   Py_VISIT(traverse_module_state->__pyx_kp_s_tuple_float_float_float_float);
   Py_VISIT(traverse_module_state->__pyx_n_s_typing);
@@ -3863,8 +3863,8 @@ static int __pyx_m_traverse(PyObject *m, visitproc visit, void *arg) {
 #define __pyx_n_s_ShipPhysics_x_du __pyx_mstate_global->__pyx_n_s_ShipPhysics_x_du
 #define __pyx_n_s_ShipPhysics_x_g __pyx_mstate_global->__pyx_n_s_ShipPhysics_x_g
 #define __pyx_n_s_ShipPhysics_y_dv __pyx_mstate_global->__pyx_n_s_ShipPhysics_y_dv
-#define __pyx_n_s_ShipStates3 __pyx_mstate_global->__pyx_n_s_ShipStates3
-#define __pyx_n_s_ShipTimeDerivatives3 __pyx_mstate_global->__pyx_n_s_ShipTimeDerivatives3
+#define __pyx_n_s_States3 __pyx_mstate_global->__pyx_n_s_States3
+#define __pyx_n_s_TimeDerivatives3 __pyx_mstate_global->__pyx_n_s_TimeDerivatives3
 #define __pyx_n_s_WaterVector __pyx_mstate_global->__pyx_n_s_WaterVector
 #define __pyx_n_s_WindVector __pyx_mstate_global->__pyx_n_s_WindVector
 #define __pyx_kp_u__2 __pyx_mstate_global->__pyx_kp_u__2
@@ -4021,7 +4021,7 @@ static int __pyx_m_traverse(PyObject *m, visitproc visit, void *arg) {
 #define __pyx_n_s_tau_v __pyx_mstate_global->__pyx_n_s_tau_v
 #define __pyx_n_s_test __pyx_mstate_global->__pyx_n_s_test
 #define __pyx_n_s_total_force_in_ship_frame __pyx_mstate_global->__pyx_n_s_total_force_in_ship_frame
-#define __pyx_kp_s_tuple_ShipTimeDerivatives3_Gener __pyx_mstate_global->__pyx_kp_s_tuple_ShipTimeDerivatives3_Gener
+#define __pyx_kp_s_tuple_TimeDerivatives3_Generaliz __pyx_mstate_global->__pyx_kp_s_tuple_TimeDerivatives3_Generaliz
 #define __pyx_kp_s_tuple_float_float_float __pyx_mstate_global->__pyx_kp_s_tuple_float_float_float
 #define __pyx_kp_s_tuple_float_float_float_float __pyx_mstate_global->__pyx_kp_s_tuple_float_float_float_float
 #define __pyx_n_s_typing __pyx_mstate_global->__pyx_n_s_typing
@@ -9286,7 +9286,7 @@ static PyObject *__pyx_pf_7nav_env_5ships_7physics_11ShipPhysics_28get_water_for
  *         return GeneralizedForces()
  * 
  *     def get_time_derivatives_and_forces(self,             # <<<<<<<<<<<<<<
- *                              states:ShipStates3,
+ *                              states:States3,
  *                              wind:WindVector=WindVector((0., 0.), vector=(0., 0.)),
  */
 
@@ -9610,7 +9610,7 @@ static PyObject *__pyx_pf_7nav_env_5ships_7physics_11ShipPhysics_30get_time_deri
  *         R3d = self.__get_rotation_matrix(states.psi_rad, dim=3)
  *         pose_dot_in_ship_frame = np.dot(R3d, states.vel)             # <<<<<<<<<<<<<<
  * 
- *         states_in_ship_frame = ShipStates3(0., 0., 0., *pose_dot_in_ship_frame)
+ *         states_in_ship_frame = States3(0., 0., 0., *pose_dot_in_ship_frame)
  */
   __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_np); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 141, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
@@ -9648,11 +9648,11 @@ static PyObject *__pyx_pf_7nav_env_5ships_7physics_11ShipPhysics_30get_time_deri
   /* "nav_env/ships/physics.pyx":143
  *         pose_dot_in_ship_frame = np.dot(R3d, states.vel)
  * 
- *         states_in_ship_frame = ShipStates3(0., 0., 0., *pose_dot_in_ship_frame)             # <<<<<<<<<<<<<<
+ *         states_in_ship_frame = States3(0., 0., 0., *pose_dot_in_ship_frame)             # <<<<<<<<<<<<<<
  *         # print(states_in_ship_frame)
  * 
  */
-  __Pyx_GetModuleGlobalName(__pyx_t_1, __pyx_n_s_ShipStates3); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 143, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_1, __pyx_n_s_States3); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 143, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_t_3 = __Pyx_PySequence_Tuple(__pyx_v_pose_dot_in_ship_frame); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 143, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
@@ -10145,12 +10145,12 @@ static PyObject *__pyx_pf_7nav_env_5ships_7physics_11ShipPhysics_30get_time_deri
   /* "nav_env/ships/physics.pyx":186
  * 
  *         # TODO: Make the resulting forces plottable
- *         return ShipTimeDerivatives3(states.x_dot, states.y_dot, states.psi_dot_deg, float(acc_in_world_frame[0]), float(acc_in_world_frame[1]), float(acc_in_world_frame[2])), GeneralizedForces(f_in_world[0], f_in_world[1], 0., 0., 0., f_in_world[2])             # <<<<<<<<<<<<<<
+ *         return TimeDerivatives3(states.x_dot, states.y_dot, states.psi_dot_deg, float(acc_in_world_frame[0]), float(acc_in_world_frame[1]), float(acc_in_world_frame[2])), GeneralizedForces(f_in_world[0], f_in_world[1], 0., 0., 0., f_in_world[2])             # <<<<<<<<<<<<<<
  * 
  *     def __repr__(self) -> str:
  */
   __Pyx_XDECREF(__pyx_r);
-  __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_ShipTimeDerivatives3); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 186, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_TimeDerivatives3); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 186, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_v_states, __pyx_n_s_x_dot); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 186, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_6);
@@ -10250,7 +10250,7 @@ static PyObject *__pyx_pf_7nav_env_5ships_7physics_11ShipPhysics_30get_time_deri
  *         return GeneralizedForces()
  * 
  *     def get_time_derivatives_and_forces(self,             # <<<<<<<<<<<<<<
- *                              states:ShipStates3,
+ *                              states:States3,
  *                              wind:WindVector=WindVector((0., 0.), vector=(0., 0.)),
  */
 
@@ -10298,7 +10298,7 @@ static PyObject *__pyx_pf_7nav_env_5ships_7physics_11ShipPhysics_30get_time_deri
 }
 
 /* "nav_env/ships/physics.pyx":188
- *         return ShipTimeDerivatives3(states.x_dot, states.y_dot, states.psi_dot_deg, float(acc_in_world_frame[0]), float(acc_in_world_frame[1]), float(acc_in_world_frame[2])), GeneralizedForces(f_in_world[0], f_in_world[1], 0., 0., 0., f_in_world[2])
+ *         return TimeDerivatives3(states.x_dot, states.y_dot, states.psi_dot_deg, float(acc_in_world_frame[0]), float(acc_in_world_frame[1]), float(acc_in_world_frame[2])), GeneralizedForces(f_in_world[0], f_in_world[1], 0., 0., 0., f_in_world[2])
  * 
  *     def __repr__(self) -> str:             # <<<<<<<<<<<<<<
  *         return "{} Object".format(type(self).__name__)
@@ -10455,7 +10455,7 @@ static PyObject *__pyx_pf_7nav_env_5ships_7physics_11ShipPhysics_32__repr__(CYTH
   goto __pyx_L0;
 
   /* "nav_env/ships/physics.pyx":188
- *         return ShipTimeDerivatives3(states.x_dot, states.y_dot, states.psi_dot_deg, float(acc_in_world_frame[0]), float(acc_in_world_frame[1]), float(acc_in_world_frame[2])), GeneralizedForces(f_in_world[0], f_in_world[1], 0., 0., 0., f_in_world[2])
+ *         return TimeDerivatives3(states.x_dot, states.y_dot, states.psi_dot_deg, float(acc_in_world_frame[0]), float(acc_in_world_frame[1]), float(acc_in_world_frame[2])), GeneralizedForces(f_in_world[0], f_in_world[1], 0., 0., 0., f_in_world[2])
  * 
  *     def __repr__(self) -> str:             # <<<<<<<<<<<<<<
  *         return "{} Object".format(type(self).__name__)
@@ -14062,8 +14062,8 @@ static int __Pyx_CreateStringTabAndInitStrings(void) {
     {&__pyx_n_s_ShipPhysics_x_du, __pyx_k_ShipPhysics_x_du, sizeof(__pyx_k_ShipPhysics_x_du), 0, 0, 1, 1},
     {&__pyx_n_s_ShipPhysics_x_g, __pyx_k_ShipPhysics_x_g, sizeof(__pyx_k_ShipPhysics_x_g), 0, 0, 1, 1},
     {&__pyx_n_s_ShipPhysics_y_dv, __pyx_k_ShipPhysics_y_dv, sizeof(__pyx_k_ShipPhysics_y_dv), 0, 0, 1, 1},
-    {&__pyx_n_s_ShipStates3, __pyx_k_ShipStates3, sizeof(__pyx_k_ShipStates3), 0, 0, 1, 1},
-    {&__pyx_n_s_ShipTimeDerivatives3, __pyx_k_ShipTimeDerivatives3, sizeof(__pyx_k_ShipTimeDerivatives3), 0, 0, 1, 1},
+    {&__pyx_n_s_States3, __pyx_k_States3, sizeof(__pyx_k_States3), 0, 0, 1, 1},
+    {&__pyx_n_s_TimeDerivatives3, __pyx_k_TimeDerivatives3, sizeof(__pyx_k_TimeDerivatives3), 0, 0, 1, 1},
     {&__pyx_n_s_WaterVector, __pyx_k_WaterVector, sizeof(__pyx_k_WaterVector), 0, 0, 1, 1},
     {&__pyx_n_s_WindVector, __pyx_k_WindVector, sizeof(__pyx_k_WindVector), 0, 0, 1, 1},
     {&__pyx_kp_u__2, __pyx_k__2, sizeof(__pyx_k__2), 0, 1, 0, 0},
@@ -14220,7 +14220,7 @@ static int __Pyx_CreateStringTabAndInitStrings(void) {
     {&__pyx_n_s_tau_v, __pyx_k_tau_v, sizeof(__pyx_k_tau_v), 0, 0, 1, 1},
     {&__pyx_n_s_test, __pyx_k_test, sizeof(__pyx_k_test), 0, 0, 1, 1},
     {&__pyx_n_s_total_force_in_ship_frame, __pyx_k_total_force_in_ship_frame, sizeof(__pyx_k_total_force_in_ship_frame), 0, 0, 1, 1},
-    {&__pyx_kp_s_tuple_ShipTimeDerivatives3_Gener, __pyx_k_tuple_ShipTimeDerivatives3_Gener, sizeof(__pyx_k_tuple_ShipTimeDerivatives3_Gener), 0, 0, 1, 0},
+    {&__pyx_kp_s_tuple_TimeDerivatives3_Generaliz, __pyx_k_tuple_TimeDerivatives3_Generaliz, sizeof(__pyx_k_tuple_TimeDerivatives3_Generaliz), 0, 0, 1, 0},
     {&__pyx_kp_s_tuple_float_float_float, __pyx_k_tuple_float_float_float, sizeof(__pyx_k_tuple_float_float_float), 0, 0, 1, 0},
     {&__pyx_kp_s_tuple_float_float_float_float, __pyx_k_tuple_float_float_float_float, sizeof(__pyx_k_tuple_float_float_float_float), 0, 0, 1, 0},
     {&__pyx_n_s_typing, __pyx_k_typing, sizeof(__pyx_k_typing), 0, 0, 1, 1},
@@ -14272,7 +14272,7 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
   /* "nav_env/ships/physics.pyx":143
  *         pose_dot_in_ship_frame = np.dot(R3d, states.vel)
  * 
- *         states_in_ship_frame = ShipStates3(0., 0., 0., *pose_dot_in_ship_frame)             # <<<<<<<<<<<<<<
+ *         states_in_ship_frame = States3(0., 0., 0., *pose_dot_in_ship_frame)             # <<<<<<<<<<<<<<
  *         # print(states_in_ship_frame)
  * 
  */
@@ -14458,7 +14458,7 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
  *         return GeneralizedForces()
  * 
  *     def get_time_derivatives_and_forces(self,             # <<<<<<<<<<<<<<
- *                              states:ShipStates3,
+ *                              states:States3,
  *                              wind:WindVector=WindVector((0., 0.), vector=(0., 0.)),
  */
   __pyx_tuple__32 = PyTuple_Pack(30, __pyx_n_s_self, __pyx_n_s_states, __pyx_n_s_wind, __pyx_n_s_water, __pyx_n_s_control_forces, __pyx_n_s_external_forces, __pyx_n_s_R2d, __pyx_n_s_R3d, __pyx_n_s_pose_dot_in_ship_frame, __pyx_n_s_states_in_ship_frame, __pyx_n_s_wind_force, __pyx_n_s_water_force, __pyx_n_s_total_force_in_ship_frame, __pyx_n_s_current_vel_in_ship_frame, __pyx_n_s_u_r, __pyx_n_s_v_r, __pyx_n_s_vel_relative_to_current_in_ship, __pyx_n_s_Crb, __pyx_n_s_Ca, __pyx_n_s_Dl, __pyx_n_s_Dnl, __pyx_n_s_f1, __pyx_n_s_f2, __pyx_n_s_f3, __pyx_n_s_f4, __pyx_n_s_f5, __pyx_n_s_f, __pyx_n_s_acc, __pyx_n_s_f_in_world, __pyx_n_s_acc_in_world_frame); if (unlikely(!__pyx_tuple__32)) __PYX_ERR(0, 129, __pyx_L1_error)
@@ -14468,7 +14468,7 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
 
   /* "nav_env/ships/physics.pyx":131
  *     def get_time_derivatives_and_forces(self,
- *                              states:ShipStates3,
+ *                              states:States3,
  *                              wind:WindVector=WindVector((0., 0.), vector=(0., 0.)),             # <<<<<<<<<<<<<<
  *                              water:WaterVector=WaterVector((0., 0.), vector=(0., 0.)),
  *                              control_forces:GeneralizedForces=GeneralizedForces(),
@@ -14481,7 +14481,7 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
   __Pyx_GIVEREF(__pyx_tuple__35);
 
   /* "nav_env/ships/physics.pyx":188
- *         return ShipTimeDerivatives3(states.x_dot, states.y_dot, states.psi_dot_deg, float(acc_in_world_frame[0]), float(acc_in_world_frame[1]), float(acc_in_world_frame[2])), GeneralizedForces(f_in_world[0], f_in_world[1], 0., 0., 0., f_in_world[2])
+ *         return TimeDerivatives3(states.x_dot, states.y_dot, states.psi_dot_deg, float(acc_in_world_frame[0]), float(acc_in_world_frame[1]), float(acc_in_world_frame[2])), GeneralizedForces(f_in_world[0], f_in_world[1], 0., 0., 0., f_in_world[2])
  * 
  *     def __repr__(self) -> str:             # <<<<<<<<<<<<<<
  *         return "{} Object".format(type(self).__name__)
@@ -15080,33 +15080,33 @@ if (!__Pyx_RefNanny) {
   #endif
 
   /* "nav_env/ships/physics.pyx":1
- * from nav_env.ships.states import ShipStates3, ShipTimeDerivatives3             # <<<<<<<<<<<<<<
+ * from nav_env.ships.states import States3, TimeDerivatives3             # <<<<<<<<<<<<<<
  * from nav_env.control.command import GeneralizedForces
  * from nav_env.wind.wind_vector import WindVector
  */
   __pyx_t_2 = PyList_New(2); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 1, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __Pyx_INCREF(__pyx_n_s_ShipStates3);
-  __Pyx_GIVEREF(__pyx_n_s_ShipStates3);
-  if (__Pyx_PyList_SET_ITEM(__pyx_t_2, 0, __pyx_n_s_ShipStates3)) __PYX_ERR(0, 1, __pyx_L1_error);
-  __Pyx_INCREF(__pyx_n_s_ShipTimeDerivatives3);
-  __Pyx_GIVEREF(__pyx_n_s_ShipTimeDerivatives3);
-  if (__Pyx_PyList_SET_ITEM(__pyx_t_2, 1, __pyx_n_s_ShipTimeDerivatives3)) __PYX_ERR(0, 1, __pyx_L1_error);
+  __Pyx_INCREF(__pyx_n_s_States3);
+  __Pyx_GIVEREF(__pyx_n_s_States3);
+  if (__Pyx_PyList_SET_ITEM(__pyx_t_2, 0, __pyx_n_s_States3)) __PYX_ERR(0, 1, __pyx_L1_error);
+  __Pyx_INCREF(__pyx_n_s_TimeDerivatives3);
+  __Pyx_GIVEREF(__pyx_n_s_TimeDerivatives3);
+  if (__Pyx_PyList_SET_ITEM(__pyx_t_2, 1, __pyx_n_s_TimeDerivatives3)) __PYX_ERR(0, 1, __pyx_L1_error);
   __pyx_t_3 = __Pyx_Import(__pyx_n_s_nav_env_ships_states, __pyx_t_2, 0); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 1, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_2 = __Pyx_ImportFrom(__pyx_t_3, __pyx_n_s_ShipStates3); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 1, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_ImportFrom(__pyx_t_3, __pyx_n_s_States3); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 1, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_ShipStates3, __pyx_t_2) < 0) __PYX_ERR(0, 1, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_States3, __pyx_t_2) < 0) __PYX_ERR(0, 1, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_2 = __Pyx_ImportFrom(__pyx_t_3, __pyx_n_s_ShipTimeDerivatives3); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 1, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_ImportFrom(__pyx_t_3, __pyx_n_s_TimeDerivatives3); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 1, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  if (PyDict_SetItem(__pyx_d, __pyx_n_s_ShipTimeDerivatives3, __pyx_t_2) < 0) __PYX_ERR(0, 1, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_d, __pyx_n_s_TimeDerivatives3, __pyx_t_2) < 0) __PYX_ERR(0, 1, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
 
   /* "nav_env/ships/physics.pyx":2
- * from nav_env.ships.states import ShipStates3, ShipTimeDerivatives3
+ * from nav_env.ships.states import States3, TimeDerivatives3
  * from nav_env.control.command import GeneralizedForces             # <<<<<<<<<<<<<<
  * from nav_env.wind.wind_vector import WindVector
  * from nav_env.water.water_vector import WaterVector
@@ -15126,7 +15126,7 @@ if (!__Pyx_RefNanny) {
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
   /* "nav_env/ships/physics.pyx":3
- * from nav_env.ships.states import ShipStates3, ShipTimeDerivatives3
+ * from nav_env.ships.states import States3, TimeDerivatives3
  * from nav_env.control.command import GeneralizedForces
  * from nav_env.wind.wind_vector import WindVector             # <<<<<<<<<<<<<<
  * from nav_env.water.water_vector import WaterVector
@@ -15521,24 +15521,24 @@ if (!__Pyx_RefNanny) {
  *         return GeneralizedForces()
  * 
  *     def get_time_derivatives_and_forces(self,             # <<<<<<<<<<<<<<
- *                              states:ShipStates3,
+ *                              states:States3,
  *                              wind:WindVector=WindVector((0., 0.), vector=(0., 0.)),
  */
   __pyx_t_4 = __Pyx_PyDict_NewPresized(6); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 129, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
-  if (PyDict_SetItem(__pyx_t_4, __pyx_n_s_states, __pyx_n_s_ShipStates3) < 0) __PYX_ERR(0, 129, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_4, __pyx_n_s_states, __pyx_n_s_States3) < 0) __PYX_ERR(0, 129, __pyx_L1_error)
   if (PyDict_SetItem(__pyx_t_4, __pyx_n_s_wind, __pyx_n_s_WindVector) < 0) __PYX_ERR(0, 129, __pyx_L1_error)
   if (PyDict_SetItem(__pyx_t_4, __pyx_n_s_water, __pyx_n_s_WaterVector) < 0) __PYX_ERR(0, 129, __pyx_L1_error)
   if (PyDict_SetItem(__pyx_t_4, __pyx_n_s_control_forces, __pyx_n_s_GeneralizedForces) < 0) __PYX_ERR(0, 129, __pyx_L1_error)
   if (PyDict_SetItem(__pyx_t_4, __pyx_n_s_external_forces, __pyx_n_s_GeneralizedForces) < 0) __PYX_ERR(0, 129, __pyx_L1_error)
-  if (PyDict_SetItem(__pyx_t_4, __pyx_n_s_return, __pyx_kp_s_tuple_ShipTimeDerivatives3_Gener) < 0) __PYX_ERR(0, 129, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_4, __pyx_n_s_return, __pyx_kp_s_tuple_TimeDerivatives3_Generaliz) < 0) __PYX_ERR(0, 129, __pyx_L1_error)
   __pyx_t_3 = __Pyx_CyFunction_New(&__pyx_mdef_7nav_env_5ships_7physics_11ShipPhysics_31get_time_derivatives_and_forces, 0, __pyx_n_s_ShipPhysics_get_time_derivatives, NULL, __pyx_n_s_nav_env_ships_physics, __pyx_d, ((PyObject *)__pyx_codeobj__33)); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 129, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   if (!__Pyx_CyFunction_InitDefaults(__pyx_t_3, sizeof(__pyx_defaults2), 4)) __PYX_ERR(0, 129, __pyx_L1_error)
 
   /* "nav_env/ships/physics.pyx":131
  *     def get_time_derivatives_and_forces(self,
- *                              states:ShipStates3,
+ *                              states:States3,
  *                              wind:WindVector=WindVector((0., 0.), vector=(0., 0.)),             # <<<<<<<<<<<<<<
  *                              water:WaterVector=WaterVector((0., 0.), vector=(0., 0.)),
  *                              control_forces:GeneralizedForces=GeneralizedForces(),
@@ -15557,7 +15557,7 @@ if (!__Pyx_RefNanny) {
   __pyx_t_7 = 0;
 
   /* "nav_env/ships/physics.pyx":132
- *                              states:ShipStates3,
+ *                              states:States3,
  *                              wind:WindVector=WindVector((0., 0.), vector=(0., 0.)),
  *                              water:WaterVector=WaterVector((0., 0.), vector=(0., 0.)),             # <<<<<<<<<<<<<<
  *                              control_forces:GeneralizedForces=GeneralizedForces(),
@@ -15581,7 +15581,7 @@ if (!__Pyx_RefNanny) {
  *                              water:WaterVector=WaterVector((0., 0.), vector=(0., 0.)),
  *                              control_forces:GeneralizedForces=GeneralizedForces(),             # <<<<<<<<<<<<<<
  *                              external_forces:GeneralizedForces=GeneralizedForces()
- *                              ) -> tuple[ShipTimeDerivatives3, GeneralizedForces]:
+ *                              ) -> tuple[TimeDerivatives3, GeneralizedForces]:
  */
   __Pyx_GetModuleGlobalName(__pyx_t_5, __pyx_n_s_GeneralizedForces); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 133, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
@@ -15596,7 +15596,7 @@ if (!__Pyx_RefNanny) {
  *                              water:WaterVector=WaterVector((0., 0.), vector=(0., 0.)),
  *                              control_forces:GeneralizedForces=GeneralizedForces(),
  *                              external_forces:GeneralizedForces=GeneralizedForces()             # <<<<<<<<<<<<<<
- *                              ) -> tuple[ShipTimeDerivatives3, GeneralizedForces]:
+ *                              ) -> tuple[TimeDerivatives3, GeneralizedForces]:
  *         """
  */
   __Pyx_GetModuleGlobalName(__pyx_t_6, __pyx_n_s_GeneralizedForces); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 134, __pyx_L1_error)
@@ -15614,7 +15614,7 @@ if (!__Pyx_RefNanny) {
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
 
   /* "nav_env/ships/physics.pyx":188
- *         return ShipTimeDerivatives3(states.x_dot, states.y_dot, states.psi_dot_deg, float(acc_in_world_frame[0]), float(acc_in_world_frame[1]), float(acc_in_world_frame[2])), GeneralizedForces(f_in_world[0], f_in_world[1], 0., 0., 0., f_in_world[2])
+ *         return TimeDerivatives3(states.x_dot, states.y_dot, states.psi_dot_deg, float(acc_in_world_frame[0]), float(acc_in_world_frame[1]), float(acc_in_world_frame[2])), GeneralizedForces(f_in_world[0], f_in_world[1], 0., 0., 0., f_in_world[2])
  * 
  *     def __repr__(self) -> str:             # <<<<<<<<<<<<<<
  *         return "{} Object".format(type(self).__name__)
@@ -16124,7 +16124,7 @@ if (!__Pyx_RefNanny) {
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
   /* "nav_env/ships/physics.pyx":1
- * from nav_env.ships.states import ShipStates3, ShipTimeDerivatives3             # <<<<<<<<<<<<<<
+ * from nav_env.ships.states import States3, TimeDerivatives3             # <<<<<<<<<<<<<<
  * from nav_env.control.command import GeneralizedForces
  * from nav_env.wind.wind_vector import WindVector
  */

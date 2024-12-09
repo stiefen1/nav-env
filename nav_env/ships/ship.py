@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from nav_env.ships.states import ShipStates3, ShipTimeDerivatives3
+from nav_env.ships.states import States3, TimeDerivatives3
 from nav_env.wind.wind_vector import WindVector
 from nav_env.water.water_vector import WaterVector
 from nav_env.ships.params import ShipPhysicalParams
@@ -17,11 +17,11 @@ import pygame
 
 class ShipWithDynamicsBase(ABC):
     def __init__(self,
-                 states:ShipStates3,
+                 states:States3,
                  physics:phy.ShipPhysics=None,
                  controller:ControllerBase=None,
                  integrator:Integrator=None,
-                 derivatives:ShipTimeDerivatives3=None,
+                 derivatives:TimeDerivatives3=None,
                  name:str="ShipWithDynamicsBase"
                  ):
         self._states = states
@@ -29,7 +29,7 @@ class ShipWithDynamicsBase(ABC):
         self._physics = physics or phy.ShipPhysics()
         self._controller = controller or Controller()
         self._integrator = integrator or Euler()
-        self._derivatives = derivatives or ShipTimeDerivatives3()
+        self._derivatives = derivatives or TimeDerivatives3()
         self._enveloppe = self.get_initial_enveloppe()
         self._name = name
         self._dx = None # Initialize differential to None
@@ -83,6 +83,8 @@ class ShipWithDynamicsBase(ABC):
             self._states.plot(ax=ax, color='orange', angles='xy', scale_units='xy', scale=1e-1,  **kwargs)
         if 'forces' in keys:
             self._generalized_forces.plot(self._states.xy, ax=ax, color='black', angles='xy', scale_units='xy', scale=1e3, **kwargs)
+        if 'name' in keys:
+            ax.text(*self._states.xy, self._name, fontsize=8, color='black')
 
         # print(self.name, self._physics.generalized_forces.f_x / self._derivatives.x_dot_dot, self._physics.generalized_forces.f_y / self._derivatives.y_dot_dot)
         return ax
@@ -179,7 +181,7 @@ class ShipWithDynamicsBase(ABC):
         return f"{type(self).__name__}({self._states.__dict__})"
     
     @property
-    def states(self) -> ShipStates3:
+    def states(self) -> States3:
         return self._states
     
     @property
@@ -195,7 +197,7 @@ class ShipWithDynamicsBase(ABC):
         return self._integrator
     
     @property
-    def derivatives(self) -> ShipTimeDerivatives3:
+    def derivatives(self) -> TimeDerivatives3:
         return self._derivatives
     
     @property
@@ -220,14 +222,14 @@ class ShipWithDynamicsBase(ABC):
 
 class SimpleShip(ShipWithDynamicsBase):
     def __init__(self,
-                 states:ShipStates3 = None,
+                 states:States3 = None,
                  physics:phy.ShipPhysics = None,
                  controller:ControllerBase = None,
                  integrator:Integrator = None,
-                 derivatives:ShipTimeDerivatives3 = None, 
+                 derivatives:TimeDerivatives3 = None, 
                  name:str="SimpleShip"
                  ):
-        states = states or ShipStates3()
+        states = states or States3()
         super().__init__(states=states, physics=physics, controller=controller, integrator=integrator, derivatives=derivatives, name=name)
 
     def update_derivatives(self, wind:WindVector, water:WaterVector, external_forces:GeneralizedForces):
@@ -244,13 +246,13 @@ class SimpleShip(ShipWithDynamicsBase):
 
 class Ship(ShipWithDynamicsBase):
     def __init__(self, 
-                 states:ShipStates3 = None,
+                 states:States3 = None,
                  physics:phy.ShipPhysics = None,
                  controller:ControllerBase = None,
                  integrator:Integrator = None,
-                 derivatives:ShipTimeDerivatives3 = None, 
+                 derivatives:TimeDerivatives3 = None, 
                  name:str="Ship"):
-        states = states or ShipStates3()
+        states = states or States3()
         super().__init__(states=states, physics=physics, controller=controller, integrator=integrator, derivatives=derivatives, name=name)
 
     def update_derivatives(self, wind:WindVector, water:WaterVector, external_forces:GeneralizedForces):
@@ -270,17 +272,17 @@ def test():
     import time
 
     dt = 0.05
-    x0 = ShipStates3(0., 0., 180., 0., 0., 30.) # 0., 0., -180., 0., 10., 0. --> Effet d'emballement, comme si un coefficient de frotement était négatif
+    x0 = States3(0., 0., 180., 0., 0., 30.) # 0., 0., -180., 0., 10., 0. --> Effet d'emballement, comme si un coefficient de frotement était négatif
 
 
     obs1 = Circle(0, 40, 50)
     obs2 = Ellipse(-50, -50, 100, 20)
 
     ship = Ship(x0, integrator=Euler(dt), name="Ship1")
-    ship2 = Ship(ShipStates3(-150., 50., -70., 10., 0., -10.), integrator=Euler(dt), name="Ship2")
-    ship3 = Ship(ShipStates3(10., -100., -30., 0., 0., 0.), integrator=Euler(dt), name="Ship3")
-    ship4 = Ship(ShipStates3(250., -200., 0., 0., 0., 60.), integrator=Euler(dt), name="Ship4")
-    ship5 = Ship(ShipStates3(250., 250., 80., -20., -20., 10.), integrator=Euler(dt), name="Ship5")
+    ship2 = Ship(States3(-150., 50., -70., 10., 0., -10.), integrator=Euler(dt), name="Ship2")
+    ship3 = Ship(States3(10., -100., -30., 0., 0., 0.), integrator=Euler(dt), name="Ship3")
+    ship4 = Ship(States3(250., -200., 0., 0., 0., 60.), integrator=Euler(dt), name="Ship4")
+    ship5 = Ship(States3(250., 250., 80., -20., -20., 10.), integrator=Euler(dt), name="Ship5")
     lim = 300
     xlim, ylim = (-lim, -lim), (lim, lim)
     env = Env(own_ships=ShipCollection([ship, ship2]), target_ships=ShipCollection([ship3, ship4, ship5]), wind_source=UniformWindSource(10, 45), shore=ObstacleCollection([obs1, obs2]))

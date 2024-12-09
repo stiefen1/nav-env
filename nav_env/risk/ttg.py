@@ -1,6 +1,6 @@
 from nav_env.risk.risk import RiskMetric
 from nav_env.ships.ship import Ship
-from nav_env.ships.states import ShipStates3
+from nav_env.ships.states import States3
 from nav_env.environment.environment import NavigationEnvironment
 from nav_env.wind.wind_source import UniformWindSource
 from nav_env.water.water_source import UniformWaterSource
@@ -8,6 +8,7 @@ import multiprocessing as mp, numpy as np, matplotlib.pyplot as plt
 from nav_env.geometry.line import Line
 from shapely import Point
 import warnings
+from copy import deepcopy
 
 
 """
@@ -32,7 +33,8 @@ class TTG(RiskMetric):
             t_max (float, optional): Maximum time to simulate. Defaults to 100..
             precision_sec (float, optional): Period at which we check for collision with the environment. Defaults to 1..
         """
-        dt = ship.integrator.dt
+        ship_copy = deepcopy(ship)
+        dt = ship_copy.integrator.dt
         t:float = 0.
         # average_step_duration = 0.
         # average_loop_duration = 0.
@@ -40,8 +42,8 @@ class TTG(RiskMetric):
         while t < t_max:
             # start_loop = time.time()
             if t % precision_sec < dt:
-                ship.update_enveloppe_from_accumulation() # WE ONLY UPDATE THE ENVELOPPE BEFORE CHECKING FOR COLLISIONS
-                if ship.collide(self.env.shore):
+                ship_copy.update_enveloppe_from_accumulation() # WE ONLY UPDATE THE ENVELOPPE BEFORE CHECKING FOR COLLISIONS
+                if ship_copy.collide(self.env.shore):
                     return t
             
             # start = time.time()
@@ -49,7 +51,7 @@ class TTG(RiskMetric):
             # TODO: Optimize computational time, typically step() takes on average 0.2ms, and overall loop takes 0.25ms -> C++, Cython ?
             
             # Setting update_enveloppe to False to avoid updating the enveloppe at each time step. We only want to update it when checking for collisions.
-            ship.step(self.env.wind_source(ship.states.xy), self.env.water_source(ship.states.xy), update_enveloppe=False) 
+            ship_copy.step(self.env.wind_source(ship_copy.states.xy), self.env.water_source(ship_copy.states.xy), update_enveloppe=False) 
             # end = time.time()
             # average_step_duration += end - start
             # average_loop_duration += time.time() - start_loop
@@ -235,14 +237,14 @@ def show_ttg_contour_under_constant_uniform_perturbations():
     from nav_env.obstacles.collection import ObstacleCollection
     from nav_env.obstacles.obstacles import Circle, Ellipse
     from nav_env.ships.ship import Ship
-    from nav_env.ships.states import ShipStates3	
+    from nav_env.ships.states import States3	
     from nav_env.simulation.integration import Euler
     from nav_env.environment.environment import NavigationEnvironment
     from nav_env.wind.wind_source import UniformWindSource
     from nav_env.risk.ttg import TTGUnderConstantUniformPerturbations
 
     shore = ObstacleCollection([Circle(300., -0., 50.), Ellipse(400, -200, 40, 80)])
-    ship = Ship(integrator=Euler(1.), states=ShipStates3(0., 0., 60., 30., 10., 0.))
+    ship = Ship(integrator=Euler(1.), states=States3(0., 0., 60., 30., 10., 0.))
     wind_source = UniformWindSource(50, -50)
     env = NavigationEnvironment(wind_source=wind_source, shore=shore)  # Create a list of ships
     ttg_uniform = TTGUnderConstantUniformPerturbations(ship, env, t_max=100., precision_sec=0.1)

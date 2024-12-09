@@ -8,6 +8,7 @@ from nav_env.water.water_source import WaterSource
 
 class ShipCollection:
     def __init__(self, ships: list[ShipWithDynamicsBase] = None):
+        assert isinstance(ships, list), f"Expected list got {type(ships).__name__}"
         self._ships = ships or []
 
     def step(self, wind:WindSource, water:WaterSource, external_forces:GeneralizedForces=GeneralizedForces()):
@@ -32,7 +33,7 @@ class ShipCollection:
 
         return ax
     
-    def draw(self, screen, keys=['enveloppe'], scale=1, **kwargs):
+    def draw(self, screen, *args, keys=['enveloppe'], scale=1, **kwargs):
         """
         Draw the ships.
         """

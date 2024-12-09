@@ -1,4 +1,4 @@
-from nav_env.ships.states import ShipStates3, ShipTimeDerivatives3
+from nav_env.ships.states import States3, TimeDerivatives3
 from nav_env.control.command import GeneralizedForces
 from nav_env.wind.wind_vector import WindVector
 from nav_env.water.water_vector import WaterVector
@@ -127,12 +127,12 @@ class ShipPhysics:
         return GeneralizedForces()
     
     def get_time_derivatives_and_forces(self,
-                             states:ShipStates3,
+                             states:States3,
                              wind:WindVector=WindVector((0., 0.), vector=(0., 0.)),
                              water:WaterVector=WaterVector((0., 0.), vector=(0., 0.)),
                              control_forces:GeneralizedForces=GeneralizedForces(),
                              external_forces:GeneralizedForces=GeneralizedForces()
-                             ) -> tuple[ShipTimeDerivatives3, GeneralizedForces]:
+                             ) -> tuple[TimeDerivatives3, GeneralizedForces]:
         """
         All inputs are in the world frame.
         """
@@ -140,7 +140,7 @@ class ShipPhysics:
         R3d = self.__get_rotation_matrix(states.psi_rad, dim=3)
         pose_dot_in_ship_frame = np.dot(R3d, states.vel)
 
-        states_in_ship_frame = ShipStates3(0., 0., 0., *pose_dot_in_ship_frame)
+        states_in_ship_frame = States3(0., 0., 0., *pose_dot_in_ship_frame)
         # print(states_in_ship_frame)
 
         # Compute external forces acting on the ship (wind, water, control, external)
@@ -183,7 +183,7 @@ class ShipPhysics:
         acc_in_world_frame = R3d @ acc
 
         # TODO: Make the resulting forces plottable
-        return ShipTimeDerivatives3(states.x_dot, states.y_dot, states.psi_dot_deg, float(acc_in_world_frame[0]), float(acc_in_world_frame[1]), float(acc_in_world_frame[2])), GeneralizedForces(f_in_world[0], f_in_world[1], 0., 0., 0., f_in_world[2])
+        return TimeDerivatives3(states.x_dot, states.y_dot, states.psi_dot_deg, float(acc_in_world_frame[0]), float(acc_in_world_frame[1]), float(acc_in_world_frame[2])), GeneralizedForces(f_in_world[0], f_in_world[1], 0., 0., 0., f_in_world[2])
 
     def __repr__(self) -> str:
         return "{} Object".format(type(self).__name__)
@@ -295,7 +295,7 @@ class ShipPhysics:
 #     print(ship_physics.linear_damping_matrix)
 #     print(ship_physics.nonlinear_damping_matrix(1, 2, 3))
 
-#     state = ShipStates3(1., 2., 3., 4., 5., 6.)
+#     state = States3(1., 2., 3., 4., 5., 6.)
 #     wind = WindVector((0., 0.), vector=(1., 0.))
 
 #     print(ship_physics.get_time_derivatives_and_forces(state, wind))

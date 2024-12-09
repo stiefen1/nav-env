@@ -9,17 +9,17 @@ from nav_env.control.command import GeneralizedForces
 
 class NavigationEnvironment:
     def __init__(self,
-                 own_ships:ShipCollection = None,
-                 target_ships:ShipCollection = None,
-                 obstacles: ObstacleWithKinematicsCollection = None,
-                 shore: ObstacleCollection = None,
+                 own_ships:list = None,
+                 target_ships:list = None,
+                 obstacles: list = None,
+                 shore: list = None,
                  wind_source:WindSource = None,
                  water_source:WaterSource = None
                  ): 
-        self._own_ships = own_ships or ShipCollection()
-        self._target_ships = target_ships or ShipCollection()
-        self._obstacles = obstacles or ObstacleWithKinematicsCollection() # TODO: Separate shore from moving obstacles as we might want to consider them separately, e.g. for TTG
-        self._shore = shore or ObstacleCollection()
+        self._own_ships = ShipCollection(own_ships or [])
+        self._target_ships = ShipCollection(target_ships or [])
+        self._obstacles = ObstacleWithKinematicsCollection(obstacles or []) # TODO: Separate shore from moving obstacles as we might want to consider them separately, e.g. for TTG
+        self._shore = ObstacleCollection(shore or [])
         self._wind_source = wind_source or WindSource()
         self._water_source = water_source or WaterSource()
 

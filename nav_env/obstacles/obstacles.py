@@ -3,6 +3,7 @@ from nav_env.geometry.wrapper import GeometryWrapper
 from typing import Callable
 import matplotlib.pyplot as plt
 from shapely import affinity
+from nav_env.ships.states import States3
 
 class Obstacle(GeometryWrapper):
     def __init__(self, xy: list=None, polygon: Polygon=None, geometry_type: type=Polygon, img:str=None):
@@ -85,12 +86,15 @@ class ObstacleWithKinematics(Obstacle):
     """
     Model an obstacle that changes over time.
     """
-    def __init__(self, pose_fn:Callable, xy: list=None, polygon: Polygon=None, geometry_type: type=Polygon):
+    def __init__(self, pose_fn:Callable=None, initial_state:States3=None, xy: list=None, polygon: Polygon=None, geometry_type: type=Polygon):
         """
         pose_fn: Callable that returns the pose of the obstacle at a given time as a tuple (x, y, angle).
         """
         super().__init__(xy=xy, polygon=polygon, geometry_type=geometry_type)
-        self._pose_fn = pose_fn
+        if pose_fn is not None:
+            self._pose_fn = pose_fn
+        else:
+            self._pose_fn = lambda t: (initial_state.x + initial_state.x_dot*t, initial_state.y + initial_state.y_dot*t, initial_state.psi_deg + initial_state.psi_dot_deg*t)
 
     def plot3(self, t:float, ax=None, c='b', alpha=0.3, **kwargs):
         """
