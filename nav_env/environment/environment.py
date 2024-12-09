@@ -61,6 +61,24 @@ class NavigationEnvironment:
     
     def __repr__(self):
         return f"NavigationEnvironment({len(self._obstacles)} obstacles, {self._wind_source})"
+
+    def to_dict(self) -> dict:
+        return {
+            'own_ships': self._own_ships,
+            'target_ships': self._target_ships,
+            'obstacles': self._obstacles,
+            'shore': self._shore,
+            'wind_source': self._wind_source,
+            'water_source': self._water_source
+        }
+    
+    def from_dict(self, d:dict) -> None:
+        self._own_ships = d['own_ships']
+        self._target_ships = d['target_ships']
+        self._obstacles = d['obstacles']
+        self._shore = d['shore']
+        self._wind_source = d['wind_source']
+        self._water_source = d['water_source']
     
     @property
     def shore(self) -> ObstacleCollection:
@@ -77,6 +95,14 @@ class NavigationEnvironment:
     @property
     def water_source(self) -> WaterSource:
         return self._water_source
+
+    @property
+    def own_ships(self) -> ShipCollection:
+        return self._own_ships
+    
+    @property
+    def target_ships(self) -> ShipCollection:
+        return self._target_ships
     
 
 def test():

@@ -2,8 +2,8 @@ from abc import ABC, abstractmethod
 from nav_env.environment.environment import NavigationEnvironment
 
 class RiskMetric(ABC):
-    def __init__(self, env:NavigationEnvironment):
-        self._env = env
+    def __init__(self, env:NavigationEnvironment=None):
+        self._env = env or NavigationEnvironment()
 
     @abstractmethod
     def calculate(self, *args, **kwargs) -> float:

@@ -94,7 +94,8 @@ class ObstacleWithKinematics(Obstacle):
         if pose_fn is not None:
             self._pose_fn = pose_fn
         else:
-            self._pose_fn = lambda t: (initial_state.x + initial_state.x_dot*t, initial_state.y + initial_state.y_dot*t, initial_state.psi_deg + initial_state.psi_dot_deg*t)
+            self._initial_state = initial_state
+            self._pose_fn = self.get_pose_at
 
     def plot3(self, t:float, ax=None, c='b', alpha=0.3, **kwargs):
         """
@@ -127,7 +128,8 @@ class ObstacleWithKinematics(Obstacle):
         return f"ObstacleWithKinematics({self.centroid[0]:.2f}, {self.centroid[1]:.2f})"
     
     def get_pose_at(self, t) -> tuple[float, float, float]:
-        return self._pose_fn(t)
+        initial_state = self._initial_state
+        return initial_state.x + initial_state.x_dot*t, initial_state.y + initial_state.y_dot*t, initial_state.psi_deg + initial_state.psi_dot_deg*t
 
 def test_basic_obstacle():
     from matplotlib import pyplot as plt
