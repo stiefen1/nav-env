@@ -83,19 +83,33 @@ class ShipWithKinematics(ObstacleWithKinematics):
             enveloppe = ShipEnveloppe(**kwargs)
 
         if pose_fn is None:
-            pose_fn = lambda t: (p0[0] + v0[0] * t, p0[1] + v0[1] * t, p0[2] + v0[2] * t)
+            def pose_fn(t):
+                return p0[0] + v0[0] * t, p0[1] + v0[1] * t, p0[2] + v0[2] * t
+            # pose_fn = lambda t: (p0[0] + v0[0] * t, p0[1] + v0[1] * t, p0[2] + v0[2] * t)
 
         if make_heading_consistent:
             dt = 1e-2
-            new_pose_fn = deepcopy(pose_fn)
-            x = lambda t: new_pose_fn(t)[0]
-            y = lambda t: new_pose_fn(t)[1]
-            dxdt = lambda t : (x(t+dt) - x(t-dt))/(2*dt)
-            dydt = lambda t : (y(t+dt) - y(t-dt))/(2*dt)
-            heading = lambda t: atan2(dydt(t),(dxdt(t)))*180/pi - 90
-            pose_fn = lambda t: (x(t), y(t), heading(t))
+            temp_pose_fn = deepcopy(pose_fn)
+            def pose_fn(t):
+                x, y, _ = temp_pose_fn(t)
+                dxdt = (temp_pose_fn(t+dt)[0] - temp_pose_fn(t-dt)[0])/(2*dt)
+                dydt = (temp_pose_fn(t+dt)[1] - temp_pose_fn(t-dt)[1])/(2*dt)
+                heading = atan2(dydt, dxdt)*180/pi - 90
+                return x, y, heading
+            
+            
+            # x = lambda t: new_pose_fn(t)[0]
+            # y = lambda t: new_pose_fn(t)[1]
+            # dxdt = lambda t : (x(t+dt) - x(t-dt))/(2*dt)
+            # dydt = lambda t : (y(t+dt) - y(t-dt))/(2*dt)
+            # heading = lambda t: atan2(dydt(t),(dxdt(t)))*180/pi - 90
+            # pose_fn = lambda t: (x(t), y(t), heading(t))
         
         super().__init__(pose_fn=pose_fn, xy=enveloppe.get_xy_as_list())
+
+    @property
+    def pose_fn(self):
+        return self._pose_fn
 
 
 def test():
