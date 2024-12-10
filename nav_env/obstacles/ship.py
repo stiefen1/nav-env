@@ -95,7 +95,7 @@ class ShipWithKinematics(ObstacleWithKinematics):
             heading = lambda t: atan2(dydt(t),(dxdt(t)))*180/pi - 90
             pose_fn = lambda t: (x(t), y(t), heading(t))
         
-        super().__init__(pose_fn, xy=enveloppe.get_xy_as_list())
+        super().__init__(pose_fn=pose_fn, xy=enveloppe.get_xy_as_list())
 
 
 def test():

@@ -285,7 +285,7 @@ def test():
     ship5 = Ship(States3(250., 250., 80., -20., -20., 10.), integrator=Euler(dt), name="Ship5")
     lim = 300
     xlim, ylim = (-lim, -lim), (lim, lim)
-    env = Env(own_ships=ShipCollection([ship, ship2]), target_ships=ShipCollection([ship3, ship4, ship5]), wind_source=UniformWindSource(10, 45), shore=ObstacleCollection([obs1, obs2]))
+    env = Env(own_ships=[ship, ship2], target_ships=[ship3, ship4, ship5], wind_source=UniformWindSource(10, 45), shore=[obs1, obs2])
 
     # env = Env(own_ships=ShipCollection([ship, ship2]), target_ships=ShipCollection([ship5]), wind_source=UniformWindSource(10, 45), shore=ObstacleCollection([obs1]))
 
