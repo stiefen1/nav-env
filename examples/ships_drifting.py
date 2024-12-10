@@ -23,7 +23,7 @@ if __name__ == '__main__':
     obs3 = Obstacle(xy=[(0, 0), (50, 0), (80, 10), (100, 50), (60, 90), (10, 30)]).rotate_and_translate(200, 30, 90)
 
     # Ostacles (Moving)
-    kin_obs = ObstacleWithKinematics(initial_state=States3(-200., -100., 0., 10., -10., 30.), xy=[(0, 0), (50, 0), (80, 10), (100, 50), (60, 90), (10, 30)])
+    # kin_obs = ObstacleWithKinematics(initial_state=States3(-200., -100., 0., 10., -10., 30.), xy=[(0, 0), (50, 0), (80, 10), (100, 50), (60, 90), (10, 30)])
 
     # Ships
     ship1 = Ship(States3(-150., -200., 180., 20., 30., 10.), integrator=Euler(dt), name="Ship1")
@@ -40,7 +40,7 @@ if __name__ == '__main__':
         own_ships=[ship1, ship2, ship3],
         target_ships=[ship4, ship5],
         wind_source=uniform_wind,
-        obstacles=[kin_obs],
+        # obstacles=[kin_obs],
         shore=[obs1, obs2, obs3]
         )
 
