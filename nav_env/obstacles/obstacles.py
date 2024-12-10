@@ -21,6 +21,12 @@ class Obstacle(GeometryWrapper):
     
     def __repr__(self):
         return f"Obstacle({self.centroid[0]:.2f}, {self.centroid[1]:.2f})"
+    
+    def plot(self, ax=None, c='b', alpha=1, **kwargs):
+        """
+        Plot the obstacle.
+        """
+        return super().plot(ax=ax, c=c, alpha=alpha, **kwargs)
 
 class Circle(Obstacle):
     def __init__(self, x, y, radius):

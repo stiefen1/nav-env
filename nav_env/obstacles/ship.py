@@ -60,6 +60,9 @@ class ShipEnveloppe(Obstacle):
 
         super().__init__(xy=xy, img=img)
 
+    def plot(self, ax=None, c='r', alpha=1, **kwargs):
+        return super().plot(ax=ax, c=c, alpha=alpha, **kwargs)
+
 class ShipWithKinematics(ObstacleWithKinematics):
     """
     A target ship that moves according to either:
