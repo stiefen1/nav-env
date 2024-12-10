@@ -17,7 +17,7 @@ if __name__ == '__main__':
     lim = 300
     xlim, ylim = (-lim, -lim), (lim, lim)
     dt = 0.05
-    tf = 10
+    tf = 20
 
     # Shore (Made of obstacles)
     obs1 = Circle(0, 40, 50, id=1)
@@ -55,4 +55,6 @@ if __name__ == '__main__':
 
     # Screen to display simulation results
     screen = Screen(env, monitor=RiskMonitor([TTG, Distance], dt=0.5), scale=1, lim=(xlim, ylim))
-    screen.play(dt=dt, tf=tf, own_ships_verbose=['enveloppe', 'name', 'forces'], target_ships_verbose=['enveloppe', 'acceleration', 'name'])  
+    screen.play(dt=dt, tf=tf, own_ships_verbose=['enveloppe', 'name', 'forces'], target_ships_verbose=['enveloppe', 'name'])  
+
+    # TODO: Make ShipWithDynamics obstacles as well!!

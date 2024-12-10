@@ -21,7 +21,7 @@ class BaseStateVector(ABC):
             for i, value in enumerate(args):
                 self.__dict__[f'x{i+1}'] = value
 
-    def __plot__(self, xy, keys, *args, ax=None, **kwargs):
+    def __plot__(self, xy, keys, *args, ax=None, c=None, **kwargs):
         """
         Plot the state vector.
         """
@@ -29,7 +29,7 @@ class BaseStateVector(ABC):
         if ax is None:
             _, ax = plt.subplots()
         
-        ax.quiver(*xy, self.__dict__[keys[0]], self.__dict__[keys[1]], *args, **kwargs)
+        ax.quiver(*xy, self.__dict__[keys[0]], self.__dict__[keys[1]], *args, color=c, **kwargs)
         return ax
     
     def __draw__(self, screen:pygame.Surface, xy, keys, *args, color=(0, 255, 0), scale=1, unit_scale=1, **kwargs):

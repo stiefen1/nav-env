@@ -75,14 +75,15 @@ class ShipWithKinematics(ObstacleWithKinematics):
                  length: float=DEFAULT_TARGET_SHIP_LENGTH,
                  width: float=DEFAULT_TARGET_SHIP_WIDTH,
                  ratio: float=DEFAULT_TARGET_SHIP_RATIO,
-                 pose_fn: Callable=None,
+                 pose_fn: Callable[[float], States3]=None,
                  initial_states: States2=None,
                  id:int=None,
                  **kwargs
                  ):
             
         enveloppe = ShipEnveloppe(length=length, width=width, ratio=ratio, **kwargs)
-        super().__init__(pose_fn=pose_fn, initial_state=States3(*initial_states.xy, 0, *initial_states.xy_dot, 0), xy=enveloppe.get_xy_as_list(), id=id)
+        initial_states = initial_states if initial_states is None else States3(*initial_states.xy, 0, *initial_states.xy_dot, 0)
+        super().__init__(pose_fn=pose_fn, initial_state=initial_states, xy=enveloppe.get_xy_as_list(), id=id)
 
     def get_pose_at(self, t:float) -> States3:
         """
@@ -100,14 +101,15 @@ class ShipWithKinematics(ObstacleWithKinematics):
 def test():
     import matplotlib.pyplot as plt
     from nav_env.obstacles.collection import ObstacleWithKinematicsCollection
+    from nav_env.ships.states import States2
     import numpy as np
     from math import cos, sin
 
 
-    p = lambda t: (-10*cos(0.2*t), 8*sin(0.2*t), 0)
-    Ts1 = ShipWithKinematics(pose_fn=p, make_heading_consistent=True)
-    Ts2 = ShipWithKinematics(length=30, width=10, ratio=7/9, p0=(0, 0, 0), v0=(1, 1, 0), make_heading_consistent=True)
-    Ts3 = ShipWithKinematics(width=8, ratio=3/7, pose_fn=lambda t: (t, -t, t*10))
+    p = lambda t: States3(x=-10*cos(0.2*t), y=8*sin(0.2*t))
+    Ts1 = ShipWithKinematics(pose_fn=p)
+    Ts2 = ShipWithKinematics(length=30, width=10, ratio=7/9, initial_states=States2(0, 0, 1, 1))
+    Ts3 = ShipWithKinematics(width=8, ratio=3/7, pose_fn=lambda t: States3(t, -t, t*10))
     coll = ObstacleWithKinematicsCollection([Ts1, Ts2, Ts3])
     
     fig2 = plt.figure(2)
