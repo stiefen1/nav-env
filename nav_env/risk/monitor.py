@@ -15,15 +15,15 @@ class RiskMonitor:
         """
         Monitor the environment.
         """
-        env = NavigationEnvironment()
-        t0 = time.time()
+        print("Start monitoring the environment")
+        env = NavigationEnvironment() # Initial environment is wrong but we don't care, we will update it in the loop
         while True:
             start = time.time()
             env.from_dict(shared_env_dict)
             risks = RiskCollection([risk(env) for risk in self._risk_classes])
             # results = risks.calculate_sepately(env.own_ships[0])
-            results = [risks._risks[0].calculate(env.own_ships[0]), risks._risks[1].calculate(env.own_ships[0])]
-            print(f"({start-t0:.2f}) Risk: {results}, Ship0: {env.own_ships[0].states}")
+            results = [env.t, risks._risks[0].calculate(env.own_ships[0]), risks._risks[1].calculate(env.own_ships[0])]
+            # print(f"({start-t0:.2f}) Risk: {results}, Ship0: {env.own_ships[0].states}")
             results_queue.put(results)
             stop = time.time()
             time.sleep(max(1e-9, self._dt - (stop - start)))

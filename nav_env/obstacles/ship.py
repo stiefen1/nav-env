@@ -11,6 +11,7 @@ from typing import Callable
 from math import atan2, pi
 from copy import deepcopy
 import os, pathlib, sys
+from nav_env.ships.states import States3, States2
 
 PATH_TO_DEFAULT_IMG = os.path.join(pathlib.Path(__file__).parent.parent, "ships", "ship.png")
 
@@ -75,43 +76,26 @@ class ShipWithKinematics(ObstacleWithKinematics):
                  width: float=DEFAULT_TARGET_SHIP_WIDTH,
                  ratio: float=DEFAULT_TARGET_SHIP_RATIO,
                  pose_fn: Callable=None,
-                 p0: tuple[float, float, float]=DEFAULT_TARGET_SHIP_POSITION,
-                 v0: tuple[float, float, float]=DEFAULT_TARGET_SHIP_SPEED,
-                 make_heading_consistent:bool=False,
+                 initial_states: States2=None,
+                 id:int=None,
                  **kwargs
                  ):
-        
+            
         enveloppe = ShipEnveloppe(length=length, width=width, ratio=ratio, **kwargs)
+        super().__init__(pose_fn=pose_fn, initial_state=States3(*initial_states.xy, 0, *initial_states.xy_dot, 0), xy=enveloppe.get_xy_as_list(), id=id)
 
-        if pose_fn is None:
-            def pose_fn(t):
-                return p0[0] + v0[0] * t, p0[1] + v0[1] * t, p0[2] + v0[2] * t
-            # pose_fn = lambda t: (p0[0] + v0[0] * t, p0[1] + v0[1] * t, p0[2] + v0[2] * t)
-
-        if make_heading_consistent:
-            dt = 1e-2
-            temp_pose_fn = deepcopy(pose_fn)
-            def pose_fn(t):
-                x, y, _ = temp_pose_fn(t)
-                dxdt = (temp_pose_fn(t+dt)[0] - temp_pose_fn(t-dt)[0])/(2*dt)
-                dydt = (temp_pose_fn(t+dt)[1] - temp_pose_fn(t-dt)[1])/(2*dt)
-                heading = atan2(dydt, dxdt)*180/pi - 90
-                return x, y, heading
-            
-            
-            # x = lambda t: new_pose_fn(t)[0]
-            # y = lambda t: new_pose_fn(t)[1]
-            # dxdt = lambda t : (x(t+dt) - x(t-dt))/(2*dt)
-            # dydt = lambda t : (y(t+dt) - y(t-dt))/(2*dt)
-            # heading = lambda t: atan2(dydt(t),(dxdt(t)))*180/pi - 90
-            # pose_fn = lambda t: (x(t), y(t), heading(t))
-        
-        super().__init__(pose_fn=pose_fn, xy=enveloppe.get_xy_as_list())
-
-    @property
-    def pose_fn(self):
-        return self._pose_fn
-
+    def get_pose_at(self, t:float) -> States3:
+        """
+        Override get_pose_at to make the heading consistent with the trajectory.
+        """
+        dt = 1e-2 # small time step to compute the numerical derivative
+        s0 = self._initial_state
+        x1, x2 = s0.x + self._initial_state.x_dot * t, s0.x + s0.x_dot * (t+dt)
+        y1, y2 = s0.y + s0.y_dot * t, s0.y + s0.y_dot * (t+dt)
+        dxdt = (x2 - x1)/dt
+        dydt = (y2 - y1)/dt
+        heading = atan2(dydt, dxdt) * 180 / pi - 90
+        return States3(x1, y1, heading, s0.x_dot, s0.y_dot, 0)        
 
 def test():
     import matplotlib.pyplot as plt

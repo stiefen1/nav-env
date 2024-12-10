@@ -27,9 +27,9 @@ for t in range(T):
 # We could add element to the screen, in a "PlayableCollection" object for instance.
 
 class MatplotlibScreen:
-    def __init__(self, env:NavigationEnvironment, risk:RiskMonitor=None, lim:tuple[tuple, tuple]=((-10, -10), (10, 10)), scale:float=1, ax=None):
+    def __init__(self, env:NavigationEnvironment, monitor:RiskMonitor=None, lim:tuple[tuple, tuple]=((-10, -10), (10, 10)), scale:float=1, ax=None):
         self._env = env
-        self._risk = risk or RiskMonitor()
+        self._monitor = monitor or RiskMonitor()
         self._lim = lim
         self._lim_x = (lim[0][0], lim[1][0])
         self._lim_y = (lim[0][1], lim[1][1])
@@ -39,9 +39,8 @@ class MatplotlibScreen:
         self._scale = scale
 
     def play(self,
-             t0:float=0,
              tf:float=10,
-             dt:float=0.03,
+             dt:float=None,
              ax=None,
              own_ships_verbose=['enveloppe', 'frame', 'acceleration', 'velocity', 'forces'],
              target_ships_verbose=['enveloppe'],
@@ -50,47 +49,46 @@ class MatplotlibScreen:
         """
         Play the environment during an interval of time.
         """
+        
+        
         if ax is None:
-            _, ax = plt.subplots(1, 2)
+            _, ax = plt.subplots(1, 2, figsize=(10, 5))
 
         ax[1].grid()
+
+        self._env.dt = dt # Enforce the time step for the whole environment
+
         manager = mp.Manager()
         shared_env_dict = manager.dict(self._env.to_dict()) 
         result_queue = mp.Queue()
-        risk_process = mp.Process(target=self._risk.monitor, args=(shared_env_dict, result_queue))
+        risk_process = mp.Process(target=self._monitor.monitor, args=(shared_env_dict, result_queue))
         risk_process.start()
 
-        t = t0
         while True:
             loop_start = time.time()
             ax[0].cla()
             ax[0].set_xlim(*self._lim_x)
             ax[0].set_ylim(*self._lim_y)
             self._env.step()
-            self._env.plot(t, self._lim, own_ship_physics=own_ships_verbose, target_ship_physics=target_ships_verbose, ax=ax[0])
-            ax[0].set_title(f"t = {t:.2f}")
+            self._env.plot(self._lim, own_ship_physics=own_ships_verbose, target_ship_physics=target_ships_verbose, ax=ax[0])
+            ax[0].set_title(f"t = {self._env.t:.2f}")
 
             shared_env_dict.update(self._env.to_dict())
 
-            # print(f"({t:.2f}) Ship0: {self._env.own_ships[0].states}")
-
             if not result_queue.empty():
                 risk_values = result_queue.get()
-                ax[1].plot(t, risk_values[0], 'ro')
-                ax[1].plot(t, risk_values[1], 'bo')
+                ax[1].plot(risk_values[0], risk_values[1], 'ro')
+                ax[1].plot(risk_values[0], risk_values[2], 'bo')
 
-            t += dt
-
-            if t > tf:
+            if self._env.t > tf:
                 ax[0].set_title(f"t = {tf:.2f} : Done")
+                risk_process.terminate()
+                print("Simulation done. Press any button to exit.")
                 plt.waitforbuttonpress(120)
                 break
 
             loop_end = time.time()
-            # print(f"{t:.2f} | Loop time: {loop_end - loop_start}")
-            plt.pause(max(1e-9, dt - (loop_end - loop_start)))
-
-        risk_process.terminate()
+            plt.pause(max(1e-9, self._env.dt - (loop_end - loop_start)))
 
     @property
     def lim_x(self) -> tuple:
