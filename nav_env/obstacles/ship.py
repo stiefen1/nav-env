@@ -71,7 +71,9 @@ class ShipWithKinematics(ObstacleWithKinematics):
     The flag make_heading_consistent allows to make the heading consistent with the trajectory, i.e. aligned with the velocity vector.
     """
     def __init__(self,
-                 enveloppe:ShipEnveloppe=None,
+                 length: float=DEFAULT_TARGET_SHIP_LENGTH,
+                 width: float=DEFAULT_TARGET_SHIP_WIDTH,
+                 ratio: float=DEFAULT_TARGET_SHIP_RATIO,
                  pose_fn: Callable=None,
                  p0: tuple[float, float, float]=DEFAULT_TARGET_SHIP_POSITION,
                  v0: tuple[float, float, float]=DEFAULT_TARGET_SHIP_SPEED,
@@ -79,8 +81,7 @@ class ShipWithKinematics(ObstacleWithKinematics):
                  **kwargs
                  ):
         
-        if enveloppe is None:
-            enveloppe = ShipEnveloppe(**kwargs)
+        enveloppe = ShipEnveloppe(length=length, width=width, ratio=ratio, **kwargs)
 
         if pose_fn is None:
             def pose_fn(t):
