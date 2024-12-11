@@ -31,7 +31,7 @@ for t in range(T):
 class MatplotlibScreen:
     def __init__(self, env:NavigationEnvironment, monitor:RiskMonitor=None, lim:tuple[tuple, tuple]=((-10, -10), (10, 10)), scale:float=1, ax=None):
         self._env = env
-        self._monitor = monitor or RiskMonitor()
+        self._monitor = monitor
         self._lim = lim
         self._lim_x = (lim[0][0], lim[1][0])
         self._lim_y = (lim[0][1], lim[1][1])
@@ -51,14 +51,28 @@ class MatplotlibScreen:
         """
         Play the environment during an interval of time.
         """
-        
-        
+        self._env.dt = dt # Enforce the time step for the whole environment
+
+        if self._monitor is not None:
+            self.play_with_monitor(tf, ax, own_ships_verbose, target_ships_verbose, **kwargs)
+        else:
+            self.play_without_monitor(tf, ax, own_ships_verbose, target_ships_verbose, **kwargs)
+
+    def play_with_monitor(self,
+                          tf:float=10,
+                          ax=None,
+                          own_ships_verbose=['enveloppe', 'frame', 'acceleration', 'velocity', 'forces'],
+                          target_ships_verbose=['enveloppe'],
+                          **kwargs):
+        """
+        Play the environment during an interval of time.
+
+        WARNING: This function requires the whole environment to be pickable to run the monitor in a separate process.
+        """
         if ax is None:
             _, ax = plt.subplots(1, 2, figsize=(10, 5))
-
         ax[1].grid()
-
-        self._env.dt = dt # Enforce the time step for the whole environment
+        # ax[1].legend('TTG', 'Distance')
 
         manager = mp.Manager()
         shared_env_dict = manager.dict(self._env.to_dict()) 
@@ -81,10 +95,42 @@ class MatplotlibScreen:
                 risk_values = result_queue.get()
                 ax[1].plot(risk_values[0], risk_values[1], 'ro')
                 ax[1].plot(risk_values[0], risk_values[2], 'bo')
+                ax[1].legend(self._monitor.legend())
 
             if self._env.t > tf:
                 ax[0].set_title(f"t = {tf:.2f} : Done")
                 risk_process.terminate()
+                print("Simulation done. Press any button to exit.")
+                plt.waitforbuttonpress(120)
+                break
+
+            loop_end = time.time()
+            plt.pause(max(1e-9, self._env.dt - (loop_end - loop_start)))
+
+    def play_without_monitor(self,
+                          tf:float=10,
+                          ax=None,
+                          own_ships_verbose=['enveloppe', 'frame', 'acceleration', 'velocity', 'forces'],
+                          target_ships_verbose=['enveloppe'],
+                          **kwargs):
+        """
+        Play the environment during an interval of time.
+        """
+        if ax is None:
+            _, ax = plt.subplots(1, 1, figsize=(5, 5))
+        ax.grid()
+
+        while True:
+            loop_start = time.time()
+            ax.cla()
+            ax.set_xlim(*self._lim_x)
+            ax.set_ylim(*self._lim_y)
+            self._env.step()
+            self._env.plot(self._lim, own_ship_physics=own_ships_verbose, target_ship_physics=target_ships_verbose, ax=ax)
+            ax.set_title(f"t = {self._env.t:.2f}")
+
+            if self._env.t > tf:
+                ax.set_title(f"t = {tf:.2f} : Done")
                 print("Simulation done. Press any button to exit.")
                 plt.waitforbuttonpress(120)
                 break
@@ -101,11 +147,7 @@ class MatplotlibScreen:
         return self._lim_y  
 
 
-def o1_pose(t:float) -> States3:
-    return States3(-t, t, t*10)
-
-def o2_pose(t:float) -> States3:
-    return States3(t, -t, t*20) 
+ 
 
 def test():
     from nav_env.obstacles.obstacles import ObstacleWithKinematics
@@ -113,6 +155,12 @@ def test():
     from nav_env.ships.states import States3
     from nav_env.viz.matplotlib_screen import MatplotlibScreen
     from nav_env.environment.environment import NavigationEnvironment
+
+    def o1_pose(t:float) -> States3:
+        return States3(-t, t, t*10)
+
+    def o2_pose(t:float) -> States3:
+        return States3(t, -t, t*20)
 
     o1 = ObstacleWithKinematics(o1_pose, xy=[(0, 0), (2, 0), (2, 2), (0, 2)])
     o2 = ObstacleWithKinematics(o2_pose, xy=[(0, 0), (2, 0), (2, 2), (0, 2)])

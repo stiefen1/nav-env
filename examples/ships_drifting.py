@@ -17,7 +17,7 @@ if __name__ == '__main__':
     lim = 300
     xlim, ylim = (-lim, -lim), (lim, lim)
     dt = 0.05
-    tf = 20
+    tf = 30
 
     # Shore (Made of obstacles)
     obs1 = Circle(0, 40, 50, id=1)
