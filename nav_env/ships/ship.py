@@ -23,7 +23,9 @@ class ShipWithDynamicsBase(ObstacleWithKinematics):
                  controller:ControllerBase=None,
                  integrator:Integrator=None,
                  derivatives:TimeDerivatives3=None,
-                 name:str="ShipWithDynamicsBase"
+                 name:str="ShipWithDynamicsBase",
+                 domain:ObstacleCollection=None,
+                 domain_margin_wrt_enveloppe:float=1.
                  ):
         self._states = states
         self._initial_state = deepcopy(states)
@@ -37,7 +39,7 @@ class ShipWithDynamicsBase(ObstacleWithKinematics):
         self._generalized_forces = GeneralizedForces() # Initialize generalized forces acting on the ship to 0
 
         enveloppe = ShipEnveloppe(length=self._physics.length, width=self._physics.width)
-        super().__init__(initial_state=states, xy=enveloppe.get_xy_as_list(), dt=integrator.dt)
+        super().__init__(initial_state=states, xy=enveloppe.get_xy_as_list(), dt=integrator.dt, domain=domain, domain_margin_wrt_enveloppe=domain_margin_wrt_enveloppe)
 
     def reset(self):
         """
@@ -71,15 +73,17 @@ class ShipWithDynamicsBase(ObstacleWithKinematics):
         if ax is None:
             _, ax = plt.subplots()
         if 'enveloppe' in keys:
-            super().plot(ax=ax, c='r', alpha=1., **kwargs)
+            super().plot(ax=ax, c='r', alpha=1.)
+        if 'domain' in keys:
+            self.domain.plot(ax=ax, c='r', linestyle='dashed')
         if 'frame' in keys:
-            self.plot_frame(ax=ax, **kwargs)
+            self.plot_frame(ax=ax)
         if 'acceleration' in keys:
-            self._derivatives.plot_acc(self._states.xy, ax=ax, c='purple', angles='xy', scale_units='xy', scale=5e-3, **kwargs)
+            self._derivatives.plot_acc(self._states.xy, ax=ax, c='purple', angles='xy', scale_units='xy', scale=5e-3)
         if 'velocity' in keys:
-            self._states.plot(ax=ax, c='orange', angles='xy', scale_units='xy', scale=1e-1,  **kwargs)
+            self._states.plot(ax=ax, c='orange', angles='xy', scale_units='xy', scale=1e-1)
         if 'forces' in keys:
-            self._generalized_forces.plot(self._states.xy, ax=ax, c='black', angles='xy', scale_units='xy', scale=1e3, **kwargs)
+            self._generalized_forces.plot(self._states.xy, ax=ax, color='black', angles='xy', scale_units='xy', scale=1e3)
         if 'name' in keys:
             ax.text(*self._states.xy, self._name, fontsize=8, c='black')
 
@@ -145,6 +149,7 @@ class ShipWithDynamicsBase(ObstacleWithKinematics):
     def update_enveloppe(self):
         if self._dx is not None:
             self.rotate_and_translate_inplace(self._dx[0], self._dx[1], self._dx[2])
+            self._domain.rotate_and_translate_inplace(self._dx[0], self._dx[1], self._dx[2])
         else:
             raise UserWarning(f"self._dx is None, you must first call integrate()")
 
@@ -155,6 +160,7 @@ class ShipWithDynamicsBase(ObstacleWithKinematics):
         WARNING!!! DONT USE THIS METHOD UNLESS YOU KNOW EXACTLY WHAT YOU ARE DOING
         """
         self.rotate_and_translate_inplace(self._accumulated_dx[0], self._accumulated_dx[1], self._accumulated_dx[2])
+        self._domain.rotate_and_translate_inplace(self._accumulated_dx[0], self._accumulated_dx[1], self._accumulated_dx[2])
         self._accumulated_dx = DeltaStates(0., 0., 0., 0., 0., 0.)
 
     def collide(self, obstacle:ObstacleCollection) -> bool:
@@ -248,9 +254,12 @@ class Ship(ShipWithDynamicsBase):
                  controller:ControllerBase = None,
                  integrator:Integrator = None,
                  derivatives:TimeDerivatives3 = None, 
-                 name:str="Ship"):
+                 name:str="Ship",
+                 domain:ObstacleCollection=None,
+                 domain_margin_wrt_enveloppe:float=1.
+                 ):
         states = states or States3()
-        super().__init__(states=states, physics=physics, controller=controller, integrator=integrator, derivatives=derivatives, name=name)
+        super().__init__(states=states, physics=physics, controller=controller, integrator=integrator, derivatives=derivatives, name=name, domain=domain, domain_margin_wrt_enveloppe=domain_margin_wrt_enveloppe)
 
     def update_derivatives(self, wind:WindVector, water:WaterVector, external_forces:GeneralizedForces):
         """

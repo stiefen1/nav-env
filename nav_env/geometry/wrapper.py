@@ -20,7 +20,7 @@ class GeometryWrapper:
             raise ValueError("Either xy or polygon must be provided.")
         
 
-    def plot(self, *args, ax=None, **kwargs):
+    def plot(self, *args, ax=None, c=None, **kwargs):
         """
         Plot the geometry.
         """
@@ -28,7 +28,7 @@ class GeometryWrapper:
         if ax is None:
             _, ax = plt.subplots()
         
-        ax.plot(*self.xy, *args, **kwargs)
+        ax.plot(*self.xy, *args, c=c, **kwargs)
         return ax
     
     def scatter(self, *args, ax=None, **kwargs):

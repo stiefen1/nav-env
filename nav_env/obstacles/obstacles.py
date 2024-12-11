@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 from shapely import affinity
 from nav_env.ships.states import States3
 from nav_env.control.states import DeltaStates
+from copy import deepcopy
 
 DEFAULT_INTEGRATION_STEP = 0.1
 class Obstacle(GeometryWrapper):
@@ -25,11 +26,11 @@ class Obstacle(GeometryWrapper):
     def __repr__(self):
         return f"Obstacle({self.centroid[0]:.2f}, {self.centroid[1]:.2f})"
     
-    def plot(self, *args, color='black', ax=None, **kwargs):
+    def plot(self, *args, ax=None, c='black', **kwargs):
         """
         Plot the obstacle.
         """
-        return super().plot(color, *args, ax=ax, **kwargs)
+        return super().plot(*args, ax=ax, c=c, **kwargs)
 
 class Circle(Obstacle):
     def __init__(self, x, y, radius, id:int=None):
@@ -95,7 +96,16 @@ class ObstacleWithKinematics(Obstacle):
     """
     Model an obstacle that changes over time.
     """
-    def __init__(self, pose_fn:Callable[[float], States3]=None, initial_state:States3=None, t0:float=0., dt:float=DEFAULT_INTEGRATION_STEP, xy: list=None, polygon: Polygon=None, geometry_type: type=Polygon, id:int=None):
+    def __init__(self, pose_fn:Callable[[float], States3]=None,
+                 initial_state:States3=None,
+                 t0:float=0.,
+                 dt:float=None,
+                 xy: list=None,
+                 polygon: Polygon=None,
+                 geometry_type: type=Polygon,
+                 domain:Obstacle=None,
+                 domain_margin_wrt_enveloppe:float=1.,
+                 id:int=None):
         """
         pose_fn: Callable that returns the pose of the obstacle at a given time as a tuple (x, y, angle).
         """
@@ -113,15 +123,24 @@ class ObstacleWithKinematics(Obstacle):
         # Initial states
         self._t0 = t0
         self._t = t0
-        self._dt = dt
+        self._dt = dt or DEFAULT_INTEGRATION_STEP
         self._state = self.pose_fn(t0)
         self._initial_state = self.pose_fn(t0)
 
+        # Domain of the obstacle
+        if domain is None:
+            self._domain:Obstacle = super().buffer(domain_margin_wrt_enveloppe, join_style='mitre')
+        else:
+            assert isinstance(domain, Obstacle), f"Expected Obstacle got {type(domain).__name__}"
+            self._domain = domain
+
         # Initial geometry, could be avoided but it makes the things simpler
         self._initial_geometry = self._geometry
+        self._initial_domain = deepcopy(self._domain)
 
         # Since we use the step() method to update the obstacle, we need to set the initial orientation of the obstacle
         self.rotate_and_translate_inplace(self._initial_state.x, self._initial_state.y, self._initial_state.psi_deg) # Change geometry (enveloppe)
+        self._domain.rotate_and_translate_inplace(self._initial_state.x, self._initial_state.y, self._initial_state.psi_deg) # Change geometry (enveloppe)
 
     def step(self) -> None:
         """
@@ -132,6 +151,7 @@ class ObstacleWithKinematics(Obstacle):
         self._state = self.pose_fn(self._t)
         ds:DeltaStates = self._state - prev_state
         self.rotate_and_translate_inplace(ds.x, ds.y, ds.psi_deg) # Change geometry (enveloppe)
+        self._domain.rotate_and_translate_inplace(ds.x, ds.y, ds.psi_deg) # Change geometry (enveloppe)
 
     def reset(self) -> None:
         """
@@ -140,15 +160,20 @@ class ObstacleWithKinematics(Obstacle):
         self._t = self._t0
         self._state = self.pose_fn(self._t0)
         self._geometry = self._initial_geometry
+        self._domain = deepcopy(self._initial_domain)
         self.rotate_and_translate_inplace(self._initial_state.x, self._initial_state.y, self._initial_state.psi_deg) # Change geometry (enveloppe)
+        self._domain.rotate_and_translate_inplace(self._initial_state.x, self._initial_state.y, self._initial_state.psi_deg) # Change geometry (enveloppe)
 
-    def plot(self, *args, ax=None, **kwargs):
+    def plot(self, *args, ax=None, domain:bool=False, **kwargs):
         """
         Plot the obstacle.
         """
-        return super().plot(*args, ax=ax, **kwargs)
+        ax = super().plot(*args, ax=ax, **kwargs)
+        if domain:
+            return self._domain.plot(*args, ax=ax, linestyle='dashed', **kwargs)
+        return ax
 
-    def plot3(self, t:float, *args, ax=None, **kwargs):
+    def plot3(self, t:float, *args, ax=None, domain:bool=False, **kwargs):
         """
         Plot the obstacle in 3D.
         """
@@ -159,6 +184,12 @@ class ObstacleWithKinematics(Obstacle):
         xy = Obstacle(polygon=self._initial_geometry).rotate_and_translate(state_at_t.x, state_at_t.y, state_at_t.psi_deg).xy
         z = [t]*len(xy[0])
         ax.plot(*xy, z, *args, **kwargs)
+
+        if domain:
+            xy = self._initial_domain.rotate_and_translate(state_at_t.x, state_at_t.y, state_at_t.psi_deg).xy
+            z = [t]*len(xy[0])
+            ax.plot(*xy, z, *args, linestyle='dashed', **kwargs)
+
         return ax
     
     def quiver_speed(self, *args, ax=None, **kwargs):
@@ -171,10 +202,13 @@ class ObstacleWithKinematics(Obstacle):
         state.plot(*args, ax=ax, **kwargs)
         return ax
 
-    def __call__(self, t:float=None) -> Obstacle:
+    def __call__(self, t:float=None, domain:bool=False) -> Obstacle:
         if t is None:
             t = self._t
         state_at_t:States3 = self.pose_fn(t)
+
+        if domain:
+            return self._initial_domain.rotate_and_translate(state_at_t.x, state_at_t.y, state_at_t.psi_deg)
         return Obstacle(polygon=self._initial_geometry).rotate_and_translate(state_at_t.x, state_at_t.y, state_at_t.psi_deg)
 
     def __repr__(self):
@@ -212,6 +246,11 @@ class ObstacleWithKinematics(Obstacle):
     def dt(self, value:float) -> None:
         self._dt = value
 
+    @property
+    def domain(self) -> Obstacle:
+        return self._domain
+    
+
 def test_basic_obstacle():
     from matplotlib import pyplot as plt
     import time
@@ -246,7 +285,7 @@ def show_time_varying_obstacle_as_3d():
     tmin, tmax = 0,  6
     
     for t in np.linspace(tmin, tmax, 50):
-        ax = coll.plot3(t, ax=ax)
+        ax = coll.plot3(t, ax=ax, c='black', alpha=0.5, domain=True)
 
     # Build plane
     x0, y0, t0 = -10, -10, 0

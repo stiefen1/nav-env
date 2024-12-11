@@ -68,7 +68,7 @@ class NavigationEnvironment:
         self._obstacles.reset()
         self._t = self._t0
 
-    def plot(self, lim:tuple, ax=None, own_ship_physics=['enveloppe', 'frame', 'acceleration', 'velocity', 'forces'], target_ship_physics=['enveloppe'], **kwargs):
+    def plot(self, lim:tuple, ax=None, own_ship_physics=['enveloppe', 'frame', 'acceleration', 'velocity', 'forces', 'domain'], target_ship_physics=['enveloppe'], **kwargs):
         """
         Plot the environment.
         """
@@ -77,14 +77,14 @@ class NavigationEnvironment:
         self._shore.plot(ax=ax, **kwargs)
         self._own_ships.plot(ax=ax, keys=own_ship_physics, **kwargs)
         self._target_ships.plot(ax=ax, keys=target_ship_physics, **kwargs)
-        self._obstacles.plot(ax=ax, **kwargs)
+        self._obstacles.plot(ax=ax, domain=True, **kwargs)
         self._wind_source.quiver(lim, ax=ax, facecolor='grey', alpha=0.3, **kwargs)
         # self._water_source.plot(ax=ax, **kwargs)
         ax.set_xlim((lim[0][0], lim[1][0]))
         ax.set_ylim((lim[0][1], lim[1][1]))
         return ax
     
-    def draw(self, t:float, screen, own_ship_physics=['enveloppe', 'frame', 'acceleration', 'velocity', 'forces'], target_ship_physics=['enveloppe'], scale=1, **kwargs):
+    def draw(self, screen, own_ship_physics=['enveloppe', 'frame', 'acceleration', 'velocity', 'forces'], target_ship_physics=['enveloppe'], scale=1, **kwargs):
         """
         Draw the environment for pygame.
         """

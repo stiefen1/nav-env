@@ -36,7 +36,6 @@ class ShipCollection:
 
         for ship in self._ships:
             ship.plot(ax=ax, keys=keys, **kwargs)
-            # print(ship.name, ship.physics.generalized_forces.f_x / ship.derivatives.x_dot_dot, ship.physics.generalized_forces.f_y / ship.derivatives.y_dot_dot)
 
         return ax
     

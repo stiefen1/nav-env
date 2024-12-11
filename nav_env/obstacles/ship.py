@@ -49,21 +49,35 @@ def get_target_ship_domain(length, width, ratio):
 
 class ShipEnveloppe(Obstacle):
     def __init__(self,
-                 xy: list=None,
                  length: float=DEFAULT_TARGET_SHIP_LENGTH,
                  width: float=DEFAULT_TARGET_SHIP_WIDTH,
                  ratio: float=DEFAULT_TARGET_SHIP_RATIO,
                  img:str=PATH_TO_DEFAULT_IMG
                  ):
         
-        if xy is None:
-            xy = get_target_ship_domain(length, width, ratio)
+        self._length = length
+        self._width = width
+        self._ratio = ratio
+
+        xy = get_target_ship_domain(length, width, ratio)
 
         super().__init__(xy=xy, img=img)
 
     def plot(self, ax=None, c='r', alpha=1, **kwargs):
         return super().plot(ax=ax, c=c, alpha=alpha, **kwargs)
-
+    
+    @property
+    def length(self) -> float: 
+        return self._length
+    
+    @property
+    def width(self) -> float:
+        return self._width
+    
+    @property
+    def ratio(self) -> float:
+        return self._ratio
+    
 class SailingShip(ObstacleWithKinematics):
     """
     A target ship that moves according to either:
@@ -77,6 +91,9 @@ class SailingShip(ObstacleWithKinematics):
                  ratio: float=DEFAULT_TARGET_SHIP_RATIO,
                  pose_fn: Callable[[float], States3]=None,
                  initial_state: States2 | States3=None,
+                 domain:Obstacle=None,
+                 domain_margin_wrt_enveloppe=1., 
+                 dt:float=None,
                  id:int=None,
                  **kwargs
                  ):
@@ -95,7 +112,7 @@ class SailingShip(ObstacleWithKinematics):
             raise ValueError(f"Expected States2 or States3 for initial_state, got {type(initial_state).__name__}")
         
         enveloppe = ShipEnveloppe(length=length, width=width, ratio=ratio, **kwargs)
-        super().__init__(pose_fn=pose_fn, initial_state=initial_state, xy=enveloppe.get_xy_as_list(), id=id)
+        super().__init__(pose_fn=pose_fn, initial_state=initial_state, xy=enveloppe.get_xy_as_list(), domain=domain, id=id, dt=dt, domain_margin_wrt_enveloppe=domain_margin_wrt_enveloppe)
 
     def pose_fn(self, t:float) -> States3:
         """
@@ -113,11 +130,12 @@ def test():
     import matplotlib.pyplot as plt
     from nav_env.obstacles.collection import ObstacleWithKinematicsCollection
     from nav_env.ships.states import States2
+    from nav_env.obstacles.obstacles import Circle, Ellipse, Obstacle
     import numpy as np
     from math import cos, sin
 
     p = lambda t: States3(x=-10*cos(0.2*t), y=8*sin(0.2*t))
-    Ts1 = SailingShip(pose_fn=p)
+    Ts1 = SailingShip(pose_fn=p, domain=Ellipse(0., 0., 5., 10.))
     Ts2 = SailingShip(length=30, width=10, ratio=7/9, initial_state=States2(0, 0, 1, 1))
     Ts3 = SailingShip(width=8, ratio=3/7, pose_fn=lambda t: States3(t, -t, t*10))
     coll = ObstacleWithKinematicsCollection([Ts1, Ts2, Ts3])
@@ -125,7 +143,7 @@ def test():
     fig2 = plt.figure(2)
     ax = fig2.add_axes(111, projection='3d')
     for t in np.linspace(0, 32, 32):
-        coll.plot3(t, ax=ax)
+        coll.plot3(t, ax=ax, c='black', alpha=0.5, domain=True)
     plt.show()
 
 if __name__ == "__main__":

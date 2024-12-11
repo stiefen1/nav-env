@@ -129,7 +129,7 @@ class ObstacleWithKinematicsCollection:
             obs.quiver_speed(ax=ax, **kwargs)
         return ax
     
-    def plot(self, ax=None, **kwargs):
+    def plot(self, ax=None, domain:bool=False, **kwargs):
         """
         Plot the obstacles.
         """
@@ -137,7 +137,7 @@ class ObstacleWithKinematicsCollection:
             _, ax = plt.subplots()
 
         for obs in self._obstacles:
-            obs.plot(ax=ax, **kwargs)
+            obs.plot(ax=ax, domain=domain, **kwargs)
         return ax
     
     def draw(self, screen, scale=1, **kwargs):
