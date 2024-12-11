@@ -1,6 +1,69 @@
 from nav_env.control.states import States, TimeDerivatives
 from math import pi
 
+class States2(States):
+    def __init__(self, x:float=0., y:float=0., x_dot:float=0., y_dot:float=0.):
+        super().__init__(x=x, y=y, x_dot=x_dot, y_dot=y_dot)
+
+    def plot(self, *args, ax=None, **kwargs):
+        """
+        Plot the state vector.
+        """
+        return self.__plot__(self.xy, ['x_dot', 'y_dot'], *args, ax=ax, **kwargs)
+    
+    def draw(self, screen, *args, scale=1, unit_scale=10, color=(255, 0, 0), **kwargs):
+        """
+        Draw the vector for pygame.
+        """
+        self.__draw__(screen, self.xy, ['x_dot', 'y_dot'], *args, scale=scale, unit_scale=unit_scale, color=color, **kwargs)
+
+    @property
+    def x(self) -> float:
+        return self['x']
+    
+    @x.setter
+    def x(self, value:float):
+        self['x'] = value
+
+    @property
+    def y(self) -> float:
+        return self['y']
+    
+    @y.setter
+    def y(self, value:float):
+        self['y'] = value
+
+    @property
+    def xy(self) -> tuple[float, float]:
+        return self.x, self.y
+    
+    @property
+    def pose(self) -> tuple[float, float]:
+        return self.x, self.y
+    
+    @property
+    def x_dot(self) -> float:
+        return self['x_dot']
+    
+    @x_dot.setter
+    def x_dot(self, value:float):
+        self['x_dot'] = value
+
+    @property
+    def y_dot(self) -> float:
+        return self['y_dot']
+    
+    @y_dot.setter
+    def y_dot(self, value:float):
+        self['y_dot'] = value
+
+    @property
+    def xy_dot(self) -> tuple[float, float]:
+        return self.x_dot, self.y_dot
+    
+    @property
+    def vel(self) -> tuple[float, float]:
+        return self.x_dot, self.y_dot
 class States3(States):
     def __init__(self, x:float=0., y:float=0., psi_deg:float=0., x_dot:float=0., y_dot:float=0., psi_dot_deg:float=0.):
         super().__init__(x=x, y=y, psi_deg=psi_deg, x_dot=x_dot, y_dot=y_dot, psi_dot_deg=psi_dot_deg)

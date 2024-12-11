@@ -11,11 +11,11 @@ class Distance(RiskMetric):
         """
         dist = []
         for target in self._env.target_ships.get_except(ship):
-            dist.append(ship._enveloppe.distance(target._enveloppe))
+            dist.append(ship.distance(target._geometry))
         for ships in self._env.own_ships.get_except(ship):
-            dist.append(ship._enveloppe.distance(ships._enveloppe))
+            dist.append(ship.distance(ships._geometry))
         for obs in self._env.obstacles:
-            dist.append(ship._enveloppe.distance(obs._geometry))
+            dist.append(ship.distance(obs._geometry))
         return min(dist)
     
     def plot(self, ax=None, **kwargs):

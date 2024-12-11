@@ -4,9 +4,12 @@ from typing import Callable
 import matplotlib.pyplot as plt
 from shapely import affinity
 from nav_env.ships.states import States3
+from nav_env.control.states import DeltaStates
 
+DEFAULT_INTEGRATION_STEP = 0.1
 class Obstacle(GeometryWrapper):
-    def __init__(self, xy: list=None, polygon: Polygon=None, geometry_type: type=Polygon, img:str=None):
+    def __init__(self, xy: list=None, polygon: Polygon=None, geometry_type: type=Polygon, img:str=None, id:int=None):
+        self._id = id
         super().__init__(xy=xy, polygon=polygon, geometry_type=geometry_type)
 
     def distance_to_obstacle(self, x:float, y:float) -> float:
@@ -22,15 +25,15 @@ class Obstacle(GeometryWrapper):
     def __repr__(self):
         return f"Obstacle({self.centroid[0]:.2f}, {self.centroid[1]:.2f})"
     
-    def plot(self, ax=None, c='b', alpha=1, **kwargs):
+    def plot(self, *args, color='black', ax=None, **kwargs):
         """
         Plot the obstacle.
         """
-        return super().plot(ax=ax, c=c, alpha=alpha, **kwargs)
+        return super().plot(color, *args, ax=ax, **kwargs)
 
 class Circle(Obstacle):
-    def __init__(self, x, y, radius):
-        super().__init__(polygon=Point([x, y]).buffer(radius))
+    def __init__(self, x, y, radius, id:int=None):
+        super().__init__(polygon=Point([x, y]).buffer(radius), id=id)
         self._radius = radius
 
     @property
@@ -54,8 +57,8 @@ class Circle(Obstacle):
         return f"Circle({self.radius:.2f} at {self.center[0]:.2f}, {self.center[1]:.2f})"
     
 class Ellipse(Obstacle):
-    def __init__(self, x, y, a, b):
-        super().__init__(polygon=affinity.scale(Point([x, y]).buffer(1), a, b))
+    def __init__(self, x, y, a, b, id:int=None):
+        super().__init__(polygon=affinity.scale(Point([x, y]).buffer(1), a, b), id=id)
         self._a = a
         self._b = b
 
@@ -92,50 +95,122 @@ class ObstacleWithKinematics(Obstacle):
     """
     Model an obstacle that changes over time.
     """
-    def __init__(self, pose_fn:Callable=None, initial_state:States3=None, xy: list=None, polygon: Polygon=None, geometry_type: type=Polygon):
+    def __init__(self, pose_fn:Callable[[float], States3]=None, initial_state:States3=None, t0:float=0., dt:float=DEFAULT_INTEGRATION_STEP, xy: list=None, polygon: Polygon=None, geometry_type: type=Polygon, id:int=None):
         """
         pose_fn: Callable that returns the pose of the obstacle at a given time as a tuple (x, y, angle).
         """
-        super().__init__(xy=xy, polygon=polygon, geometry_type=geometry_type)
+        super().__init__(xy=xy, polygon=polygon, geometry_type=geometry_type, id=id)
+
+        # If a pose_fn is not provided, we use the initial state to compute the pose as x(t) = x0 + v * t
         if pose_fn is not None:
             self._pose_fn = pose_fn
         else:
             self._initial_state = initial_state
-            self._pose_fn = self.get_pose_at
+            self._pose_fn = self.pose_fn_from_initial_state
+ 
+        assert isinstance(self.pose_fn(0), States3), f"The pose function must return a States3 object"
 
-    def plot3(self, t:float, ax=None, c='b', alpha=0.3, **kwargs):
+        # Initial states
+        self._t0 = t0
+        self._t = t0
+        self._dt = dt
+        self._state = self.pose_fn(t0)
+        self._initial_state = self.pose_fn(t0)
+
+        # Initial geometry, could be avoided but it makes the things simpler
+        self._initial_geometry = self._geometry
+
+        # Since we use the step() method to update the obstacle, we need to set the initial orientation of the obstacle
+        self.rotate_and_translate_inplace(self._initial_state.x, self._initial_state.y, self._initial_state.psi_deg) # Change geometry (enveloppe)
+
+    def step(self) -> None:
+        """
+        Step the obstacle.
+        """
+        self._t += self._dt
+        prev_state = self._state
+        self._state = self.pose_fn(self._t)
+        ds:DeltaStates = self._state - prev_state
+        self.rotate_and_translate_inplace(ds.x, ds.y, ds.psi_deg) # Change geometry (enveloppe)
+
+    def reset(self) -> None:
+        """
+        Reset the obstacle.
+        """
+        self._t = self._t0
+        self._state = self.pose_fn(self._t0)
+        self._geometry = self._initial_geometry
+        self.rotate_and_translate_inplace(self._initial_state.x, self._initial_state.y, self._initial_state.psi_deg) # Change geometry (enveloppe)
+
+    def plot(self, *args, ax=None, **kwargs):
+        """
+        Plot the obstacle.
+        """
+        return super().plot(*args, ax=ax, **kwargs)
+
+    def plot3(self, t:float, *args, ax=None, **kwargs):
         """
         Plot the obstacle in 3D.
         """
         if ax is None:
             _, ax = plt.subplots(subplot_kw={'projection': '3d'})
 
-        x, y, angle = self._pose_fn(t)
-        xy = self.rotate_and_translate(x, y, angle).xy
+        state_at_t:States3 = self.pose_fn(t)
+        xy = Obstacle(polygon=self._initial_geometry).rotate_and_translate(state_at_t.x, state_at_t.y, state_at_t.psi_deg).xy
         z = [t]*len(xy[0])
-        ax.plot(*xy, z, c=c, alpha=alpha, **kwargs)
+        ax.plot(*xy, z, *args, **kwargs)
         return ax
     
-    def quiver_speed(self, ax=None, c='b', **kwargs):
+    def quiver_speed(self, *args, ax=None, **kwargs):
         """
         Plot the speed of the obstacle.
         """
         if ax is None:
             _, ax = plt.subplots()
-        xdot, ydot, _ = self._pose_fn(1)
-        x, y = self.centroid
-        ax.quiver(x, y, xdot, ydot, color=c, **kwargs)
+        state:States3 = self.pose_fn(1)
+        state.plot(*args, ax=ax, **kwargs)
         return ax
 
-    def __call__(self, t:float) -> Obstacle:
-        return Obstacle(polygon=self._geometry).rotate_and_translate(*self._pose_fn(t))
+    def __call__(self, t:float=None) -> Obstacle:
+        if t is None:
+            t = self._t
+        state_at_t:States3 = self.pose_fn(t)
+        return Obstacle(polygon=self._initial_geometry).rotate_and_translate(state_at_t.x, state_at_t.y, state_at_t.psi_deg)
 
     def __repr__(self):
         return f"ObstacleWithKinematics({self.centroid[0]:.2f}, {self.centroid[1]:.2f})"
     
-    def get_pose_at(self, t) -> tuple[float, float, float]:
+    def pose_fn_from_initial_state(self, t) -> States3:
         initial_state = self._initial_state
-        return initial_state.x + initial_state.x_dot*t, initial_state.y + initial_state.y_dot*t, initial_state.psi_deg + initial_state.psi_dot_deg*t
+        return States3(initial_state.x + initial_state.x_dot * t,
+                       initial_state.y + initial_state.y_dot * t,
+                       initial_state.psi_deg + initial_state.psi_dot_deg * t,
+                       initial_state.x_dot,
+                       initial_state.y_dot,
+                       initial_state.psi_dot_deg)
+    
+    def pose_fn_from_current_state(self, t) -> States3:
+        """
+        Compute pose x_t at time t from the current state, assuming x(t) = x_t + v_t * t. Could be used to compute metrics such as DCPA, TCPA, etc.
+        """
+        current_state = self._state
+        return States3(current_state.x + current_state.x_dot * t,
+                          current_state.y + current_state.y_dot * t,
+                          current_state.psi_deg + current_state.psi_dot_deg * t,
+                          current_state.x_dot,
+                          current_state.y_dot,
+                          current_state.psi_dot_deg)
+    
+    def pose_fn(self, t) -> States3:
+        return self._pose_fn(t)
+    
+    @property
+    def dt(self) -> float:
+        return self._dt
+    
+    @dt.setter
+    def dt(self, value:float) -> None:
+        self._dt = value
 
 def test_basic_obstacle():
     from matplotlib import pyplot as plt
@@ -159,10 +234,10 @@ def show_time_varying_obstacle_as_3d():
     from nav_env.obstacles.obstacles import Obstacle
     from scipy.spatial.transform import Rotation as R
 
-    o1 = ObstacleWithKinematics(pose_fn=lambda t: (t, t, 0), xy=[(0, 0), (2, 0), (2, 2), (0, 2)])
-    o2 = ObstacleWithKinematics(pose_fn=lambda t: (-2*t, -t, 0), xy=[(0, 0), (2, 0), (3, 1), (2, 2), (0, 2)]).rotate(40).translate(10, 5)
-    o3 = ObstacleWithKinematics(pose_fn=lambda t: (-1.2*t, -0.5*t, 0), xy=[(0, 0), (2, 0), (3, 1), (2, 2), (0, 2)]).rotate(40).translate(0, 5)
-    o4 = ObstacleWithKinematics(pose_fn=lambda t: (2*t, 0.2*t, 0), xy=[(0, 0), (2, 0), (3, 1), (2, 2), (0, 2)]).rotate(40).translate(-3, -5)
+    o1 = ObstacleWithKinematics(initial_state=States3(0., 0., 45, -1., 2., 0.), xy=[(0, 0), (2, 0), (2, 2), (0, 2)])
+    o2 = ObstacleWithKinematics(initial_state=States3(10., 5., 90., -2., -1., 0), xy=[(0, 0), (2, 0), (3, 1), (2, 2), (0, 2)])
+    o3 = ObstacleWithKinematics(initial_state=States3(0., 5., 0., -1.2, -0.5, 0.), xy=[(0, 0), (2, 0), (3, 1), (2, 2), (0, 2)])
+    o4 = ObstacleWithKinematics(initial_state=States3(-3., -5., 0., 2., 0.2, 0.), xy=[(0, 0), (2, 0), (3, 1), (2, 2), (0, 2)])
     
     coll = ObstacleWithKinematicsCollection([o1, o2, o3, o4])
 
@@ -195,7 +270,7 @@ def show_time_varying_obstacle_as_3d():
     coll_2d = ObstacleCollection([])
     for obs in coll:
         obs_2d = np.empty(shape=(0, 2))
-        for i, (p0, pf) in enumerate(zip(obs(tmin).buffer(1, join_style='mitre').get_xy_as_list(), obs(tmax).buffer(1, join_style='mitre').get_xy_as_list())):
+        for i, (p0, pf) in enumerate(zip(obs(tmin).buffer(0, join_style='mitre').get_xy_as_list(), obs(tmax).buffer(0, join_style='mitre').get_xy_as_list())):
             p0, pf = np.array(p0)[:, np.newaxis], np.array(pf)[:, np.newaxis]
             t = (np.ones((1, 2)) @ p0 + b) / (a - np.ones((1, 2)) @ ((pf-p0)/(tmax-tmin)))
             p_star = p0 + (pf - p0) * t / (tmax - tmin)
@@ -221,7 +296,7 @@ def show_time_varying_obstacle_as_3d():
     
     
     
-    ax.set_zlim(0, np.max(t))
+    ax.set_zlim(0, tmax)
     ax.set_xlabel('X')
     ax.set_ylabel('Y')
     ax.set_zlabel('Time')

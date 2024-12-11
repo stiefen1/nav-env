@@ -128,6 +128,45 @@ class ObstacleWithKinematicsCollection:
         for obs in self._obstacles:
             obs.quiver_speed(ax=ax, **kwargs)
         return ax
+    
+    def plot(self, ax=None, **kwargs):
+        """
+        Plot the obstacles.
+        """
+        if ax is None:
+            _, ax = plt.subplots()
+
+        for obs in self._obstacles:
+            obs.plot(ax=ax, **kwargs)
+        return ax
+    
+    def draw(self, screen, scale=1, **kwargs):
+        """
+        Draw the obstacles.
+        """
+        for obs in self._obstacles:
+            obs.draw(screen, scale=scale, **kwargs)
+    
+    def step(self) -> None:
+        """
+        Step the obstacles.
+        """
+        for obs in self._obstacles:
+            obs.step()
+
+    def reset(self) -> None:
+        """
+        Reset the obstacles.
+        """
+        for obs in self._obstacles:
+            obs.reset()
+
+    def set_integration_step(self, dt:float) -> None:
+        """
+        Set the integration step for all obstacles.
+        """
+        for obs in self._obstacles:
+            obs.dt = dt
 
     def __call__(self, t:float) -> ObstacleCollection:
         return ObstacleCollection([obs(t) for obs in self._obstacles])

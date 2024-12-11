@@ -11,6 +11,7 @@ from typing import Callable
 from math import atan2, pi
 from copy import deepcopy
 import os, pathlib, sys
+from nav_env.ships.states import States3, States2
 
 PATH_TO_DEFAULT_IMG = os.path.join(pathlib.Path(__file__).parent.parent, "ships", "ship.png")
 
@@ -63,7 +64,7 @@ class ShipEnveloppe(Obstacle):
     def plot(self, ax=None, c='r', alpha=1, **kwargs):
         return super().plot(ax=ax, c=c, alpha=alpha, **kwargs)
 
-class ShipWithKinematics(ObstacleWithKinematics):
+class SailingShip(ObstacleWithKinematics):
     """
     A target ship that moves according to either:
     - a given pose function p_t: t -> (x, y, heading)
@@ -71,44 +72,54 @@ class ShipWithKinematics(ObstacleWithKinematics):
     The flag make_heading_consistent allows to make the heading consistent with the trajectory, i.e. aligned with the velocity vector.
     """
     def __init__(self,
-                 enveloppe:ShipEnveloppe=None,
-                 pose_fn: Callable=None,
-                 p0: tuple[float, float, float]=DEFAULT_TARGET_SHIP_POSITION,
-                 v0: tuple[float, float, float]=DEFAULT_TARGET_SHIP_SPEED,
-                 make_heading_consistent:bool=False,
+                 length: float=DEFAULT_TARGET_SHIP_LENGTH,
+                 width: float=DEFAULT_TARGET_SHIP_WIDTH,
+                 ratio: float=DEFAULT_TARGET_SHIP_RATIO,
+                 pose_fn: Callable[[float], States3]=None,
+                 initial_state: States2 | States3=None,
+                 id:int=None,
                  **kwargs
                  ):
         
-        if enveloppe is None:
-            enveloppe = ShipEnveloppe(**kwargs)
-
-        if pose_fn is None:
-            pose_fn = lambda t: (p0[0] + v0[0] * t, p0[1] + v0[1] * t, p0[2] + v0[2] * t)
-
-        if make_heading_consistent:
-            dt = 1e-2
-            new_pose_fn = deepcopy(pose_fn)
-            x = lambda t: new_pose_fn(t)[0]
-            y = lambda t: new_pose_fn(t)[1]
-            dxdt = lambda t : (x(t+dt) - x(t-dt))/(2*dt)
-            dydt = lambda t : (y(t+dt) - y(t-dt))/(2*dt)
-            heading = lambda t: atan2(dydt(t),(dxdt(t)))*180/pi - 90
-            pose_fn = lambda t: (x(t), y(t), heading(t))
+        """
+        If issues with the pose_fn, try to define the function (using def, not lambda) outside of the test() function.
+        """
+            
+        if initial_state is None:
+            pass
+        elif isinstance(initial_state, States2):
+            initial_state = States3(*initial_state.xy, 0, *initial_state.xy_dot, 0)
+        elif isinstance(initial_state, States3):
+            pass
+        else:
+            raise ValueError(f"Expected States2 or States3 for initial_state, got {type(initial_state).__name__}")
         
-        super().__init__(pose_fn=pose_fn, xy=enveloppe.get_xy_as_list())
+        enveloppe = ShipEnveloppe(length=length, width=width, ratio=ratio, **kwargs)
+        super().__init__(pose_fn=pose_fn, initial_state=initial_state, xy=enveloppe.get_xy_as_list(), id=id)
 
+    def pose_fn(self, t:float) -> States3:
+        """
+        Override get_pose_at to make the heading consistent with the trajectory.
+        """
+        dt = 1e-2
+        pose_at_t1 = self._pose_fn(t)
+        pose_at_t2 = self._pose_fn(t+dt)
+        dxdt = (pose_at_t2.x - pose_at_t1.x) / dt
+        dydt = (pose_at_t2.y - pose_at_t1.y) / dt
+        heading = atan2(dydt, dxdt) * 180 / pi - 90
+        return States3(pose_at_t1.x, pose_at_t1.y, heading, pose_at_t1.x_dot, pose_at_t1.y_dot, pose_at_t1.psi_dot_deg)    
 
 def test():
     import matplotlib.pyplot as plt
     from nav_env.obstacles.collection import ObstacleWithKinematicsCollection
+    from nav_env.ships.states import States2
     import numpy as np
     from math import cos, sin
 
-
-    p = lambda t: (-10*cos(0.2*t), 8*sin(0.2*t), 0)
-    Ts1 = ShipWithKinematics(pose_fn=p, make_heading_consistent=True)
-    Ts2 = ShipWithKinematics(length=30, width=10, ratio=7/9, p0=(0, 0, 0), v0=(1, 1, 0), make_heading_consistent=True)
-    Ts3 = ShipWithKinematics(width=8, ratio=3/7, pose_fn=lambda t: (t, -t, t*10))
+    p = lambda t: States3(x=-10*cos(0.2*t), y=8*sin(0.2*t))
+    Ts1 = SailingShip(pose_fn=p)
+    Ts2 = SailingShip(length=30, width=10, ratio=7/9, initial_state=States2(0, 0, 1, 1))
+    Ts3 = SailingShip(width=8, ratio=3/7, pose_fn=lambda t: States3(t, -t, t*10))
     coll = ObstacleWithKinematicsCollection([Ts1, Ts2, Ts3])
     
     fig2 = plt.figure(2)

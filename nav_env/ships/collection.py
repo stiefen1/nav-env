@@ -20,6 +20,13 @@ class ShipCollection:
             # print(ship.name, xy)
             ship.step(wind(xy), water(xy), external_forces=external_forces)
 
+    def reset(self):
+        """
+        Reset all ships.
+        """
+        for ship in self._ships:
+            ship.reset()
+
     def plot(self, ax=None, keys=['enveloppe'], **kwargs):
         """
         Plot the ships.
@@ -45,6 +52,13 @@ class ShipCollection:
         Get all ships except the given ship.
         """
         return ShipCollection([s for s in self._ships if s != ship])
+    
+    def set_integration_step(self, dt: float):
+        """
+        Set the integration step for all ships.
+        """
+        for ship in self._ships:
+            ship.integrator.dt = dt
 
     def __setitem__(self, index: int, ship: ShipWithDynamicsBase):
         self._ships[index] = ship

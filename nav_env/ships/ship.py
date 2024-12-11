@@ -10,12 +10,13 @@ from nav_env.obstacles.collection import ObstacleCollection
 from nav_env.simulation.integration import Integrator, Euler
 from nav_env.control.command import GeneralizedForces
 from nav_env.control.controller import ControllerBase, Controller
+from nav_env.obstacles.obstacles import ObstacleWithKinematics
 from nav_env.control.states import DeltaStates
 import matplotlib.pyplot as plt
 from copy import deepcopy
 import pygame
 
-class ShipWithDynamicsBase(ABC):
+class ShipWithDynamicsBase(ObstacleWithKinematics):
     def __init__(self,
                  states:States3,
                  physics:phy.ShipPhysics=None,
@@ -25,38 +26,34 @@ class ShipWithDynamicsBase(ABC):
                  name:str="ShipWithDynamicsBase"
                  ):
         self._states = states
-        self._initial_states = deepcopy(states)
+        self._initial_state = deepcopy(states)
         self._physics = physics or phy.ShipPhysics()
         self._controller = controller or Controller()
         self._integrator = integrator or Euler()
         self._derivatives = derivatives or TimeDerivatives3()
-        self._enveloppe = self.get_initial_enveloppe()
         self._name = name
         self._dx = None # Initialize differential to None
         self._accumulated_dx = DeltaStates(0., 0., 0., 0., 0., 0.) # Initialize accumulated differential to 0
         self._generalized_forces = GeneralizedForces() # Initialize generalized forces acting on the ship to 0
 
-    def get_initial_enveloppe(self):
-        """
-        Initialize the enveloppe.
-        """
-        return ShipEnveloppe(length=self._physics.length, width=self._physics.width).rotate_and_translate(self._states.x, self._states.y, self._states.psi_deg)
+        enveloppe = ShipEnveloppe(length=self._physics.length, width=self._physics.width)
+        super().__init__(initial_state=states, xy=enveloppe.get_xy_as_list(), dt=integrator.dt)
 
     def reset(self):
         """
         Reset the ship to its initial state.
         """
-        self._states = deepcopy(self._initial_states)
-        self._enveloppe = self.get_initial_enveloppe()
+        self._states = deepcopy(self._initial_state)
         self._dx = None
         self._generalized_forces = GeneralizedForces()
+        super().reset()
 
     def draw(self, screen:pygame.Surface, *args, scale=1, keys=['enveloppe'], **kwargs):
         """
         Draw the ship for pygame.
         """
         if 'enveloppe' in keys:
-            self._enveloppe.draw(screen, *args, scale=scale, color=(10, 10, 10), **kwargs)
+            super().draw(screen, *args, scale=scale, color=(10, 10, 10), **kwargs)
         if 'frame' in keys:
             self.draw_frame(screen, *args, scale=scale, **kwargs)
         if 'velocity' in keys:
@@ -74,17 +71,17 @@ class ShipWithDynamicsBase(ABC):
         if ax is None:
             _, ax = plt.subplots()
         if 'enveloppe' in keys:
-            self._enveloppe.plot(ax=ax, **kwargs)
+            super().plot(ax=ax, c='r', alpha=1., **kwargs)
         if 'frame' in keys:
             self.plot_frame(ax=ax, **kwargs)
         if 'acceleration' in keys:
-            self._derivatives.plot_acc(self._states.xy, ax=ax, color='purple', angles='xy', scale_units='xy', scale=5e-3, **kwargs)
+            self._derivatives.plot_acc(self._states.xy, ax=ax, c='purple', angles='xy', scale_units='xy', scale=5e-3, **kwargs)
         if 'velocity' in keys:
-            self._states.plot(ax=ax, color='orange', angles='xy', scale_units='xy', scale=1e-1,  **kwargs)
+            self._states.plot(ax=ax, c='orange', angles='xy', scale_units='xy', scale=1e-1,  **kwargs)
         if 'forces' in keys:
-            self._generalized_forces.plot(self._states.xy, ax=ax, color='black', angles='xy', scale_units='xy', scale=1e3, **kwargs)
+            self._generalized_forces.plot(self._states.xy, ax=ax, c='black', angles='xy', scale_units='xy', scale=1e3, **kwargs)
         if 'name' in keys:
-            ax.text(*self._states.xy, self._name, fontsize=8, color='black')
+            ax.text(*self._states.xy, self._name, fontsize=8, c='black')
 
         # print(self.name, self._physics.generalized_forces.f_x / self._derivatives.x_dot_dot, self._physics.generalized_forces.f_y / self._derivatives.y_dot_dot)
         return ax
@@ -147,7 +144,7 @@ class ShipWithDynamicsBase(ABC):
 
     def update_enveloppe(self):
         if self._dx is not None:
-            self._enveloppe = self._enveloppe.rotate_and_translate(self._dx[0], self._dx[1], self._dx[2])
+            self.rotate_and_translate_inplace(self._dx[0], self._dx[1], self._dx[2])
         else:
             raise UserWarning(f"self._dx is None, you must first call integrate()")
 
@@ -157,7 +154,7 @@ class ShipWithDynamicsBase(ABC):
 
         WARNING!!! DONT USE THIS METHOD UNLESS YOU KNOW EXACTLY WHAT YOU ARE DOING
         """
-        self._enveloppe = self._enveloppe.rotate_and_translate(self._accumulated_dx[0], self._accumulated_dx[1], self._accumulated_dx[2])
+        self.rotate_and_translate_inplace(self._accumulated_dx[0], self._accumulated_dx[1], self._accumulated_dx[2])
         self._accumulated_dx = DeltaStates(0., 0., 0., 0., 0., 0.)
 
     def collide(self, obstacle:ObstacleCollection) -> bool:
@@ -165,7 +162,7 @@ class ShipWithDynamicsBase(ABC):
         Check if the ship collides with an obstacle.
         """
         for obs in obstacle:
-            if self._enveloppe.intersects(obs):
+            if self.intersects(obs):
                 return True
         return False
 
@@ -186,7 +183,7 @@ class ShipWithDynamicsBase(ABC):
     
     @property
     def enveloppe(self) -> ShipEnveloppe:
-        return self._enveloppe
+        return self._geometry
     
     @property
     def physical_params(self) -> ShipPhysicalParams:
