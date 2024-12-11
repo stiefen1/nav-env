@@ -91,6 +91,9 @@ class GeometryWrapper:
         new._geometry = affinity.translate(self._geometry, x, y, **kwargs)
         return new
     
+    def translate_inplace(self, x: float, y: float, **kwargs) -> None:
+        self._geometry = affinity.translate(self._geometry, x, y, **kwargs)
+    
     def rotate(self, angle: float, **kwargs) -> "GeometryWrapper":
         """
         Rotation in degrees by default. For radians set use_radians=True
@@ -98,6 +101,12 @@ class GeometryWrapper:
         new = deepcopy(self)
         new._geometry = affinity.rotate(self._geometry, angle, origin=self.centroid, **kwargs)
         return new
+    
+    def rotate_inplace(self, angle: float, **kwargs) -> None:
+        """
+        Rotation in degrees by default. For radians set use_radians=True
+        """
+        self._geometry = affinity.rotate(self._geometry, angle, origin=self.centroid, **kwargs)
     
     def rotate_and_translate(self, x:float, y:float, angle:float, **kwargs) -> "GeometryWrapper":
         """
@@ -126,6 +135,9 @@ class GeometryWrapper:
         Rotation in degrees by default. For radians set use_radians=True
         """
         self._geometry = affinity.rotate(affinity.translate(self._geometry, x, y), angle, origin=(x, y), **kwargs)
+
+    def center_inplace(self) -> None:
+        self.translate_inplace(-self.centroid[0], -self.centroid[1])
     
     """
     Wrapper for shapely methods. Inheritance is impossible due to the way Shapely is implemented.

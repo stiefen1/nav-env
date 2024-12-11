@@ -151,7 +151,7 @@ class MatplotlibScreen:
 
 def test():
     from nav_env.obstacles.obstacles import ObstacleWithKinematics
-    from nav_env.obstacles.ship import SailingShip
+    from nav_env.ships.sailing_ship import SailingShip
     from nav_env.ships.states import States3
     from nav_env.viz.matplotlib_screen import MatplotlibScreen
     from nav_env.environment.environment import NavigationEnvironment

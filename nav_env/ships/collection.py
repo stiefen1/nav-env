@@ -1,5 +1,4 @@
 from nav_env.ships.ship import SimpleShip, ShipWithDynamicsBase
-from copy import deepcopy
 import matplotlib.pyplot as plt
 # from nav_env.environment.disturbances import DisturbanceCollection
 from nav_env.control.command import GeneralizedForces

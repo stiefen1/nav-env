@@ -37,7 +37,6 @@ class NavigationEnvironment:
         if dt is None:
             dt_list = [ship.integrator.dt for ship in self._own_ships] + [ship.integrator.dt for ship in self._target_ships] + [obs.dt for obs in self._obstacles]
             if len(dt_list) <= 0:
-                print("No ships or obstacles in the environment")
                 return
             dt = min(dt_list)
 
@@ -45,7 +44,6 @@ class NavigationEnvironment:
         self._target_ships.set_integration_step(dt)
         self._obstacles.set_integration_step(dt)
         self._dt = dt
-        print(f"Integration step set to {dt:.2f} for the whole environment")
         return dt
 
     def step(self, external_forces:GeneralizedForces=GeneralizedForces()):
@@ -118,7 +116,7 @@ class NavigationEnvironment:
         self._shore = d['shore']
         self._wind_source = d['wind_source']
         self._water_source = d['water_source']
-        self._dt = d['dt']
+        self.dt = d['dt'] # enforce same integration step
         self._t0 = d['t0']
         self._t = d['t']
     

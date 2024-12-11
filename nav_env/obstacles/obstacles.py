@@ -104,7 +104,7 @@ class ObstacleWithKinematics(Obstacle):
                  polygon: Polygon=None,
                  geometry_type: type=Polygon,
                  domain:Obstacle=None,
-                 domain_margin_wrt_enveloppe:float=1.,
+                 domain_margin_wrt_enveloppe:float=0.,
                  id:int=None):
         """
         pose_fn: Callable that returns the pose of the obstacle at a given time as a tuple (x, y, angle).
@@ -129,7 +129,8 @@ class ObstacleWithKinematics(Obstacle):
 
         # Domain of the obstacle
         if domain is None:
-            self._domain:Obstacle = super().buffer(domain_margin_wrt_enveloppe, join_style='mitre')
+            self._domain:Obstacle = Obstacle(polygon=self._geometry).buffer(domain_margin_wrt_enveloppe, join_style='mitre')
+            self._domain.center_inplace()
         else:
             assert isinstance(domain, Obstacle), f"Expected Obstacle got {type(domain).__name__}"
             self._domain = domain
