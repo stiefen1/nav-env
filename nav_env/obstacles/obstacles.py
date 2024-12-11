@@ -5,7 +5,6 @@ import matplotlib.pyplot as plt
 from shapely import affinity
 from nav_env.ships.states import States3
 from nav_env.control.states import DeltaStates
-from nav_env.simulation.integration import Euler, Integrator
 
 DEFAULT_INTEGRATION_STEP = 0.1
 class Obstacle(GeometryWrapper):
@@ -26,11 +25,11 @@ class Obstacle(GeometryWrapper):
     def __repr__(self):
         return f"Obstacle({self.centroid[0]:.2f}, {self.centroid[1]:.2f})"
     
-    def plot(self, *args, ax=None, c='b', alpha=1, **kwargs):
+    def plot(self, *args, color='black', ax=None, **kwargs):
         """
         Plot the obstacle.
         """
-        return super().plot(*args, ax=ax, c=c, alpha=alpha, **kwargs)
+        return super().plot(color, *args, ax=ax, **kwargs)
 
 class Circle(Obstacle):
     def __init__(self, x, y, radius, id:int=None):
@@ -143,13 +142,13 @@ class ObstacleWithKinematics(Obstacle):
         self._geometry = self._initial_geometry
         self.rotate_and_translate_inplace(self._initial_state.x, self._initial_state.y, self._initial_state.psi_deg) # Change geometry (enveloppe)
 
-    def plot(self, ax=None, c='b', alpha=0.3, **kwargs):
+    def plot(self, *args, ax=None, **kwargs):
         """
         Plot the obstacle.
         """
-        return super().plot(ax=ax, c=c, alpha=alpha, **kwargs)
+        return super().plot(*args, ax=ax, **kwargs)
 
-    def plot3(self, t:float, ax=None, c='b', alpha=0.3, **kwargs):
+    def plot3(self, t:float, *args, ax=None, **kwargs):
         """
         Plot the obstacle in 3D.
         """
@@ -159,17 +158,17 @@ class ObstacleWithKinematics(Obstacle):
         state_at_t:States3 = self.pose_fn(t)
         xy = Obstacle(polygon=self._initial_geometry).rotate_and_translate(state_at_t.x, state_at_t.y, state_at_t.psi_deg).xy
         z = [t]*len(xy[0])
-        ax.plot(*xy, z, c=c, alpha=alpha, **kwargs)
+        ax.plot(*xy, z, *args, **kwargs)
         return ax
     
-    def quiver_speed(self, ax=None, c='b', **kwargs):
+    def quiver_speed(self, *args, ax=None, **kwargs):
         """
         Plot the speed of the obstacle.
         """
         if ax is None:
             _, ax = plt.subplots()
         state:States3 = self.pose_fn(1)
-        state.plot(ax=ax, c=c, **kwargs)
+        state.plot(*args, ax=ax, **kwargs)
         return ax
 
     def __call__(self, t:float=None) -> Obstacle:

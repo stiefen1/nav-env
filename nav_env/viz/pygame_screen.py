@@ -134,10 +134,10 @@ def test_old():
 def test():
     from nav_env.obstacles.obstacles import ObstacleWithKinematics
     from nav_env.obstacles.collection import ObstacleWithKinematicsCollection
-    from nav_env.obstacles.ship import ShipWithKinematics
+    from nav_env.obstacles.ship import SailingShip
     o1 = ObstacleWithKinematics(lambda t: (t, -t, t*10), xy=[(0, 0), (2, 0), (2, 2), (0, 2)]).rotate(45).translate(0., 9.)
     o2 = ObstacleWithKinematics(lambda t: (t, t, t*20), xy=[(0, 0), (2, 0), (2, 2), (0, 2)]).rotate(45).translate(0., 0.)
-    ts1 = ShipWithKinematics(length=20, width=10, ratio=7/9, p0=(-10, 10, 0), v0=(1, -1, 0), make_heading_consistent=True)
+    ts1 = SailingShip(length=20, width=10, ratio=7/9, p0=(-10, 10, 0), v0=(1, -1, 0), make_heading_consistent=True)
     coll = ObstacleWithKinematicsCollection([o1, o2, ts1])
 
     env = NavigationEnvironment(obstacles=coll)

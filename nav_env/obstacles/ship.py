@@ -64,7 +64,7 @@ class ShipEnveloppe(Obstacle):
     def plot(self, ax=None, c='r', alpha=1, **kwargs):
         return super().plot(ax=ax, c=c, alpha=alpha, **kwargs)
 
-class ShipWithKinematics(ObstacleWithKinematics):
+class SailingShip(ObstacleWithKinematics):
     """
     A target ship that moves according to either:
     - a given pose function p_t: t -> (x, y, heading)
@@ -80,6 +80,10 @@ class ShipWithKinematics(ObstacleWithKinematics):
                  id:int=None,
                  **kwargs
                  ):
+        
+        """
+        If issues with the pose_fn, try to define the function (using def, not lambda) outside of the test() function.
+        """
             
         if initial_state is None:
             pass
@@ -113,9 +117,9 @@ def test():
     from math import cos, sin
 
     p = lambda t: States3(x=-10*cos(0.2*t), y=8*sin(0.2*t))
-    Ts1 = ShipWithKinematics(pose_fn=p)
-    Ts2 = ShipWithKinematics(length=30, width=10, ratio=7/9, initial_state=States2(0, 0, 1, 1))
-    Ts3 = ShipWithKinematics(width=8, ratio=3/7, pose_fn=lambda t: States3(t, -t, t*10))
+    Ts1 = SailingShip(pose_fn=p)
+    Ts2 = SailingShip(length=30, width=10, ratio=7/9, initial_state=States2(0, 0, 1, 1))
+    Ts3 = SailingShip(width=8, ratio=3/7, pose_fn=lambda t: States3(t, -t, t*10))
     coll = ObstacleWithKinematicsCollection([Ts1, Ts2, Ts3])
     
     fig2 = plt.figure(2)

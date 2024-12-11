@@ -2,6 +2,8 @@ from nav_env.environment.environment import NavigationEnvironment
 import matplotlib.pyplot as plt, time
 import multiprocessing as mp
 from nav_env.risk.monitor import RiskMonitor
+from nav_env.ships.states import States3
+
 
 # Maybe not the best architecture
 # Ideally we would have one class that runs simulation
@@ -96,18 +98,26 @@ class MatplotlibScreen:
     
     @property
     def lim_y(self) -> tuple:
-        return self._lim_y
+        return self._lim_y  
 
-            
+
+def o1_pose(t:float) -> States3:
+    return States3(-t, t, t*10)
+
+def o2_pose(t:float) -> States3:
+    return States3(t, -t, t*20) 
 
 def test():
     from nav_env.obstacles.obstacles import ObstacleWithKinematics
-    from nav_env.obstacles.collection import ObstacleWithKinematicsCollection
-    from nav_env.obstacles.ship import ShipWithKinematics
-    o1 = ObstacleWithKinematics(lambda t: (t, -t, t*10), xy=[(0, 0), (2, 0), (2, 2), (0, 2)]).rotate(45).translate(0., 9.)
-    o2 = ObstacleWithKinematics(lambda t: (t, t, t*20), xy=[(0, 0), (2, 0), (2, 2), (0, 2)]).rotate(45).translate(0., 0.)
-    ts1 = ShipWithKinematics(length=20, width=10, ratio=7/9, p0=(-10, 10, 0), v0=(1, -1, 0), make_heading_consistent=True)
-    coll = ObstacleWithKinematicsCollection([o1, o2, ts1])
+    from nav_env.obstacles.ship import SailingShip
+    from nav_env.ships.states import States3
+    from nav_env.viz.matplotlib_screen import MatplotlibScreen
+    from nav_env.environment.environment import NavigationEnvironment
+
+    o1 = ObstacleWithKinematics(o1_pose, xy=[(0, 0), (2, 0), (2, 2), (0, 2)])
+    o2 = ObstacleWithKinematics(o2_pose, xy=[(0, 0), (2, 0), (2, 2), (0, 2)])
+    ts1 = SailingShip(length=20, width=10, ratio=7/9, initial_state=States3(-10, 10, 0, 1, -1, 0))
+    coll = [o1, o2, ts1]
 
     env = NavigationEnvironment(obstacles=coll)
     screen = MatplotlibScreen(env)

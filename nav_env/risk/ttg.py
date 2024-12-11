@@ -234,7 +234,6 @@ def test_ttg_under_constant_uniform_perturbations():
 def show_ttg_contour_under_constant_uniform_perturbations():
     import numpy as np
     from matplotlib import pyplot as plt
-    from nav_env.obstacles.collection import ObstacleCollection
     from nav_env.obstacles.obstacles import Circle, Ellipse
     from nav_env.ships.ship import Ship
     from nav_env.ships.states import States3	
@@ -243,7 +242,7 @@ def show_ttg_contour_under_constant_uniform_perturbations():
     from nav_env.wind.wind_source import UniformWindSource
     from nav_env.risk.ttg import TTGUnderConstantUniformPerturbations
 
-    shore = ObstacleCollection([Circle(300., -0., 50.), Ellipse(400, -200, 40, 80)])
+    shore = [Circle(300., -0., 50.), Ellipse(400, -200, 40, 80)]
     ship = Ship(integrator=Euler(1.), states=States3(0., 0., 60., 30., 10., 0.))
     wind_source = UniformWindSource(50, -50)
     env = NavigationEnvironment(wind_source=wind_source, shore=shore)  # Create a list of ships
@@ -251,7 +250,7 @@ def show_ttg_contour_under_constant_uniform_perturbations():
     lim = ((-200, -800), (1200, 600))
     fig, ax = plt.subplots(1, 2)
     ttg_uniform.plot(lim=lim, ax=ax[0], cmap='YlGnBu', levels=50)
-    env.plot(0, lim=lim, ax=ax[1])
+    env.plot(lim=lim, ax=ax[1])
     ax[1].set_aspect('equal')
     ax[0].set_aspect('equal')
     plt.show()

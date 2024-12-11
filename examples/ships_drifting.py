@@ -9,7 +9,7 @@ if __name__ == '__main__':
     from nav_env.ships.states import *
     from nav_env.wind.wind_source import UniformWindSource
     from nav_env.obstacles.obstacles import *
-    from nav_env.obstacles.ship import ShipWithKinematics
+    from nav_env.obstacles.ship import SailingShip
     from nav_env.risk.monitor import RiskMonitor
 
 
@@ -26,7 +26,7 @@ if __name__ == '__main__':
 
     # Ostacles (Moving)
     kin_obs = ObstacleWithKinematics(initial_state=States3(-200., -100., 0., 10., -10., 30.), xy=[(0, 0), (50, 0), (80, 10), (100, 50), (60, 90), (10, 30)], id=4)
-    sailing_ship = ShipWithKinematics(length=200, width=50, ratio=7/9, initial_state=States2(100., -100., -10., 5.), id=5)
+    sailing_ship = SailingShip(length=200, width=50, ratio=7/9, initial_state=States2(100., -100., -10., 5.), id=5)
 
     # Ships
     ship1 = Ship(States3(-150., -200., 180., 20., 30., 10.), integrator=Euler(dt), name="Ship1")
@@ -56,5 +56,3 @@ if __name__ == '__main__':
     # Screen to display simulation results
     screen = Screen(env, monitor=RiskMonitor([TTG, Distance], dt=0.5), scale=1, lim=(xlim, ylim))
     screen.play(dt=dt, tf=tf, own_ships_verbose=['enveloppe', 'name', 'forces'], target_ships_verbose=['enveloppe', 'name'])  
-
-    # TODO: Make ShipWithDynamics obstacles as well!!
