@@ -76,27 +76,34 @@ class ShipWithKinematics(ObstacleWithKinematics):
                  width: float=DEFAULT_TARGET_SHIP_WIDTH,
                  ratio: float=DEFAULT_TARGET_SHIP_RATIO,
                  pose_fn: Callable[[float], States3]=None,
-                 initial_states: States2=None,
+                 initial_state: States2 | States3=None,
                  id:int=None,
                  **kwargs
                  ):
             
+        if initial_state is None:
+            pass
+        elif isinstance(initial_state, States2):
+            initial_state = States3(*initial_state.xy, 0, *initial_state.xy_dot, 0)
+        elif isinstance(initial_state, States3):
+            pass
+        else:
+            raise ValueError(f"Expected States2 or States3 for initial_state, got {type(initial_state).__name__}")
+        
         enveloppe = ShipEnveloppe(length=length, width=width, ratio=ratio, **kwargs)
-        initial_states = initial_states if initial_states is None else States3(*initial_states.xy, 0, *initial_states.xy_dot, 0)
-        super().__init__(pose_fn=pose_fn, initial_state=initial_states, xy=enveloppe.get_xy_as_list(), id=id)
+        super().__init__(pose_fn=pose_fn, initial_state=initial_state, xy=enveloppe.get_xy_as_list(), id=id)
 
-    def get_pose_at(self, t:float) -> States3:
+    def pose_fn(self, t:float) -> States3:
         """
         Override get_pose_at to make the heading consistent with the trajectory.
         """
-        dt = 1e-2 # small time step to compute the numerical derivative
-        s0 = self._initial_state
-        x1, x2 = s0.x + self._initial_state.x_dot * t, s0.x + s0.x_dot * (t+dt)
-        y1, y2 = s0.y + s0.y_dot * t, s0.y + s0.y_dot * (t+dt)
-        dxdt = (x2 - x1)/dt
-        dydt = (y2 - y1)/dt
+        dt = 1e-2
+        pose_at_t1 = self._pose_fn(t)
+        pose_at_t2 = self._pose_fn(t+dt)
+        dxdt = (pose_at_t2.x - pose_at_t1.x) / dt
+        dydt = (pose_at_t2.y - pose_at_t1.y) / dt
         heading = atan2(dydt, dxdt) * 180 / pi - 90
-        return States3(x1, y1, heading, s0.x_dot, s0.y_dot, 0)        
+        return States3(pose_at_t1.x, pose_at_t1.y, heading, pose_at_t1.x_dot, pose_at_t1.y_dot, pose_at_t1.psi_dot_deg)    
 
 def test():
     import matplotlib.pyplot as plt
@@ -105,10 +112,9 @@ def test():
     import numpy as np
     from math import cos, sin
 
-
     p = lambda t: States3(x=-10*cos(0.2*t), y=8*sin(0.2*t))
     Ts1 = ShipWithKinematics(pose_fn=p)
-    Ts2 = ShipWithKinematics(length=30, width=10, ratio=7/9, initial_states=States2(0, 0, 1, 1))
+    Ts2 = ShipWithKinematics(length=30, width=10, ratio=7/9, initial_state=States2(0, 0, 1, 1))
     Ts3 = ShipWithKinematics(width=8, ratio=3/7, pose_fn=lambda t: States3(t, -t, t*10))
     coll = ObstacleWithKinematicsCollection([Ts1, Ts2, Ts3])
     

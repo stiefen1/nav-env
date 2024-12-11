@@ -26,7 +26,7 @@ class ShipWithDynamicsBase(ObstacleWithKinematics):
                  name:str="ShipWithDynamicsBase"
                  ):
         self._states = states
-        self._initial_states = deepcopy(states)
+        self._initial_state = deepcopy(states)
         self._physics = physics or phy.ShipPhysics()
         self._controller = controller or Controller()
         self._integrator = integrator or Euler()
@@ -36,14 +36,14 @@ class ShipWithDynamicsBase(ObstacleWithKinematics):
         self._accumulated_dx = DeltaStates(0., 0., 0., 0., 0., 0.) # Initialize accumulated differential to 0
         self._generalized_forces = GeneralizedForces() # Initialize generalized forces acting on the ship to 0
 
-        enveloppe = ShipEnveloppe(length=self._physics.length, width=self._physics.width).rotate_and_translate(self._states.x, self._states.y, self._states.psi_deg)
+        enveloppe = ShipEnveloppe(length=self._physics.length, width=self._physics.width)
         super().__init__(initial_state=states, xy=enveloppe.get_xy_as_list(), dt=integrator.dt)
 
     def reset(self):
         """
         Reset the ship to its initial state.
         """
-        self._states = deepcopy(self._initial_states)
+        self._states = deepcopy(self._initial_state)
         self._dx = None
         self._generalized_forces = GeneralizedForces()
         super().reset()
@@ -75,13 +75,13 @@ class ShipWithDynamicsBase(ObstacleWithKinematics):
         if 'frame' in keys:
             self.plot_frame(ax=ax, **kwargs)
         if 'acceleration' in keys:
-            self._derivatives.plot_acc(self._states.xy, ax=ax, color='purple', angles='xy', scale_units='xy', scale=5e-3, **kwargs)
+            self._derivatives.plot_acc(self._states.xy, ax=ax, c='purple', angles='xy', scale_units='xy', scale=5e-3, **kwargs)
         if 'velocity' in keys:
-            self._states.plot(ax=ax, color='orange', angles='xy', scale_units='xy', scale=1e-1,  **kwargs)
+            self._states.plot(ax=ax, c='orange', angles='xy', scale_units='xy', scale=1e-1,  **kwargs)
         if 'forces' in keys:
-            self._generalized_forces.plot(self._states.xy, ax=ax, color='black', angles='xy', scale_units='xy', scale=1e3, **kwargs)
+            self._generalized_forces.plot(self._states.xy, ax=ax, c='black', angles='xy', scale_units='xy', scale=1e3, **kwargs)
         if 'name' in keys:
-            ax.text(*self._states.xy, self._name, fontsize=8, color='black')
+            ax.text(*self._states.xy, self._name, fontsize=8, c='black')
 
         # print(self.name, self._physics.generalized_forces.f_x / self._derivatives.x_dot_dot, self._physics.generalized_forces.f_y / self._derivatives.y_dot_dot)
         return ax

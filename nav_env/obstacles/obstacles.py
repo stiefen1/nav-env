@@ -102,29 +102,35 @@ class ObstacleWithKinematics(Obstacle):
         """
         super().__init__(xy=xy, polygon=polygon, geometry_type=geometry_type, id=id)
 
+        # If a pose_fn is not provided, we use the initial state to compute the pose as x(t) = x0 + v * t
         if pose_fn is not None:
             self._pose_fn = pose_fn
         else:
             self._initial_state = initial_state
-            self._pose_fn = self.get_pose_at
+            self._pose_fn = self.pose_fn_from_initial_state
  
-        assert isinstance(self._pose_fn(0), States3), f"The pose function must return a States3 object"
+        assert isinstance(self.pose_fn(0), States3), f"The pose function must return a States3 object"
 
+        # Initial states
         self._t0 = t0
         self._t = t0
         self._dt = dt
-        self._state = self._pose_fn(t0)
-        self._initial_state = self._pose_fn(t0)
+        self._state = self.pose_fn(t0)
+        self._initial_state = self.pose_fn(t0)
+
+        # Initial geometry, could be avoided but it makes the things simpler
         self._initial_geometry = self._geometry
+
+        # Since we use the step() method to update the obstacle, we need to set the initial orientation of the obstacle
         self.rotate_and_translate_inplace(self._initial_state.x, self._initial_state.y, self._initial_state.psi_deg) # Change geometry (enveloppe)
-        
+
     def step(self) -> None:
         """
         Step the obstacle.
         """
         self._t += self._dt
         prev_state = self._state
-        self._state = self._pose_fn(self._t)
+        self._state = self.pose_fn(self._t)
         ds:DeltaStates = self._state - prev_state
         self.rotate_and_translate_inplace(ds.x, ds.y, ds.psi_deg) # Change geometry (enveloppe)
 
@@ -133,8 +139,9 @@ class ObstacleWithKinematics(Obstacle):
         Reset the obstacle.
         """
         self._t = self._t0
-        self._state = self._pose_fn(self._t0)
+        self._state = self.pose_fn(self._t0)
         self._geometry = self._initial_geometry
+        self.rotate_and_translate_inplace(self._initial_state.x, self._initial_state.y, self._initial_state.psi_deg) # Change geometry (enveloppe)
 
     def plot(self, ax=None, c='b', alpha=0.3, **kwargs):
         """
@@ -149,7 +156,7 @@ class ObstacleWithKinematics(Obstacle):
         if ax is None:
             _, ax = plt.subplots(subplot_kw={'projection': '3d'})
 
-        state_at_t:States3 = self._pose_fn(t)
+        state_at_t:States3 = self.pose_fn(t)
         xy = Obstacle(polygon=self._initial_geometry).rotate_and_translate(state_at_t.x, state_at_t.y, state_at_t.psi_deg).xy
         z = [t]*len(xy[0])
         ax.plot(*xy, z, c=c, alpha=alpha, **kwargs)
@@ -161,20 +168,20 @@ class ObstacleWithKinematics(Obstacle):
         """
         if ax is None:
             _, ax = plt.subplots()
-        state:States3 = self._pose_fn(1)
+        state:States3 = self.pose_fn(1)
         state.plot(ax=ax, c=c, **kwargs)
         return ax
 
     def __call__(self, t:float=None) -> Obstacle:
         if t is None:
             t = self._t
-        state_at_t:States3 = self._pose_fn(t)
+        state_at_t:States3 = self.pose_fn(t)
         return Obstacle(polygon=self._initial_geometry).rotate_and_translate(state_at_t.x, state_at_t.y, state_at_t.psi_deg)
 
     def __repr__(self):
         return f"ObstacleWithKinematics({self.centroid[0]:.2f}, {self.centroid[1]:.2f})"
     
-    def get_pose_at(self, t) -> States3:
+    def pose_fn_from_initial_state(self, t) -> States3:
         initial_state = self._initial_state
         return States3(initial_state.x + initial_state.x_dot * t,
                        initial_state.y + initial_state.y_dot * t,
@@ -182,6 +189,21 @@ class ObstacleWithKinematics(Obstacle):
                        initial_state.x_dot,
                        initial_state.y_dot,
                        initial_state.psi_dot_deg)
+    
+    def pose_fn_from_current_state(self, t) -> States3:
+        """
+        Compute pose x_t at time t from the current state, assuming x(t) = x_t + v_t * t. Could be used to compute metrics such as DCPA, TCPA, etc.
+        """
+        current_state = self._state
+        return States3(current_state.x + current_state.x_dot * t,
+                          current_state.y + current_state.y_dot * t,
+                          current_state.psi_deg + current_state.psi_dot_deg * t,
+                          current_state.x_dot,
+                          current_state.y_dot,
+                          current_state.psi_dot_deg)
+    
+    def pose_fn(self, t) -> States3:
+        return self._pose_fn(t)
     
     @property
     def dt(self) -> float:

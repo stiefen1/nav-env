@@ -26,7 +26,7 @@ if __name__ == '__main__':
 
     # Ostacles (Moving)
     kin_obs = ObstacleWithKinematics(initial_state=States3(-200., -100., 0., 10., -10., 30.), xy=[(0, 0), (50, 0), (80, 10), (100, 50), (60, 90), (10, 30)], id=4)
-    sailing_ship = ShipWithKinematics(length=200, width=50, ratio=7/9, initial_states=States2(100., -100., -25., 15.), id=5)
+    sailing_ship = ShipWithKinematics(length=200, width=50, ratio=7/9, initial_state=States2(100., -100., -10., 5.), id=5)
 
     # Ships
     ship1 = Ship(States3(-150., -200., 180., 20., 30., 10.), integrator=Euler(dt), name="Ship1")
