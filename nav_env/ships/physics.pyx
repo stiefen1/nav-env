@@ -295,10 +295,10 @@ class ShipPhysics:
 #     print(ship_physics.linear_damping_matrix)
 #     print(ship_physics.nonlinear_damping_matrix(1, 2, 3))
 
-#     state = States3(1., 2., 3., 4., 5., 6.)
+#     states = States3(1., 2., 3., 4., 5., 6.)
 #     wind = WindVector((0., 0.), vector=(1., 0.))
 
-#     print(ship_physics.get_time_derivatives_and_forces(state, wind))
+#     print(ship_physics.get_time_derivatives_and_forces(states, wind))
 
 # if __name__ == "__main__":
 #     test()

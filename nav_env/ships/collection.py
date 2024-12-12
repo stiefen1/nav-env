@@ -26,7 +26,7 @@ class ShipCollection:
         for ship in self._ships:
             ship.reset()
 
-    def plot(self, ax=None, keys=['enveloppe'], **kwargs):
+    def plot(self, ax=None, params:dict={'enveloppe':1}, **kwargs):
         """
         Plot the ships.
         """
@@ -34,16 +34,16 @@ class ShipCollection:
             _, ax = plt.subplots()
 
         for ship in self._ships:
-            ship.plot(ax=ax, keys=keys, **kwargs)
+            ship.plot(ax=ax, params=params, **kwargs)
 
         return ax
     
-    def draw(self, screen, *args, keys=['enveloppe'], scale=1, **kwargs):
+    def draw(self, screen, *args, params:dict={'enveloppe':1}, scale=1, **kwargs):
         """
         Draw the ships.
         """
         for ship in self._ships:
-            ship.draw(screen, keys=keys, scale=scale, **kwargs)
+            ship.draw(screen, params=params, scale=scale, **kwargs)
 
     def get_except(self, ship: ShipWithDynamicsBase):
         """

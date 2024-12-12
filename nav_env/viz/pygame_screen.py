@@ -8,8 +8,8 @@ import os
 os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"
 import pygame
 from nav_env.obstacles.collection import ObstacleCollection
-from nav_env.obstacles.obstacles import Obstacle, Circle
 from nav_env.environment.environment import NavigationEnvironment 
+from nav_env.risk.monitor import RiskMonitor
 
 
 SCREEN_SIZE = (1200, 900)
@@ -21,8 +21,9 @@ FPS = 60
 pygame.init()
 
 class PyGameScreen:
-    def __init__(self, env:NavigationEnvironment, *args, scale:float=1, **kwargs):
-        self.env = env
+    def __init__(self, env:NavigationEnvironment, *args, scale:float=1, monitor:RiskMonitor=None, **kwargs):
+        self._env = env
+        self._monitor = monitor
         self._scale = scale
         self.screen = pygame.display.set_mode(SCREEN_SIZE)
         self.clock = pygame.time.Clock()
@@ -43,7 +44,7 @@ class PyGameScreen:
                         self.drawable.group_obstacles_closer_than(self.value)
 
             self.screen.fill(SCREEN_COLOR)
-            self.env.draw()
+            self._env.draw()
             
         pygame.quit()
 
@@ -51,13 +52,15 @@ class PyGameScreen:
              t0:float=0,
              tf:float=10,
              dt:float=0.03,
-             own_ships_verbose=['enveloppe', 'frame', 'acceleration', 'velocity', 'forces'],
-             target_ships_verbose=['enveloppe'],
+             own_ships_verbose={'enveloppe':1, 'frame':1, 'acceleration':1, 'velocity':1, 'forces':1},
+             target_ships_verbose={'enveloppe':1},
              **kwargs
              ):
         """
         Play the environment during an interval of time.
         """
+        self._env.dt = dt # Enforce the time step for the whole environment
+
         t = t0
         pause = False
         done = False
@@ -74,10 +77,10 @@ class PyGameScreen:
             self.screen.fill(SCREEN_COLOR)
             
             if not pause:
-                self.env.step()
+                self._env.step()
                 t += dt
 
-            self.env.draw(t, self.screen, own_ship_physics=own_ships_verbose, target_ship_physics=target_ships_verbose, scale=self._scale, **kwargs)
+            self._env.draw(self.screen, own_ships_physics=own_ships_verbose, target_ships_physics=target_ships_verbose, scale=self._scale, **kwargs)
             pygame.display.flip()
             
             elapsed_time = (pygame.time.get_ticks() - start_time) / 1000
@@ -133,15 +136,15 @@ def test_old():
 
 def test():
     from nav_env.obstacles.obstacles import ObstacleWithKinematics
-    from nav_env.obstacles.collection import ObstacleWithKinematicsCollection
     from nav_env.ships.sailing_ship import SailingShip
-    o1 = ObstacleWithKinematics(lambda t: (t, -t, t*10), xy=[(0, 0), (2, 0), (2, 2), (0, 2)]).rotate(45).translate(0., 9.)
-    o2 = ObstacleWithKinematics(lambda t: (t, t, t*20), xy=[(0, 0), (2, 0), (2, 2), (0, 2)]).rotate(45).translate(0., 0.)
-    ts1 = SailingShip(length=20, width=10, ratio=7/9, p0=(-10, 10, 0), v0=(1, -1, 0), make_heading_consistent=True)
-    coll = ObstacleWithKinematicsCollection([o1, o2, ts1])
+    from nav_env.ships.states import States3
+    o1 = ObstacleWithKinematics(lambda t: States3(5*t, -5*t, t*10), xy=[(0, 0), (20, 0), (20, 20), (0, 20)]).rotate(45).translate(0., 90.)
+    o2 = ObstacleWithKinematics(lambda t: States3(5*t, 5*t, t*20), xy=[(0, 0), (20, 0), (20, 20), (0, 20)]).rotate(45).translate(0., 0.)
+    ts1 = SailingShip(length=200, width=100, ratio=7/9, initial_state=States3(-200, 200, 0, 10, -10, 0))
+    coll = [o1, o2, ts1]
 
     env = NavigationEnvironment(obstacles=coll)
-    screen = PyGameScreen(env)
+    screen = PyGameScreen(env, scale=1)
     screen.play()
 
 if __name__ == "__main__":

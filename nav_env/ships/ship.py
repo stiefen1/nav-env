@@ -29,7 +29,7 @@ class ShipWithDynamicsBase(ObstacleWithKinematics):
                  domain_margin_wrt_enveloppe:float=0.
                  ):
         self._states = states
-        self._initial_state = deepcopy(states)
+        self._initial_states = deepcopy(states)
         self._physics = physics or phy.ShipPhysics()
         self._controller = controller or Controller()
         self._integrator = integrator or Euler()
@@ -44,17 +44,17 @@ class ShipWithDynamicsBase(ObstacleWithKinematics):
 
     def reset(self):
         """
-        Reset the ship to its initial state.
+        Reset the ship to its initial states.
         """
-        self._states = deepcopy(self._initial_state)
         self._dx = None
         self._generalized_forces = GeneralizedForces()
         super().reset()
 
-    def draw(self, screen:pygame.Surface, *args, scale=1, keys=['enveloppe'], **kwargs):
+    def draw(self, screen:pygame.Surface, *args, scale=1, params:dict={'enveloppe':1}, **kwargs):
         """
         Draw the ship for pygame.
         """
+        keys = params.keys()
         if 'enveloppe' in keys:
             super().draw(screen, *args, scale=scale, color=(10, 10, 10), **kwargs)
         if 'frame' in keys:
@@ -66,17 +66,27 @@ class ShipWithDynamicsBase(ObstacleWithKinematics):
         if 'forces' in keys:
             self._generalized_forces.draw(screen, self._states.xy, *args, scale=scale, unit_scale=1e-4, color=(0, 0, 0), **kwargs)
 
-    def plot(self, keys=['enveloppe'], ax=None, **kwargs):
+    def plot(self, params:dict={'enveloppe':1}, ax=None, **kwargs):
         """
         Plot the ship. Add 'enveloppe', 'frame', 'acceleration', 'velocity', 'forces' to keys to plot the corresponding elements.
         """
         # TODO: Add forces / acceleration / speed / frame of reference to the plot
+        keys = params.keys()
         if ax is None:
             _, ax = plt.subplots()
         if 'enveloppe' in keys:
             super().plot(ax=ax, c='r', alpha=1.)
         if 'domain' in keys:
             self.domain.plot(ax=ax, c='r', linestyle='dashed')
+        if 'ghost' in keys:
+            """
+            plot the ghost ship enveloppe at different times, assuming speed is constant
+            """
+            times = params['ghost']
+            if isinstance(times, int):
+                times = [times]
+            for t in times:
+                self.enveloppe_fn_from_current_state(t).plot(ax=ax, c='r', alpha=0.3)
         if 'frame' in keys:
             self.plot_frame(ax=ax)
         if 'acceleration' in keys:
@@ -139,6 +149,8 @@ class ShipWithDynamicsBase(ObstacleWithKinematics):
             self.update_enveloppe()
         else:
             self._accumulated_dx += self._dx
+
+        self._t += self._dt
             
         
     def integrate(self):
@@ -272,7 +284,6 @@ def test():
     from nav_env.viz.matplotlib_screen import MatplotlibScreen as Screen
     # from nav_env.viz.pygame_screen import PyGameScreen as Screen
     from nav_env.environment.environment import NavigationEnvironment as Env
-    from nav_env.ships.collection import ShipCollection
     from nav_env.wind.wind_source import UniformWindSource
     from nav_env.obstacles.obstacles import Circle, Ellipse
     from nav_env.risk.ttg import TTG

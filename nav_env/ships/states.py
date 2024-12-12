@@ -7,7 +7,7 @@ class States2(States):
 
     def plot(self, *args, ax=None, **kwargs):
         """
-        Plot the state vector.
+        Plot the states vector.
         """
         return self.__plot__(self.xy, ['x_dot', 'y_dot'], *args, ax=ax, **kwargs)
     
@@ -70,7 +70,7 @@ class States3(States):
 
     def plot(self, *args, ax=None, **kwargs):
         """
-        Plot the state vector.
+        Plot the states vector.
         """
         return self.__plot__(self.xy, ['x_dot', 'y_dot'], *args, ax=ax, **kwargs)
     
@@ -167,13 +167,13 @@ class TimeDerivatives3(TimeDerivatives):
 
     def plot_acc(self, xy, *args, ax=None, **kwargs):
         """
-        Plot the state vector.
+        Plot the states vector.
         """
         return self.__plot__(xy, ['x_dot_dot', 'y_dot_dot'], *args, ax=ax, **kwargs)
     
     def plot_vel(self, xy, *args, ax=None, **kwargs):
         """
-        Plot the state vector.
+        Plot the states vector.
         """
         return self.__plot__(xy, ['x_dot', 'y_dot'], *args, ax=ax, **kwargs)
     

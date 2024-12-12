@@ -143,8 +143,8 @@ class DDV(RiskMetric):
         for i, ship_i in enumerate(own_ships_collection):
             target_ships_i = deepcopy(target_ships_collection)
             target_ships_i.append(own_ships_collection.get_except(ship_i)) # Add all other ships except ship i
-            for j, target_ship_ij in enumerate(target_ships_i): 
-                print(f"ship {ship_i} and target {target_ship_ij}")
+            for j, target_ships_ij in enumerate(target_ships_i): 
+                print(f"ship {ship_i} and target {target_ships_ij}")
                 # Compute ddv for ship ij
                 pass
 

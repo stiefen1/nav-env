@@ -111,12 +111,17 @@ class ObstacleWithKinematics(Obstacle):
         """
         super().__init__(xy=xy, polygon=polygon, geometry_type=geometry_type, id=id)
 
-        # If a pose_fn is not provided, we use the initial state to compute the pose as x(t) = x0 + v * t
+        # If a pose_fn is not provided, we use the initial states to compute the pose as x(t) = x0 + v * t
         if pose_fn is not None:
             self._pose_fn = pose_fn
+            self._states = self.pose_fn(t0)
+            self._initial_states = self.pose_fn(t0)
         else:
-            self._initial_state = initial_state
+            self._initial_states = initial_state
             self._pose_fn = self.pose_fn_from_initial_state
+            self._states = self._initial_states
+
+        # At this point, _pose_fn, _states and _initial_states are set
  
         assert isinstance(self.pose_fn(0), States3), f"The pose function must return a States3 object"
 
@@ -124,9 +129,7 @@ class ObstacleWithKinematics(Obstacle):
         self._t0 = t0
         self._t = t0
         self._dt = dt or DEFAULT_INTEGRATION_STEP
-        self._state = self.pose_fn(t0)
-        self._initial_state = self.pose_fn(t0)
-
+        
         # Domain of the obstacle
         if domain is None:
             self._domain:Obstacle = Obstacle(polygon=self._geometry).buffer(domain_margin_wrt_enveloppe, join_style='mitre')
@@ -140,17 +143,17 @@ class ObstacleWithKinematics(Obstacle):
         self._initial_domain = deepcopy(self._domain)
 
         # Since we use the step() method to update the obstacle, we need to set the initial orientation of the obstacle
-        self.rotate_and_translate_inplace(self._initial_state.x, self._initial_state.y, self._initial_state.psi_deg) # Change geometry (enveloppe)
-        self._domain.rotate_and_translate_inplace(self._initial_state.x, self._initial_state.y, self._initial_state.psi_deg) # Change geometry (enveloppe)
+        self.rotate_and_translate_inplace(self._initial_states.x, self._initial_states.y, self._initial_states.psi_deg) # Change geometry (enveloppe)
+        self._domain.rotate_and_translate_inplace(self._initial_states.x, self._initial_states.y, self._initial_states.psi_deg) # Change geometry (enveloppe)
 
     def step(self) -> None:
         """
         Step the obstacle.
         """
         self._t += self._dt
-        prev_state = self._state
-        self._state = self.pose_fn(self._t)
-        ds:DeltaStates = self._state - prev_state
+        prev_state = self._states
+        self._states = self.pose_fn(self._t)
+        ds:DeltaStates = self._states - prev_state
         self.rotate_and_translate_inplace(ds.x, ds.y, ds.psi_deg) # Change geometry (enveloppe)
         self._domain.rotate_and_translate_inplace(ds.x, ds.y, ds.psi_deg) # Change geometry (enveloppe)
 
@@ -159,11 +162,11 @@ class ObstacleWithKinematics(Obstacle):
         Reset the obstacle.
         """
         self._t = self._t0
-        self._state = self.pose_fn(self._t0)
+        self._states = deepcopy(self._initial_states)
         self._geometry = self._initial_geometry
         self._domain = deepcopy(self._initial_domain)
-        self.rotate_and_translate_inplace(self._initial_state.x, self._initial_state.y, self._initial_state.psi_deg) # Change geometry (enveloppe)
-        self._domain.rotate_and_translate_inplace(self._initial_state.x, self._initial_state.y, self._initial_state.psi_deg) # Change geometry (enveloppe)
+        self.rotate_and_translate_inplace(self._initial_states.x, self._initial_states.y, self._initial_states.psi_deg) # Change geometry (enveloppe)
+        self._domain.rotate_and_translate_inplace(self._initial_states.x, self._initial_states.y, self._initial_states.psi_deg) # Change geometry (enveloppe)
 
     def plot(self, *args, ax=None, domain:bool=False, **kwargs):
         """
@@ -181,13 +184,13 @@ class ObstacleWithKinematics(Obstacle):
         if ax is None:
             _, ax = plt.subplots(subplot_kw={'projection': '3d'})
 
-        state_at_t:States3 = self.pose_fn(t)
-        xy = Obstacle(polygon=self._initial_geometry).rotate_and_translate(state_at_t.x, state_at_t.y, state_at_t.psi_deg).xy
+        states_at_t:States3 = self.pose_fn(t)
+        xy = Obstacle(polygon=self._initial_geometry).rotate_and_translate(states_at_t.x, states_at_t.y, states_at_t.psi_deg).xy
         z = [t]*len(xy[0])
         ax.plot(*xy, z, *args, **kwargs)
 
         if domain:
-            xy = self._initial_domain.rotate_and_translate(state_at_t.x, state_at_t.y, state_at_t.psi_deg).xy
+            xy = self._initial_domain.rotate_and_translate(states_at_t.x, states_at_t.y, states_at_t.psi_deg).xy
             z = [t]*len(xy[0])
             ax.plot(*xy, z, *args, linestyle='dashed', **kwargs)
 
@@ -199,24 +202,24 @@ class ObstacleWithKinematics(Obstacle):
         """
         if ax is None:
             _, ax = plt.subplots()
-        state:States3 = self.pose_fn(1)
-        state.plot(*args, ax=ax, **kwargs)
+        states:States3 = self.pose_fn(1)
+        states.plot(*args, ax=ax, **kwargs)
         return ax
 
     def __call__(self, t:float=None, domain:bool=False) -> Obstacle:
         if t is None:
             t = self._t
-        state_at_t:States3 = self.pose_fn(t)
+        states_at_t:States3 = self.pose_fn(t)
 
         if domain:
-            return self._initial_domain.rotate_and_translate(state_at_t.x, state_at_t.y, state_at_t.psi_deg)
-        return Obstacle(polygon=self._initial_geometry).rotate_and_translate(state_at_t.x, state_at_t.y, state_at_t.psi_deg)
+            return self._initial_domain.rotate_and_translate(states_at_t.x, states_at_t.y, states_at_t.psi_deg)
+        return Obstacle(polygon=self._initial_geometry).rotate_and_translate(states_at_t.x, states_at_t.y, states_at_t.psi_deg)
 
     def __repr__(self):
         return f"ObstacleWithKinematics({self.centroid[0]:.2f}, {self.centroid[1]:.2f})"
     
     def pose_fn_from_initial_state(self, t) -> States3:
-        initial_state = self._initial_state
+        initial_state = self._initial_states
         return States3(initial_state.x + initial_state.x_dot * t,
                        initial_state.y + initial_state.y_dot * t,
                        initial_state.psi_deg + initial_state.psi_dot_deg * t,
@@ -224,17 +227,31 @@ class ObstacleWithKinematics(Obstacle):
                        initial_state.y_dot,
                        initial_state.psi_dot_deg)
     
-    def pose_fn_from_current_state(self, t) -> States3:
+    def pose_fn_from_current_state(self, t:float) -> States3:
         """
-        Compute pose x_t at time t from the current state, assuming x(t) = x_t + v_t * t. Could be used to compute metrics such as DCPA, TCPA, etc.
+        Compute pose x_t at time t from the current states, assuming x(t) = x_t + v_t * t. Could be used to compute metrics such as DCPA, TCPA, etc.
         """
-        current_state = self._state
+        current_state = self._states
         return States3(current_state.x + current_state.x_dot * t,
                           current_state.y + current_state.y_dot * t,
                           current_state.psi_deg + current_state.psi_dot_deg * t,
                           current_state.x_dot,
                           current_state.y_dot,
                           current_state.psi_dot_deg)
+    
+    def enveloppe_fn_from_current_state(self, t:float) -> Obstacle:
+        """
+        Compute the enveloppe at time t from the current states.
+        """
+        states_at_t = self.pose_fn_from_current_state(t)
+        return Obstacle(polygon=self._initial_geometry).rotate_and_translate(states_at_t.x, states_at_t.y, states_at_t.psi_deg)
+    
+    def domain_fn_from_current_state(self, t:float) -> Obstacle:
+        """
+        Compute the domain at time t from the current states.
+        """
+        states_at_t = self.pose_fn_from_current_state(t)
+        return self._initial_domain.rotate_and_translate(states_at_t.x, states_at_t.y, states_at_t.psi_deg)
     
     def pose_fn(self, t) -> States3:
         return self._pose_fn(t)

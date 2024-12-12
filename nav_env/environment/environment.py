@@ -66,15 +66,16 @@ class NavigationEnvironment:
         self._obstacles.reset()
         self._t = self._t0
 
-    def plot(self, lim:tuple, ax=None, own_ship_physics=['enveloppe', 'frame', 'acceleration', 'velocity', 'forces', 'domain'], target_ship_physics=['enveloppe'], **kwargs):
+    def plot(self, lim:tuple, ax=None, own_ships_physics:dict={'enveloppe':1, 'frame':1, 'acceleration':1, 'velocity':1, 'forces':1, 'ghost':10}, target_ships_physics:dict={'enveloppe':1}, **kwargs):
         """
         Plot the environment.
         """
         if ax is None:
             _, ax = plt.subplots()
         self._shore.plot(ax=ax, **kwargs)
-        self._own_ships.plot(ax=ax, keys=own_ship_physics, **kwargs)
-        self._target_ships.plot(ax=ax, keys=target_ship_physics, **kwargs)
+        self._own_ships.plot(ax=ax, params=own_ships_physics, **kwargs)
+        # self._own_ships[0].enveloppe_fn_from_current_state(10).plot(ax=ax, **kwargs)
+        self._target_ships.plot(ax=ax, params=target_ships_physics, **kwargs)
         self._obstacles.plot(ax=ax, domain=True, **kwargs)
         self._wind_source.quiver(lim, ax=ax, facecolor='grey', alpha=0.3, **kwargs)
         # self._water_source.plot(ax=ax, **kwargs)
@@ -82,14 +83,14 @@ class NavigationEnvironment:
         ax.set_ylim((lim[0][1], lim[1][1]))
         return ax
     
-    def draw(self, screen, own_ship_physics=['enveloppe', 'frame', 'acceleration', 'velocity', 'forces'], target_ship_physics=['enveloppe'], scale=1, **kwargs):
+    def draw(self, screen, own_ships_physics:dict={'enveloppe':1, 'frame':1, 'acceleration':1, 'velocity':1, 'forces':1, 'ghost':10}, target_ships_physics:dict={'enveloppe':1}, scale=1, **kwargs):
         """
         Draw the environment for pygame.
         """
         self._shore.draw(screen, scale=scale, **kwargs)
         self._obstacles.draw(screen, scale=scale, **kwargs)
-        self._own_ships.draw(screen, keys=own_ship_physics, scale=scale, **kwargs)
-        self._target_ships.draw(screen, keys=target_ship_physics, scale=scale, **kwargs)
+        self._own_ships.draw(screen, params=own_ships_physics, scale=scale, **kwargs)
+        self._target_ships.draw(screen, params=target_ships_physics, scale=scale, **kwargs)
         # self._wind_source.draw(screen, **kwargs)
         # self._water_source.draw(screen, **kwargs)
     

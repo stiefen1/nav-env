@@ -23,7 +23,7 @@ class BaseStateVector(ABC):
 
     def __plot__(self, xy, keys, *args, ax=None, **kwargs):
         """
-        Plot the state vector.
+        Plot the states vector.
         """
 
         if ax is None:
@@ -79,7 +79,7 @@ class BaseStateVector(ABC):
     def __getitem__(self, index):
         if isinstance(index, str):
             if index not in self.__dict__:
-                raise KeyError(f"State variable '{index}' not in {list(self.__dict__.keys())}")
+                raise KeyError(f"States variable '{index}' not in {list(self.__dict__.keys())}")
             return self.__dict__[index]
         elif isinstance(index, int):
             if index >= len(self.__dict__):
@@ -91,7 +91,7 @@ class BaseStateVector(ABC):
     def __setitem__(self, index, value):
         if isinstance(index, str):
             if index not in self.__dict__:
-                raise KeyError(f"State variable '{index}' not in {list(self.__dict__.keys())}")
+                raise KeyError(f"States variable '{index}' not in {list(self.__dict__.keys())}")
             self.__dict__[index] = value
         elif isinstance(index, int):
             if index >= len(self.__dict__):
@@ -113,7 +113,7 @@ class BaseStateVector(ABC):
         return len(self.__dict__)
 
 
-class States(BaseStateVector): # We use state space representation \dot{x} = f(x, u)
+class States(BaseStateVector): # We use states space representation \dot{x} = f(x, u)
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
@@ -135,7 +135,7 @@ class DeltaStates(BaseStateVector):
 
     def __add__(self, other):
         """
-        Add a delta state to a state or another delta state.
+        Add a delta states to a states or another delta states.
         """
         if isinstance(other, BaseStateVector):
             return self.__add__wrapper__(other, self.keys, type(other))

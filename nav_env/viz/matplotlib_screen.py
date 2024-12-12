@@ -44,8 +44,8 @@ class MatplotlibScreen:
              tf:float=10,
              dt:float=None,
              ax=None,
-             own_ships_verbose=['enveloppe', 'frame', 'acceleration', 'velocity', 'forces'],
-             target_ships_verbose=['enveloppe'],
+             own_ships_verbose={'enveloppe':1, 'frame':1, 'acceleration':1, 'velocity':1, 'forces':1},
+             target_ships_verbose={'enveloppe':1},
              **kwargs
              ):
         """
@@ -61,8 +61,8 @@ class MatplotlibScreen:
     def play_with_monitor(self,
                           tf:float=10,
                           ax=None,
-                          own_ships_verbose=['enveloppe', 'frame', 'acceleration', 'velocity', 'forces'],
-                          target_ships_verbose=['enveloppe'],
+                          own_ships_verbose={'enveloppe':1, 'frame':1, 'acceleration':1, 'velocity':1, 'forces':1},
+                          target_ships_verbose={'enveloppe':1},
                           **kwargs):
         """
         Play the environment during an interval of time.
@@ -86,7 +86,7 @@ class MatplotlibScreen:
             ax[0].set_xlim(*self._lim_x)
             ax[0].set_ylim(*self._lim_y)
             self._env.step()
-            self._env.plot(self._lim, own_ship_physics=own_ships_verbose, target_ship_physics=target_ships_verbose, ax=ax[0])
+            self._env.plot(self._lim, own_ships_physics=own_ships_verbose, target_ships_physics=target_ships_verbose, ax=ax[0])
             ax[0].set_title(f"t = {self._env.t:.2f}")
 
             shared_env_dict.update(self._env.to_dict())
@@ -126,7 +126,7 @@ class MatplotlibScreen:
             ax.set_xlim(*self._lim_x)
             ax.set_ylim(*self._lim_y)
             self._env.step()
-            self._env.plot(self._lim, own_ship_physics=own_ships_verbose, target_ship_physics=target_ships_verbose, ax=ax)
+            self._env.plot(self._lim, own_ships_physics=own_ships_verbose, target_ships_physics=target_ships_verbose, ax=ax)
             ax.set_title(f"t = {self._env.t:.2f}")
 
             if self._env.t > tf:
