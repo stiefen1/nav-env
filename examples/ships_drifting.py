@@ -2,8 +2,8 @@
 if __name__ == '__main__':
     import multiprocessing as mp
     mp.freeze_support()
-    # from nav_env.viz.matplotlib_screen import MatplotlibScreen as Screen
-    from nav_env.viz.pygame_screen import PyGameScreen as Screen
+    from nav_env.viz.matplotlib_screen import MatplotlibScreen as Screen
+    # from nav_env.viz.pygame_screen import PyGameScreen as Screen
     from nav_env.environment.environment import NavigationEnvironment as Env
     from nav_env.ships.ship import *
     from nav_env.ships.states import *
@@ -16,8 +16,8 @@ if __name__ == '__main__':
     # Simulation parameters
     lim = 300
     xlim, ylim = (-lim, -lim), (lim, lim)
-    dt = 0.05
-    tf = 30
+    dt = 0.1
+    tf = 40
 
     # Shore (Made of obstacles)
     obs1 = Circle(0, 40, 50, id=1)
@@ -40,8 +40,8 @@ if __name__ == '__main__':
 
     # Environment
     env = Env(
-        own_ships=[ship1],
-        target_ships=[ship2, ship3, ship4, ship5],
+        own_ships=[ship1, ship2, ship3, ship4],
+        target_ships=[ship5],
         wind_source=uniform_wind,
         obstacles=[sailing_ship],
         shore=[obs1, obs2, obs3]
@@ -51,5 +51,5 @@ if __name__ == '__main__':
     from nav_env.risk.distance import Distance
 
     # Screen to display simulation results
-    screen = Screen(env, scale=1, lim=(xlim, ylim), monitor=RiskMonitor([TTG, Distance], dt=0.5))
-    screen.play(dt=dt, tf=tf, own_ships_verbose={'enveloppe':1, 'name':1, 'forces':1, 'domain':1, 'ghost':[5, 10, 15, 20]}, target_ships_verbose={'enveloppe':1, 'name':1})  
+    screen = Screen(env, scale=1, lim=(xlim, ylim), monitor=RiskMonitor([TTG, Distance], dt=1))
+    screen.play(dt=dt, tf=tf, own_ships_verbose={'enveloppe':1, 'name':1}, target_ships_verbose={'enveloppe':1, 'name':1})  

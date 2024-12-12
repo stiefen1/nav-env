@@ -12,9 +12,9 @@ class RiskCollection:
         """
         Calculate the risk.
         """
-        return sum(self.calculate_sepately(*args, **kwargs))
+        return sum(self.calculate_separately(*args, **kwargs))
     
-    def calculate_sepately(self, *args, **kwargs) -> list[float]:
+    def calculate_separately(self, *args, **kwargs) -> list[float]:
         """
         Calculate the risks separately.
         """

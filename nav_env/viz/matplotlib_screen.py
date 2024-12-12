@@ -1,8 +1,9 @@
 from nav_env.environment.environment import NavigationEnvironment
-import matplotlib.pyplot as plt, time
+import matplotlib.pyplot as plt, matplotlib.gridspec as gridspec, time
 import multiprocessing as mp
 from nav_env.risk.monitor import RiskMonitor
 from nav_env.ships.states import States3
+
 
 
 # Maybe not the best architecture
@@ -69,10 +70,22 @@ class MatplotlibScreen:
 
         WARNING: This function requires the whole environment to be pickable to run the monitor in a separate process.
         """
+        N_ship = len(self._env.own_ships)
+
         if ax is None:
-            _, ax = plt.subplots(1, 2, figsize=(10, 5))
-        ax[1].grid()
-        # ax[1].legend('TTG', 'Distance')
+            fig, ax = plt.subplots(1, 2, figsize=(10, 5))
+
+        ax[1].cla()
+        ax[1].tick_params(bottom=False, left=False, labelbottom=False, labelleft=False)
+        gs = gridspec.GridSpecFromSubplotSpec(N_ship, 1, subplot_spec=ax[1].get_subplotspec())
+        sub_axes = [fig.add_subplot(gs[i]) for i in range(N_ship)]
+        for i, ship in enumerate(self._env.own_ships):
+            sub_axes[i].grid()
+            sub_axes[i].set_title(ship.name)
+            sub_axes[i].tick_params(bottom=False, labelbottom=False)
+            sub_axes[i].legend(self._monitor.legend())
+        sub_axes[-1].tick_params(bottom=True, labelbottom=True)
+        legend = self._monitor.legend()
 
         manager = mp.Manager()
         shared_env_dict = manager.dict(self._env.to_dict()) 
@@ -92,10 +105,18 @@ class MatplotlibScreen:
             shared_env_dict.update(self._env.to_dict())
 
             if not result_queue.empty():
-                risk_values = result_queue.get()
-                ax[1].plot(risk_values[0], risk_values[1], 'ro')
-                ax[1].plot(risk_values[0], risk_values[2], 'bo')
-                ax[1].legend(self._monitor.legend())
+                risk_values:list = result_queue.get()
+                t = risk_values.pop(0)
+                for i, risk_for_ship_i in enumerate(risk_values):
+                    for j, value in enumerate(risk_for_ship_i):
+                        sub_axes[i].plot(t, value, 'o', color=f'C{j}')
+                        # sub_axes[i].legend(legend)
+
+                    
+                
+                # ax[1].plot(risk_values[0], risk_values[1], 'ro')
+                # ax[1].plot(risk_values[0], risk_values[2], 'bo')
+                # ax[1].legend(self._monitor.legend())
 
             if self._env.t > tf:
                 ax[0].set_title(f"t = {tf:.2f} : Done")
