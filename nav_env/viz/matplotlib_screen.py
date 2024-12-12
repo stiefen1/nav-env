@@ -64,6 +64,7 @@ class MatplotlibScreen:
                           ax=None,
                           own_ships_verbose={'enveloppe':1, 'frame':1, 'acceleration':1, 'velocity':1, 'forces':1},
                           target_ships_verbose={'enveloppe':1},
+                          buffer:int=10,
                           **kwargs):
         """
         Play the environment during an interval of time.
@@ -93,6 +94,16 @@ class MatplotlibScreen:
         risk_process = mp.Process(target=self._monitor.monitor, args=(shared_env_dict, result_queue))
         risk_process.start()
 
+        list_of_risks_for_ships = []
+        for i in range(N_ship):
+            list_of_risks_for_ship_i = []
+            for j in range(len(self._monitor)):
+                list_of_risk_j_for_ship_i = []
+                list_of_risks_for_ship_i.append(list_of_risk_j_for_ship_i)
+            list_of_risks_for_ships.append(list_of_risks_for_ship_i)
+
+        times = []
+
         while True:
             loop_start = time.time()
             ax[0].cla()
@@ -106,18 +117,20 @@ class MatplotlibScreen:
 
             if not result_queue.empty():
                 risk_values:list = result_queue.get()
-                t = risk_values.pop(0)
+                times.append(risk_values.pop(0))
+                if len(times) > buffer:
+                    times.pop(0)
                 for i, risk_for_ship_i in enumerate(risk_values):
+                    sub_axes[i].cla()
+                    sub_axes[i].set_title(self._env.own_ships[i].name)
+                    sub_axes[i].grid()
                     for j, value in enumerate(risk_for_ship_i):
-                        sub_axes[i].plot(t, value, 'o', color=f'C{j}')
-                        # sub_axes[i].legend(legend)
-
+                        list_of_risks_for_ships[i][j].append(value)
+                        if len(list_of_risks_for_ships[i][j]) > buffer:
+                            list_of_risks_for_ships[i][j].pop(0)
+                        sub_axes[i].plot(times, list_of_risks_for_ships[i][j], 'o', color=f'C{j}')
+                        sub_axes[i].legend(legend)
                     
-                
-                # ax[1].plot(risk_values[0], risk_values[1], 'ro')
-                # ax[1].plot(risk_values[0], risk_values[2], 'bo')
-                # ax[1].legend(self._monitor.legend())
-
             if self._env.t > tf:
                 ax[0].set_title(f"t = {tf:.2f} : Done")
                 risk_process.terminate()
@@ -156,8 +169,9 @@ class MatplotlibScreen:
                 plt.waitforbuttonpress(120)
                 break
 
+
             loop_end = time.time()
-            plt.pause(max(1e-9, self._env.dt - (loop_end - loop_start)))
+            plt.pause(max(1e-12, self._env.dt - (loop_end - loop_start) - 5e-3))
 
     @property
     def lim_x(self) -> tuple:
