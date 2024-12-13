@@ -94,47 +94,47 @@ class GeometryWrapper:
     def translate_inplace(self, x: float, y: float, **kwargs) -> None:
         self._geometry = affinity.translate(self._geometry, x, y, **kwargs)
     
-    def rotate(self, angle: float, **kwargs) -> "GeometryWrapper":
+    def rotate(self, angle: float, origin=None, **kwargs) -> "GeometryWrapper":
         """
         Rotation in degrees by default. For radians set use_radians=True
         """
         new = deepcopy(self)
-        new._geometry = affinity.rotate(self._geometry, angle, origin=self.centroid, **kwargs)
+        new._geometry = affinity.rotate(self._geometry, angle, origin=origin or self.centroid, **kwargs)
         return new
     
-    def rotate_inplace(self, angle: float, **kwargs) -> None:
+    def rotate_inplace(self, angle: float, origin=None, **kwargs) -> None:
         """
         Rotation in degrees by default. For radians set use_radians=True
         """
-        self._geometry = affinity.rotate(self._geometry, angle, origin=self.centroid, **kwargs)
+        self._geometry = affinity.rotate(self._geometry, angle, origin=origin or self.centroid, **kwargs)
     
-    def rotate_and_translate(self, x:float, y:float, angle:float, **kwargs) -> "GeometryWrapper":
+    def rotate_and_translate(self, x:float, y:float, angle:float, origin=None, **kwargs) -> "GeometryWrapper":
         """
         Rotation in degrees by default. For radians set use_radians=True
         """
         new = deepcopy(self)
-        new._geometry = affinity.translate(affinity.rotate(new._geometry, angle, origin=self.centroid, **kwargs), x, y)
+        new._geometry = affinity.translate(affinity.rotate(new._geometry, angle, origin=origin or self.centroid, **kwargs), x, y)
         return new
     
-    def rotate_and_translate_inplace(self, x:float, y:float, angle:float, **kwargs) -> None:
+    def rotate_and_translate_inplace(self, x:float, y:float, angle:float, origin=None, **kwargs) -> None:
         """
         Rotation in degrees by default. For radians set use_radians=True
         """
-        self._geometry = affinity.translate(affinity.rotate(self._geometry, angle, origin=self.centroid, **kwargs), x, y)
+        self._geometry = affinity.translate(affinity.rotate(self._geometry, angle, origin=origin or self.centroid, **kwargs), x, y)
 
-    def translate_and_rotate(self, x:float, y:float, angle:float, **kwargs) -> "GeometryWrapper":
+    def translate_and_rotate(self, x:float, y:float, angle:float, origin=None, **kwargs) -> "GeometryWrapper":
         """
         Rotation in degrees by default. For radians set use_radians=True
         """
         new = deepcopy(self)
-        new._geometry = affinity.rotate(affinity.translate(new._geometry, x, y), angle, origin=(x, y), **kwargs)
+        new._geometry = affinity.rotate(affinity.translate(new._geometry, x, y), angle, origin=origin or (x, y), **kwargs)
         return new
     
-    def translate_and_rotate_inplace(self, x:float, y:float, angle:float, **kwargs) -> None:
+    def translate_and_rotate_inplace(self, x:float, y:float, angle:float, origin=None, **kwargs) -> None:
         """
         Rotation in degrees by default. For radians set use_radians=True
         """
-        self._geometry = affinity.rotate(affinity.translate(self._geometry, x, y), angle, origin=(x, y), **kwargs)
+        self._geometry = affinity.rotate(affinity.translate(self._geometry, x, y), angle, origin=origin or (x, y), **kwargs)
 
     def center_inplace(self) -> None:
         self.translate_inplace(-self.centroid[0], -self.centroid[1])

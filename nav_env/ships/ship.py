@@ -40,7 +40,7 @@ class ShipWithDynamicsBase(ObstacleWithKinematics):
         self._generalized_forces = GeneralizedForces() # Initialize generalized forces acting on the ship to 0
 
         enveloppe = ShipEnveloppe(length=self._physics.length, width=self._physics.width)
-        super().__init__(initial_state=states, xy=enveloppe.get_xy_as_list(), dt=integrator.dt, domain=domain, domain_margin_wrt_enveloppe=domain_margin_wrt_enveloppe)
+        super().__init__(initial_state=states, xy=enveloppe.get_xy_as_list(), dt=self._integrator.dt, domain=domain, domain_margin_wrt_enveloppe=domain_margin_wrt_enveloppe)
 
     def reset(self):
         """
@@ -161,8 +161,10 @@ class ShipWithDynamicsBase(ObstacleWithKinematics):
 
     def update_enveloppe(self):
         if self._dx is not None:
+            prev_centroid = self.centroid
             self.rotate_and_translate_inplace(self._dx[0], self._dx[1], self._dx[2])
-            self._domain.rotate_and_translate_inplace(self._dx[0], self._dx[1], self._dx[2])
+            self._domain.rotate_and_translate_inplace(self._dx[0], self._dx[1], self._dx[2], origin=prev_centroid)
+            
         else:
             raise UserWarning(f"self._dx is None, you must first call integrate()")
 
@@ -172,8 +174,9 @@ class ShipWithDynamicsBase(ObstacleWithKinematics):
 
         WARNING!!! DONT USE THIS METHOD UNLESS YOU KNOW EXACTLY WHAT YOU ARE DOING
         """
+        prev_centroid = self.centroid
         self.rotate_and_translate_inplace(self._accumulated_dx[0], self._accumulated_dx[1], self._accumulated_dx[2])
-        self._domain.rotate_and_translate_inplace(self._accumulated_dx[0], self._accumulated_dx[1], self._accumulated_dx[2])
+        self._domain.rotate_and_translate_inplace(self._accumulated_dx[0], self._accumulated_dx[1], self._accumulated_dx[2], origin=prev_centroid)
         self._accumulated_dx = DeltaStates(0., 0., 0., 0., 0., 0.)
 
     def collide(self, obstacle:ObstacleCollection) -> bool:
@@ -243,10 +246,12 @@ class SimpleShip(ShipWithDynamicsBase):
                  controller:ControllerBase = None,
                  integrator:Integrator = None,
                  derivatives:TimeDerivatives3 = None, 
-                 name:str="SimpleShip"
+                 name:str="SimpleShip",
+                 domain:Obstacle=None,
+                 domain_margin_wrt_enveloppe:float=0.
                  ):
         states = states or States3()
-        super().__init__(states=states, physics=physics, controller=controller, integrator=integrator, derivatives=derivatives, name=name)
+        super().__init__(states=states, physics=physics, controller=controller, integrator=integrator, derivatives=derivatives, name=name, domain=domain, domain_margin_wrt_enveloppe=domain_margin_wrt_enveloppe)
 
     def update_derivatives(self, wind:WindVector, water:WaterVector, external_forces:GeneralizedForces):
         """

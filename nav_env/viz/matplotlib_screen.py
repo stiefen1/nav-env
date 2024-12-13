@@ -129,7 +129,9 @@ class MatplotlibScreen:
                         if len(list_of_risks_for_ships[i][j]) > buffer:
                             list_of_risks_for_ships[i][j].pop(0)
                         sub_axes[i].plot(times, list_of_risks_for_ships[i][j], 'o', color=f'C{j}')
-                        sub_axes[i].legend(legend)
+                    sub_axes[i].legend(legend)
+                    # sub_axes[i].set_ylim([0, 100])
+
                     
             if self._env.t > tf:
                 ax[0].set_title(f"t = {tf:.2f} : Done")

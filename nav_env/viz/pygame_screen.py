@@ -59,6 +59,9 @@ class PyGameScreen:
         """
         Play the environment during an interval of time.
         """
+
+        # TODO: Add monitor, can be done with matplotlib.
+
         self._env.dt = dt # Enforce the time step for the whole environment
 
         t = t0

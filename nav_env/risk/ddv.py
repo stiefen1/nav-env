@@ -1,162 +1,206 @@
 from nav_env.environment.environment import NavigationEnvironment
+from nav_env.ships.ship import Ship
+from nav_env.obstacles.obstacles import ObstacleWithKinematics
 from nav_env.risk.risk import RiskMetric
-from copy import deepcopy
+from nav_env.risk.utils import get_relative_position_and_speed
+from nav_env.obstacles.obstacles import Ellipse
+from math import cos, sin, pi
 
-#### Joanna's code ####
 
-import math
+def get_ddv_terms(own_ship: ObstacleWithKinematics, target_ship: ObstacleWithKinematics) -> float:
+    assert isinstance(target_ship.domain, Ellipse), "Target ship domain must be an ellipse" # Degree of domain violation is only handled for elliptical domains
+    px_rel, py_rel, vx_rel, vy_rel = get_relative_position_and_speed(own_ship, target_ship)
+    
+    # Orientation of target ship, w.r.t to the x-axis (ship's heading angle is measured counter-clockwise from the y-axis)
+    sin2:float = sin(target_ship.states.psi_rad + pi/2)
+    cos2:float = cos(target_ship.states.psi_rad + pi/2)
+    
+    da_ts = target_ship.domain.da
+    db_ts = target_ship.domain.db
+    a_ts = target_ship.domain.a
+    b_ts = target_ship.domain.b
 
-# function get_fmin_DDV_TDV to compute fmin, DDV and TDV according to "An analysis of domain-based ship collision risk parameters" http://dx.doi.org/10.1016/j.oceaneng.2016.08.030
-# INPUT PARAMETERS:
-# x1 - own ship (OS) real position X [NM or m]
-# y1 - own ship (OS) real position Y [NM or m]
-# x2 - target ship (TS) real position X [NM or m]
-# y2 - target ship (TS) real position Y [NM or m]
-# v1x - X vector of own ship (OS) speed [kn or m/s]
-# v1y - Y vector of own ship (OS) speed [kn or m/s]
-# v2x - X vector of target ship (TS) speed [kn or m/s]
-# v2y - Y vector of target ship (TS) speed [kn or m/s]
-# decentralised elliptic ship domain parameters:
-# a - semi-major axis [NM or m]
-# b - semi-minor axis [NM or m]
-# da - a ship's displacement from the ellipse's centre towards aft along the semi-major axis [NM or m]
-# db - a ship's displacement from the ellipse's centre towards port along the semi-minor axis [NM or m]
-#
-# OUTPUT RESULTS: a tuple of
-# fmin [-]
-# ddv [-]
-# tdv [h or sec]
-# tde [h or sec]
-# dcpa [NM or m]
-# tcpa [h or sec]
-# tmin [h or sec]
-# h or sec - depends if we use NM (then h) or m/s (then sec)
+    # Rotated center of the ellipse
+    h:float = da_ts * cos2 + db_ts * sin2
+    k:float = da_ts * sin2 - db_ts * cos2
 
-def get_fmin_DDV_TDV(x1:float,y1:float,x2:float,y2:float,v1x:float,v1y:float,v2x:float,v2y:float, a:float, b:float, da:float, db:float) -> tuple[float,float,float,float,float,float,float]:
-    v1:float = math.sqrt(pow(v1x,2)+ pow(v1y,2))
-    v2:float = math.sqrt(pow(v2x,2)+ pow(v2y,2))
-    if (v2==0.0):
-        return float("NaN"), float("NaN"), float("NaN"), float("NaN"), float("NaN"), float("NaN"),  float("NaN")   # if ship2 does not move then fmin, DDV, TDV, TDE, DCPA, TCPA are undefined
+    a1:float = cos2**2 / a_ts**2 + sin2**2 / b_ts**2
+    b1:float = 2 * cos2 * sin2 * (1/a_ts**2 - 1/b_ts**2)
+    c1:float = sin2**2 / a_ts**2 + cos2**2 / b_ts**2
 
-    sin2:float = float(v2y / v2)
-    cos2:float = float(v2x / v2)
-    x:float = float(x2 - x1)
-    y:float = float(y2 - y1)
-    vx:float = float(v2x - v1x)
-    vy:float = float(v2y - v1y)
+    a2:float = a1 * h**2 + c1 * k**2 + h * k * b1 - 1
+    b21:float = h * (2 * px_rel * a1 + b1 * py_rel) + k * (2 * py_rel * c1 + px_rel * b1)
+    b22:float = 2 * h * vx_rel * a1 + h * vy_rel * b1 + 2 * k * vy_rel * c1 + k * vx_rel * b1
+    c21:float = a1 * px_rel**2 + b1 * px_rel * py_rel + c1 * py_rel**2
+    c22:float = 2 * a1 * px_rel * vx_rel + b1 * px_rel * vy_rel + b1 * py_rel * vx_rel + 2 * c1 * py_rel * vy_rel
+    c23:float = a1 * vx_rel**2 + b1 * vx_rel * vy_rel + c1 * vy_rel**2
 
-    # DCPA & TCPA computations
-    vr:float = math.sqrt(pow(vx,2)+pow(vy,2))
-    dcpa:float = abs ((x*vy - y*vx)/(vr))
-    tcpa:float = -(x*vx + y*vy)/(vr*vr)
-    # end of DCPA & TCPA computations
-
-    if (vx==0.0 and vy==0.0):
-        return float("NaN"), float("NaN"), float("NaN"), float("NaN"), float("NaN"), float("NaN"), float("NaN")  # if OS and TS have exact the same speed vectors then fmin, DDV, TDV, TDE, DCPA, TCPA are undefined
-
-    h:float = da * cos2 + db * sin2
-    k:float = da * sin2 - db * cos2
-
-    a1:float = pow(cos2,2) / pow(a,2) + pow(sin2,2) / pow(b,2)
-    b1:float = 2 * cos2 * sin2 * (1 / pow(a,2) - 1 / pow(b,2))
-    c1:float = pow(cos2,2) / pow(b,2) + pow(sin2,2) / pow(a,2)
-
-    a2:float = a1 * pow(h,2) + c1 * pow(k,2) + h * k * b1 - 1
-    b21:float = h * (2 * x * a1 + b1 * y) + k * (2 * y * c1 + x * b1)
-    b22:float = 2 * h * vx * a1 + h * vy * b1 + 2 * k * vy * c1 + k * vx * b1
-    c21:float = a1 * pow(x,2) + b1 * x * y + c1 * pow(y,2)
-    c22:float = 2 * a1 * x * vx + b1 * x * vy + b1 * y * vx + 2 * c1 * y * vy
-    c23:float = a1 * pow(vx,2) + b1 * vx * vy + c1 * pow(vy,2)
-
-    d:float = pow(b22,2) - 4 * a2 * c23
+    d:float = b22**2 - 4 * a2 * c23
     e:float = 2 * b21 * b22 - 4 * a2 * c22
-    f:float = pow(b21,2) - 4 * a2 * c21
+    f:float = b21**2 - 4 * a2 * c21
 
-    under_root:float = pow((d * e - pow(b22,2) * e),2) - (pow(d,2) - pow(b22,2) * d) * (pow(e,2) - 4 * pow(b22,2) * f)
-    if (under_root < 0.0):
+    return h, k, a1, b1, c1, a2, b21, b22, d, e, f
+
+def get_t1_t2(b22:float, d:float, e:float, f:float) -> tuple[float, float]:
+    denominator:float = 2 * (d**2 - b22**2 * d)
+
+    under_root:float = (d * e - b22**2 * e)**2 - (d**2 - b22**2 * d) * (e**2 - 4 * b22**2 * f)
+    if under_root < 0.0:
         under_root = 0.0
-    nominator:float = pow(b22,2) * e - d * e - math.sqrt(under_root)
-    denominator:float = float (2 * (pow(d,2) - pow(b22,2) * d))
-    t1:float = nominator / denominator
-    nominator = pow(b22,2) * e - d * e + math.sqrt(under_root)
-    t2:float = nominator / denominator
 
+    numerator:float = b22**2 * e - d * e - under_root**0.5
+    t1:float = numerator / denominator
+
+    numerator:float = b22**2 * e - d * e + under_root**0.5
+    t2:float = numerator / denominator
+    return t1, t2
+
+def get_approach_factors(t1, t2, a2, b21, b22, d, e, f) -> tuple[float, float, float, float]:
     under_root = d * pow(t1,2) + e * t1 + f
     if (under_root < 0.0):
         under_root = 0.0
-    f1:float = (-b21 - b22 * t1 - math.sqrt(under_root)) / (2 * a2)
+    f1:float = (-b21 - b22 * t1 - under_root**0.5) / (2 * a2)
     if (f1 < -0.01):
         f1 = 1000000
-    f2:float = (-b21 - b22 * t1 + math.sqrt(under_root)) / (2 * a2)
+    f2:float = (-b21 - b22 * t1 + under_root**0.5) / (2 * a2)
     if (f2 < -0.01):
         f2 = 1000000
 
     under_root = d * pow(t2,2) + e * t2 + f
     if (under_root < 0.0):
         under_root = 0.0
-    f3:float = (-b21 - b22 * t2 - math.sqrt(under_root)) / (2 * a2)
+    f3:float = (-b21 - b22 * t2 - under_root**0.5) / (2 * a2)
     if (f3 < -0.01):
         f3 = 1000000
-    f4:float = (-b21 - b22 * t2 + math.sqrt(under_root)) / (2 * a2)
+    f4:float = (-b21 - b22 * t2 + under_root**0.5) / (2 * a2)
     if (f4 < -0.01):
         f4 = 1000000
 
-    fmin:float = min(min(f1, f2), min(f3, f4))
-    if (abs(fmin - f1) < 0.000001) or (abs(fmin - f2) < 0.000001):
+    return f1, f2, f3, f4
+
+def get_min_approach_factor(own_ship: ObstacleWithKinematics, target_ship: ObstacleWithKinematics) -> float:
+    """
+    Calculate the minimum approach factor of the target ship by the own ship.
+    """
+    if not isinstance(target_ship.domain, Ellipse): # Degree of domain violation is only handled for elliptical domains
+        return float("NaN")
+
+    h, k, a1, b1, c1, a2, b21, b22, d, e, f = get_ddv_terms(own_ship, target_ship)
+    t1, t2 = get_t1_t2(b22, d, e, f)
+    f1, f2, f3, f4 = get_approach_factors(t1, t2, a2, b21, b22, d, e, f)
+
+    fmin:float = min([f1, f2, f3, f4]) # Minimum approach factor
+    return fmin
+
+def get_time_min_approach_factor(own_ship: ObstacleWithKinematics, target_ship: ObstacleWithKinematics) -> float:
+    if not isinstance(target_ship.domain, Ellipse): # Degree of domain violation is only handled for elliptical domains
+        return float("NaN")
+
+    h, k, a1, b1, c1, a2, b21, b22, d, e, f = get_ddv_terms(own_ship, target_ship)
+    t1, t2 = get_t1_t2(b22, d, e, f)
+    f1, f2, f3, f4 = get_approach_factors(t1, t2, a2, b21, b22, d, e, f)
+    
+    fmin:float = min([f1, f2, f3, f4]) # Minimum approach factor
+    if (abs(fmin - f1) < 1e-6) or (abs(fmin - f2) < 1e-6):
         tmin = t1
     else:
         tmin = t2
+    return tmin
 
-    xe:float = x + da * cos2 + db * sin2
-    ye:float = y + da * sin2 - db * cos2
-    a3:float = a1 * pow(vx,2) + b1 * vx * vy + c1 * pow(vy,2)
-    b3:float = 2 * (a1 * xe * vx + c1 * ye * vy) + b1 * (xe * vy + ye * vx)
-    c3:float = a1 * pow(xe,2) + b1 * xe * ye + c1 * pow(ye,2) - 1
-    under_root = pow(b3,2) - 4 * a3 * c3
-    if (under_root < 0.0):
-        under_root = 0.0
-    if (fmin >= 1):
-        under_root = 0.0
-    tdv1:float = (-b3 - math.sqrt(under_root)) / (2 * a3)
-    tdv2:float = (-b3 + math.sqrt(under_root)) / (2 * a3)
-    tdv:float = min(tdv1, tdv2)
-    tde:float = max(tdv1, tdv2)
+def get_ddv(own_ship: ObstacleWithKinematics, target_ship: ObstacleWithKinematics) -> float:
+    """
+    Calculate the Degree of Domain Violation of the target ship by the own ship.
+    """
+    if not isinstance(target_ship.domain, Ellipse): # Degree of domain violation is only handled for elliptical domains
+        return float("NaN")
 
+    fmin:float = get_min_approach_factor(own_ship, target_ship)
     ddv:float = max(0.0, 1.0 - fmin)
-    if (ddv == 0.0):
-        tdv = float("NaN") # we set NaN (Not a Number) for TDV since there is no domain violation (DDV = 0.0)
+    return ddv
 
-    return (fmin, ddv, tdv, tde, dcpa, tcpa, tmin)
+def get_tdv(own_ship: ObstacleWithKinematics, target_ship: ObstacleWithKinematics) -> float:
+    """
+    Calculate the Time to Domain Violation of the target ship by the own ship.
+    """
+    if not isinstance(target_ship.domain, Ellipse): # Degree of domain violation is only handled for elliptical domains
+        return float("NaN")
+    
+    px_rel, py_rel, vx_rel, vy_rel = get_relative_position_and_speed(own_ship, target_ship)
 
-
-#### End of Joanna's code ####
+    h, k, a1, b1, c1, a2, b21, b22, d, e, f = get_ddv_terms(own_ship, target_ship)
+    t1, t2 = get_t1_t2(b22, d, e, f)
+    f1, f2, f3, f4 = get_approach_factors(t1, t2, a2, b21, b22, d, e, f)
+    fmin:float = min([f1, f2, f3, f4]) # Minimum approach factor
+    
+    xe:float = px_rel + h
+    ye:float = py_rel + k
+    a3:float = a1 * vx_rel**2 + b1 * vx_rel * vy_rel + c1 * vy_rel**2
+    b3:float = 2 * (a1 * xe * vx_rel + c1 * ye * vy_rel) + b1 * (xe * vy_rel + ye * vx_rel)
+    c3:float = a1 * xe**2 + b1 * xe * ye + c1 * ye**2 - 1
+    under_root = b3**2 - 4 * a3 * c3
+    if under_root < 0.0:
+        under_root = 0.0
+    if fmin >= 1:
+        under_root = 0.0
+    tdv1:float = (-b3 - under_root**0.5) / (2 * a3)
+    tdv2:float = (-b3 + under_root**0.5) / (2 * a3)
+    tdv:float = min(tdv1, tdv2)
+    return tdv
 
 
 class DDV(RiskMetric):
     def __init__(self, env:NavigationEnvironment):
         super().__init__(env)
 
-    def calculate(self, t:float, **kwargs) -> float:
-        target_ships_collection = self._env._target_ships
-        own_ships_collection = self._env._own_ships
+    def calculate(self, ship:Ship, **kwargs) -> float:
+        max_ddv = 0.
 
-        for i, ship_i in enumerate(own_ships_collection):
-            target_ships_i = deepcopy(target_ships_collection)
-            target_ships_i.append(own_ships_collection.get_except(ship_i)) # Add all other ships except ship i
-            for j, target_ships_ij in enumerate(target_ships_i): 
-                print(f"ship {ship_i} and target {target_ships_ij}")
-                # Compute ddv for ship ij
-                pass
+        for moving_obstacle in self.env.obstacles:
+            if isinstance(moving_obstacle.domain, Ellipse):
+                ddv = get_ddv(ship, moving_obstacle)
+                if ddv > max_ddv:
+                    max_ddv = ddv
 
-        ddv = 0.
 
-        return ddv
+        for target_ship in self.env.target_ships:
+            if isinstance(target_ship.domain, Ellipse): 
+                ddv = get_ddv(ship, target_ship)
+                if ddv > max_ddv:
+                    max_ddv = ddv
+
+                
+        # print(f"{100*max_ddv:.2f}")
+        return 100 * max_ddv # 100 * max_ddv # min_dcpa # min_tcpa # min_tdv # 100*max_ddv
     
     def plot(self, ax=None, **kwargs):
         pass
 
-    def __repr__(self):
-        return "DDV"
+class TDV(RiskMetric):
+    def __init__(self, env:NavigationEnvironment):
+        super().__init__(env)
+
+    def calculate(self, ship:Ship, **kwargs) -> float:
+        min_tdv = float("inf")
+
+        for moving_obstacle in self.env.obstacles:
+            if isinstance(moving_obstacle.domain, Ellipse):
+                tdv = get_tdv(ship, moving_obstacle)
+                if tdv < min_tdv:
+                    min_tdv = tdv
+
+        for target_ship in self.env.target_ships:
+            if isinstance(target_ship.domain, Ellipse):
+                tdv = get_tdv(ship, target_ship)
+                if tdv < min_tdv:
+                    min_tdv = tdv
+
+        # print(f"{min_tdv:.2f}")
+        return min_tdv
+    
+    def plot(self, ax=None, **kwargs):
+        pass
+    
+
     
 def test():
     from nav_env.ships.ship import SimpleShip

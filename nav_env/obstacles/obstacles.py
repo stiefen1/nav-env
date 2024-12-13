@@ -31,37 +31,22 @@ class Obstacle(GeometryWrapper):
         Plot the obstacle.
         """
         return super().plot(*args, ax=ax, c=c, **kwargs)
-
-class Circle(Obstacle):
-    def __init__(self, x, y, radius, id:int=None):
-        super().__init__(polygon=Point([x, y]).buffer(radius), id=id)
-        self._radius = radius
-
-    @property
-    def radius(self):
-        return self._radius
-    
-    @property
-    def center(self):
-        return self.centroid
-    
-    @radius.setter
-    def radius(self, value):
-        self._radius = value
-        self._geometry = Point(self.center).buffer(value)
-    
-    @center.setter
-    def center(self, value:tuple):
-        self.centroid = value
-    
-    def __repr__(self):
-        return f"Circle({self.radius:.2f} at {self.center[0]:.2f}, {self.center[1]:.2f})"
     
 class Ellipse(Obstacle):
-    def __init__(self, x, y, a, b, id:int=None):
-        super().__init__(polygon=affinity.scale(Point([x, y]).buffer(1), a, b), id=id)
+    def __init__(self,
+                x:float,
+                y:float,
+                a:float,
+                b:float,
+                da:float=0,
+                db:float=0,
+                id:int=None
+                ):
+        super().__init__(polygon=affinity.translate(affinity.scale(Point([x, y]).buffer(1), b, a), db, da), id=id)
         self._a = a
         self._b = b
+        self._da = da
+        self._db = db
 
     @property
     def a(self):
@@ -88,9 +73,34 @@ class Ellipse(Obstacle):
     @center.setter
     def center(self, value:tuple):
         self.centroid = value
+
+    @property
+    def da(self) -> float:
+        return self._da
+    
+    @property
+    def db(self) -> float:
+        return self._db
     
     def __repr__(self):
         return f"Ellipse({self.a:.2f}, {self.b:.2f} at {self.center[0]:.2f}, {self.center[1]:.2f})"
+    
+class Circle(Ellipse):
+    def __init__(self, x, y, radius, id:int=None):
+        super().__init__(x, y, radius, radius, id=id)
+        self._radius = radius
+
+    def __repr__(self):
+        return f"Circle({self.radius:.2f} at {self.center[0]:.2f}, {self.center[1]:.2f})"
+
+    @property
+    def radius(self):
+        return self._radius
+    
+    @radius.setter
+    def radius(self, value):
+        self._radius = value
+        self._geometry = affinity.scale(Point(self.center).buffer(1), value, value)
 
 class ObstacleWithKinematics(Obstacle):
     """
@@ -132,8 +142,10 @@ class ObstacleWithKinematics(Obstacle):
         
         # Domain of the obstacle
         if domain is None:
+            initial_centroid = self.centroid
             self._domain:Obstacle = Obstacle(polygon=self._geometry).buffer(domain_margin_wrt_enveloppe, join_style='mitre')
-            self._domain.center_inplace()
+            new_centroid = self._domain.centroid
+            self._domain.translate_inplace(initial_centroid[0] - new_centroid[0], initial_centroid[1] - new_centroid[1])
         else:
             assert isinstance(domain, Obstacle), f"Expected Obstacle got {type(domain).__name__}"
             self._domain = domain
@@ -143,8 +155,9 @@ class ObstacleWithKinematics(Obstacle):
         self._initial_domain = deepcopy(self._domain)
 
         # Since we use the step() method to update the obstacle, we need to set the initial orientation of the obstacle
+        prev_center = self.centroid
         self.rotate_and_translate_inplace(self._initial_states.x, self._initial_states.y, self._initial_states.psi_deg) # Change geometry (enveloppe)
-        self._domain.rotate_and_translate_inplace(self._initial_states.x, self._initial_states.y, self._initial_states.psi_deg) # Change geometry (enveloppe)
+        self._domain.rotate_and_translate_inplace(self._initial_states.x, self._initial_states.y, self._initial_states.psi_deg, origin=prev_center) # Change geometry (enveloppe)
 
     def step(self) -> None:
         """
@@ -154,8 +167,9 @@ class ObstacleWithKinematics(Obstacle):
         prev_state = self._states
         self._states = self.pose_fn(self._t)
         ds:DeltaStates = self._states - prev_state
+        prev_center = self.centroid
         self.rotate_and_translate_inplace(ds.x, ds.y, ds.psi_deg) # Change geometry (enveloppe)
-        self._domain.rotate_and_translate_inplace(ds.x, ds.y, ds.psi_deg) # Change geometry (enveloppe)
+        self._domain.rotate_and_translate_inplace(ds.x, ds.y, ds.psi_deg, origin=prev_center) # Change geometry (enveloppe)
 
     def reset(self) -> None:
         """
@@ -165,8 +179,9 @@ class ObstacleWithKinematics(Obstacle):
         self._states = deepcopy(self._initial_states)
         self._geometry = self._initial_geometry
         self._domain = deepcopy(self._initial_domain)
+        prev_center = self.centroid
         self.rotate_and_translate_inplace(self._initial_states.x, self._initial_states.y, self._initial_states.psi_deg) # Change geometry (enveloppe)
-        self._domain.rotate_and_translate_inplace(self._initial_states.x, self._initial_states.y, self._initial_states.psi_deg) # Change geometry (enveloppe)
+        self._domain.rotate_and_translate_inplace(self._initial_states.x, self._initial_states.y, self._initial_states.psi_deg, origin=prev_center) # Change geometry (enveloppe)
 
     def plot(self, *args, ax=None, domain:bool=False, **kwargs):
         """
@@ -190,7 +205,7 @@ class ObstacleWithKinematics(Obstacle):
         ax.plot(*xy, z, *args, **kwargs)
 
         if domain:
-            xy = self._initial_domain.rotate_and_translate(states_at_t.x, states_at_t.y, states_at_t.psi_deg).xy
+            xy = self._initial_domain.rotate_and_translate(states_at_t.x, states_at_t.y, states_at_t.psi_deg, origin=self._initial_domain.centroid).xy
             z = [t]*len(xy[0])
             ax.plot(*xy, z, *args, linestyle='dashed', **kwargs)
 
@@ -212,7 +227,7 @@ class ObstacleWithKinematics(Obstacle):
         states_at_t:States3 = self.pose_fn(t)
 
         if domain:
-            return self._initial_domain.rotate_and_translate(states_at_t.x, states_at_t.y, states_at_t.psi_deg)
+            return self._initial_domain.rotate_and_translate(states_at_t.x, states_at_t.y, states_at_t.psi_deg, origin=self._initial_domain.centroid)
         return Obstacle(polygon=self._initial_geometry).rotate_and_translate(states_at_t.x, states_at_t.y, states_at_t.psi_deg)
 
     def __repr__(self):
@@ -251,7 +266,7 @@ class ObstacleWithKinematics(Obstacle):
         Compute the domain at time t from the current states.
         """
         states_at_t = self.pose_fn_from_current_state(t)
-        return self._initial_domain.rotate_and_translate(states_at_t.x, states_at_t.y, states_at_t.psi_deg)
+        return self._initial_domain.rotate_and_translate(states_at_t.x, states_at_t.y, states_at_t.psi_deg, origin=self._initial_domain.centroid)
     
     def pose_fn(self, t) -> States3:
         return self._pose_fn(t)
@@ -267,6 +282,11 @@ class ObstacleWithKinematics(Obstacle):
     @property
     def domain(self) -> Obstacle:
         return self._domain
+
+    @property
+    def states(self) -> States3:
+        return self._states
+    
     
 
 def test_basic_obstacle():
