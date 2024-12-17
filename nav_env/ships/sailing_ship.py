@@ -11,6 +11,7 @@ from nav_env.ships.enveloppe import ShipEnveloppe
 from typing import Callable
 from math import atan2, pi
 
+# TODO: Make possible to use SailingShip (Guided by a pose function) as own_ship in NavigationEnvironment
 
 class SailingShip(ObstacleWithKinematics):
     """
