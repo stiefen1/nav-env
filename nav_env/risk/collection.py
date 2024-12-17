@@ -15,7 +15,7 @@ class RiskCollection:
         return sum(self.calculate_separately(*args, **kwargs))
     
     def calculate_separately(self, *args, **kwargs) -> list[float]:
-        """
+        """ 
         Calculate the risks separately.
         """
         return [w * risk.calculate(*args, **kwargs) for w, risk in zip(self._weights, self._risks)]

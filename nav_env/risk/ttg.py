@@ -1,14 +1,15 @@
 from nav_env.risk.risk import RiskMetric
 from nav_env.ships.ship import Ship
-from nav_env.ships.states import States3
 from nav_env.environment.environment import NavigationEnvironment
 from nav_env.wind.wind_source import UniformWindSource
+from nav_env.wind.stochastic import StochasticUniformWindSourceFactory
 from nav_env.water.water_source import UniformWaterSource
 import multiprocessing as mp, numpy as np, matplotlib.pyplot as plt
 from nav_env.geometry.line import Line
 from shapely import Point
 import warnings
 from copy import deepcopy
+from math import pi
 
 
 """
@@ -21,7 +22,7 @@ print(f"TTG: {ttg:.2f}")
 """
 class TTG(RiskMetric):
     def __init__(self, env:NavigationEnvironment):
-        warnings.warn(UserWarning("This class must be fixed, it is not working properly."))
+        # warnings.warn(UserWarning("This class must be fixed, it is not working properly."))
         super().__init__(env)
     
     def calculate(self, ship:Ship, t_max:float=100., precision_sec:float=1., **kwargs) -> float:
@@ -33,32 +34,23 @@ class TTG(RiskMetric):
             t_max (float, optional): Maximum time to simulate. Defaults to 100..
             precision_sec (float, optional): Period at which we check for collision with the environment. Defaults to 1..
         """
-        ship_copy = deepcopy(ship)
+        ship_copy = Ship(integrator=ship.integrator, states=ship.states)
         dt = ship_copy.integrator.dt
         t:float = 0.
-        # average_step_duration = 0.
-        # average_loop_duration = 0.
-        n = 0
+
         while t < t_max:
             # start_loop = time.time()
             if t % precision_sec < dt:
                 ship_copy.update_enveloppe_from_accumulation() # WE ONLY UPDATE THE ENVELOPPE BEFORE CHECKING FOR COLLISIONS
                 if ship_copy.collide(self.env.shore):
                     return t
-            
-            # start = time.time()
 
             # TODO: Optimize computational time, typically step() takes on average 0.2ms, and overall loop takes 0.25ms -> C++, Cython ?
             
             # Setting update_enveloppe to False to avoid updating the enveloppe at each time step. We only want to update it when checking for collisions.
             ship_copy.step(self.env.wind_source(ship_copy.states.xy), self.env.water_source(ship_copy.states.xy), update_enveloppe=False) 
-            # end = time.time()
-            # average_step_duration += end - start
-            # average_loop_duration += time.time() - start_loop
-            # n += 1
             t += dt
 
-        # print(f"Average step duration: {1000*average_step_duration / n:.2f}ms | Average loop duration: {1000*average_loop_duration / n:.2f}ms")
         return t_max
     
     def plot(self, ax=None, **kwargs):
@@ -79,6 +71,42 @@ class ParallelTTG:
     def _run_ttg(self, ship: Ship, env: NavigationEnvironment, t_max: float, precision_sec: float, kwargs) -> float:
         ttg = TTG(env)
         return ttg.calculate(ship, t_max, precision_sec, **kwargs)
+    
+class TTGMaxWorsening(RiskMetric):
+    def __init__(self, env:NavigationEnvironment, num_workers: int = 4):
+        warnings.warn(UserWarning("This class must be fixed, it is not working properly."))
+        self.num_workers = num_workers
+        super().__init__(env)
+
+    def calculate(self, ship:Ship, n:int = 20, t_max: float = 100., precision_sec:float = 1., sigma:dict={'intensity':5, 'angle':30*pi/180}, **kwargs) -> list[float]:
+        
+        vec = self.env.wind_source(ship.states.xy)
+        wind_source_factory = StochasticUniformWindSourceFactory(vec.vx, vec.vy, sigma['intensity'], sigma['angle'])
+        args = [(ship, deepcopy(self.env), t_max, precision_sec, kwargs)] # Nominal case
+        for _ in range(n):
+            env = deepcopy(self.env)
+            env.wind_source = wind_source_factory()
+            # print("Wind: ", env.wind_source((0., 0.)))
+            args.append((ship, env, t_max, precision_sec, kwargs))
+        
+        with mp.Pool(processes=self.num_workers) as pool:
+            results = pool.starmap(self._run_ttg, args)
+
+        # Extract nominal TTG
+        nominal = results.pop(0)
+
+        # Worst case
+        max_worsening_wrt_nominal = max([nominal - result for result in results])/nominal * 100
+
+        return max_worsening_wrt_nominal
+
+    def _run_ttg(self, ship: Ship, env: NavigationEnvironment, t_max: float, precision_sec: float, kwargs) -> float:
+        ttg = TTG(env)
+        return ttg.calculate(ship, t_max, precision_sec, **kwargs)
+    
+    def plot(self, ax=None, **kwargs):
+        pass
+
     
 
 def test_parallel_ttg():

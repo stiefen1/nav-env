@@ -16,6 +16,8 @@ class Distance(RiskMetric):
             dist.append(ship.distance(ships._geometry))
         for obs in self._env.obstacles:
             dist.append(ship.distance(obs._geometry))
+        for shore in self._env.shore:
+            dist.append(ship.distance(shore._geometry))
         return min(dist)
     
     def plot(self, ax=None, **kwargs):

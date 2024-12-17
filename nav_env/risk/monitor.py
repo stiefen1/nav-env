@@ -23,9 +23,13 @@ class RiskMonitor:
             risks = RiskCollection([risk(env) for risk in self._risk_classes])
             # results = risks.calculate_separately(env.own_ships[0])
             results = []
+
+            t0 = time.time()
             for ship in env.own_ships:
                 val = risks.calculate_separately(ship)
                 results.append(val)
+
+            # print(f"({1000*(time.time()-t0):.2f}) Risk: {results}, Ship0: {env.own_ships[0].states}")
 
             results.insert(0, env.t)
             # print(f"({start-t0:.2f}) Risk: {results}, Ship0: {env.own_ships[0].states}")
@@ -35,6 +39,22 @@ class RiskMonitor:
             # results_queue.put(results)
             stop = time.time()
             time.sleep(max(1e-9, self._dt - (stop - start)))
+
+    def monitor_now(self, env:NavigationEnvironment) -> list:
+        """
+        Monitor the environment when it currently is
+        """
+        risks = RiskCollection([risk(env) for risk in self._risk_classes])
+        results = []
+        for ship in env.own_ships:
+            val = risks.calculate_separately(ship) # returns a list of risk values
+            results.append(val)
+        return results
+
+
+    @property
+    def dt(self) -> float:
+        return self._dt
 
     def __iter__(self):
         return iter(self._risk_classes)

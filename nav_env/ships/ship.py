@@ -17,6 +17,9 @@ import matplotlib.pyplot as plt
 from copy import deepcopy
 import pygame
 
+# TODO: Use MMSI (Maritime Mobile Service Identity) to identify ships 
+# TODO: Use SOG (Speed Over Ground) and COG (Course Over Ground) to update the ship states
+
 class ShipWithDynamicsBase(ObstacleWithKinematics):
     def __init__(self,
                  states:States3,
@@ -222,6 +225,10 @@ class ShipWithDynamicsBase(ObstacleWithKinematics):
     @property
     def name(self) -> str:
         return self._name
+    
+    @name.setter
+    def name(self, val:str) -> None:
+        self._name = val
     
     @property
     def position(self) -> tuple:

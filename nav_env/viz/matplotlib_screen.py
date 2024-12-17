@@ -74,7 +74,7 @@ class MatplotlibScreen:
         N_ship = len(self._env.own_ships)
 
         if ax is None:
-            fig, ax = plt.subplots(1, 2, figsize=(10, 5))
+            fig, ax = plt.subplots(1, 2, figsize=(12, 5))
 
         ax[1].cla()
         ax[1].tick_params(bottom=False, left=False, labelbottom=False, labelleft=False)
@@ -111,6 +111,8 @@ class MatplotlibScreen:
             ax[0].set_ylim(*self._lim_y)
             self._env.step()
             self._env.plot(self._lim, own_ships_physics=own_ships_verbose, target_ships_physics=target_ships_verbose, ax=ax[0])
+            # risk = self._monitor._risk_classes[0](self._env)
+            # risk.plot(self._env.own_ships[0], ax=ax[0], lim=self._lim, res=(20, 20), alpha=0.5)
             ax[0].set_title(f"t = {self._env.t:.2f}")
 
             shared_env_dict.update(self._env.to_dict())
@@ -128,8 +130,10 @@ class MatplotlibScreen:
                         list_of_risks_for_ships[i][j].append(value)
                         if len(list_of_risks_for_ships[i][j]) > buffer:
                             list_of_risks_for_ships[i][j].pop(0)
-                        sub_axes[i].plot(times, list_of_risks_for_ships[i][j], 'o', color=f'C{j}')
+                        sub_axes[i].plot(times, list_of_risks_for_ships[i][j], 'o-', color=f'C{j}')
                     sub_axes[i].legend(legend)
+                    sub_axes[i].set_ylim(0, 100)
+
                     # sub_axes[i].set_ylim([0, 100])
 
                     
@@ -146,8 +150,8 @@ class MatplotlibScreen:
     def play_without_monitor(self,
                           tf:float=10,
                           ax=None,
-                          own_ships_verbose=['enveloppe', 'frame', 'acceleration', 'velocity', 'forces'],
-                          target_ships_verbose=['enveloppe'],
+                          own_ships_verbose={'enveloppe':1, 'frame':1, 'acceleration':1, 'velocity':1, 'forces':1},
+                          target_ships_verbose={'enveloppe':1},
                           **kwargs):
         """
         Play the environment during an interval of time.

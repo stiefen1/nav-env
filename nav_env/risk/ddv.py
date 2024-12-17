@@ -147,6 +147,39 @@ def get_tdv(own_ship: ObstacleWithKinematics, target_ship: ObstacleWithKinematic
     tdv:float = min(tdv1, tdv2)
     return tdv
 
+def get_current_ddv(obstacle: ObstacleWithKinematics, x:float, y:float) -> float:
+    """
+    Calculate the current Degree of Domain Violation of an object located at x, y
+    """
+    if not isinstance(obstacle.domain, Ellipse): # Degree of domain violation is only handled for elliptical domains
+        return float("NaN")
+
+    da_ts = obstacle.domain.da
+    db_ts = obstacle.domain.db
+    a_ts = obstacle.domain.a
+    b_ts = obstacle.domain.b
+
+    # print(f"da: {da_ts}, db: {db_ts}, a: {a_ts}, b: {b_ts}")
+
+    # Place center in the ellipse frame
+    x -= (obstacle.states.x)
+    y -= (obstacle.states.y)
+
+    # Rotate the point to the ellipse frame
+    sin2:float = sin(obstacle.states.psi_rad + pi/2)
+    cos2:float = cos(obstacle.states.psi_rad + pi/2)
+
+    x_rot:float = x * cos2 + y * sin2
+    y_rot:float = x * sin2 - y * cos2
+
+    # Calculate the degree of domain violation
+    fmin:float = ((x_rot - da_ts) / a_ts)**2 + ((y_rot - db_ts) / b_ts)**2 # If this equals 1, no violation
+
+    # print(f"Rotated point: ({x_rot}, {y_rot}), fmin: {fmin}, x: {x}, y: {y}, a: {a_ts}, b: {b_ts}, da: {da_ts}, db: {db_ts}")
+
+    ddv = max(0.0, 1.0 - fmin)
+    return ddv
+
 
 class DDV(RiskMetric):
     def __init__(self, env:NavigationEnvironment):
@@ -172,8 +205,39 @@ class DDV(RiskMetric):
         # print(f"{100*max_ddv:.2f}")
         return 100 * max_ddv # 100 * max_ddv # min_dcpa # min_tcpa # min_tdv # 100*max_ddv
     
-    def plot(self, ax=None, **kwargs):
-        pass
+
+class DDV2(RiskMetric):
+    def __init__(self, env:NavigationEnvironment):
+        super().__init__(env)
+
+    def calculate(self, ship:Ship, x:float=None, y:float=None, **kwargs) -> float:
+        if not isinstance(ship.domain, Ellipse):
+            return None
+        
+        max_ddv = 0.
+
+        if x is not None and y is not None:
+            max_ddv = get_current_ddv(ship, x, y)
+        else:
+            for moving_obstacle in self.env.obstacles:
+                ddv = get_current_ddv(ship, moving_obstacle.states.x, moving_obstacle.states.y)
+                if ddv > max_ddv:
+                    max_ddv = ddv
+
+            for target_ship in self.env.target_ships:
+                ddv = get_current_ddv(ship, target_ship.states.x, target_ship.states.y)
+                if ddv > max_ddv:
+                    max_ddv = ddv
+
+            for own_ship in self.env.own_ships.get_except(ship):
+                ddv = get_current_ddv(ship, own_ship.states.x, own_ship.states.y)
+                if ddv > max_ddv:
+                    max_ddv = ddv
+
+        return 100 * max_ddv
+    
+    def plot(self, ship:Ship, ax=None, **kwargs):
+        super().plot(ship, ax=ax, **kwargs)
 
 class TDV(RiskMetric):
     def __init__(self, env:NavigationEnvironment):
@@ -204,21 +268,25 @@ class TDV(RiskMetric):
     
 def test():
     from nav_env.ships.ship import SimpleShip
-    from nav_env.ships.collection import ShipCollection
+    from nav_env.ships.states import States3
+    import matplotlib.pyplot as plt
+
+    lim = 200
+
     # Test the DDV class
-    ship1 = SimpleShip(None, None, "1")
-    ship2 = SimpleShip(None, None, "2")
-    ship3 = SimpleShip(None, None, "3")
-    target_ships = ShipCollection([ship1, ship2, ship3])
+    ship1 = SimpleShip(States3(-50, 30, -150), None, name="1", domain=Ellipse(50, -30, 100, 50))
+    own_ships = [ship1]
+    ship2 = SimpleShip(States3(100, 100), None, name="2")
+    target_ships = [ship2]
 
-    ship4 = SimpleShip(None, None, "4")
-    ship5 = SimpleShip(None, None, "5")
-    ship6 = SimpleShip(None, None, "6")
-    own_ships = ShipCollection([ship4, ship5, ship6])
-
-    env = NavigationEnvironment(own_ships=own_ships, target_ships=target_ships)
-    ddv = DDV(env)
-    ddv.calculate(0)
+    env = NavigationEnvironment(
+        own_ships=own_ships,
+        target_ships=target_ships
+        )
+    
+    ddv = DDV2(env)
+    ddv.plot(env.own_ships[0], colorbar=True)
+    plt.show()
 
 
 if __name__ == "__main__":

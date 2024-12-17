@@ -38,15 +38,15 @@ class Ellipse(Obstacle):
                 y:float,
                 a:float,
                 b:float,
-                da:float=0,
-                db:float=0,
+                # da:float=0,
+                # db:float=0,
                 id:int=None
                 ):
-        super().__init__(polygon=affinity.translate(affinity.scale(Point([x, y]).buffer(1), b, a), db, da), id=id)
+        super().__init__(polygon=affinity.translate(affinity.scale(Point([0, 0]).buffer(1), b, a), x, y), id=id)
         self._a = a
         self._b = b
-        self._da = da
-        self._db = db
+        self._da = x
+        self._db = y
 
     @property
     def a(self):
@@ -60,15 +60,15 @@ class Ellipse(Obstacle):
     def center(self):
         return self.centroid
     
-    @a.setter
-    def a(self, value):
-        self._a = value
-        self._geometry = affinity.scale(Point(self.center).buffer(1), self._a, self._b)
+    # @a.setter
+    # def a(self, value):
+    #     self._a = value
+    #     self._geometry = affinity.scale(Point(self.center).buffer(1), self._a, self._b)
     
-    @b.setter
-    def b(self, value):
-        self._b = value
-        self._geometry = affinity.scale(Point(self.center).buffer(1), self._a, self._b)
+    # @b.setter
+    # def b(self, value):
+    #     self._b = value
+    #     self._geometry = affinity.scale(Point(self.center).buffer(1), self._a, self._b)
     
     @center.setter
     def center(self, value:tuple):
@@ -91,7 +91,7 @@ class Circle(Ellipse):
         self._radius = radius
 
     def __repr__(self):
-        return f"Circle({self.radius:.2f} at {self.center[0]:.2f}, {self.center[1]:.2f})"
+        return f"Circle(at {self.center[0]:.2f}, {self.center[1]:.2f} with radius {self.radius:.2f})"
 
     @property
     def radius(self):

@@ -55,7 +55,7 @@ class NavigationEnvironment:
         self._own_ships.step(self._wind_source, self._water_source, external_forces=external_forces)
         self._target_ships.step(self._wind_source, self._water_source, external_forces=external_forces)
         self._obstacles.step()
-        self._t += self._dt
+        self._t = round(self._t + self._dt, 6)
 
     def reset(self):
         """
@@ -76,7 +76,7 @@ class NavigationEnvironment:
         self._own_ships.plot(ax=ax, params=own_ships_physics, **kwargs)
         # self._own_ships[0].enveloppe_fn_from_current_state(10).plot(ax=ax, **kwargs)
         self._target_ships.plot(ax=ax, params=target_ships_physics, **kwargs)
-        self._obstacles.plot(ax=ax, domain=True, **kwargs)
+        self._obstacles.plot(ax=ax, domain=False, **kwargs)
         self._wind_source.quiver(lim, ax=ax, facecolor='grey', alpha=0.3, **kwargs)
         # self._water_source.plot(ax=ax, **kwargs)
         ax.set_xlim((lim[0][0], lim[1][0]))
@@ -132,6 +132,10 @@ class NavigationEnvironment:
     @property
     def wind_source(self) -> WindSource:
         return self._wind_source
+    
+    @wind_source.setter
+    def wind_source(self, value:WindSource):
+        self._wind_source = value
     
     @property
     def water_source(self) -> WaterSource:
