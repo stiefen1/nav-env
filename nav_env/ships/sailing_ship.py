@@ -10,10 +10,12 @@ from nav_env.obstacles.obstacles import Obstacle
 from nav_env.ships.enveloppe import ShipEnveloppe
 from typing import Callable
 from math import atan2, pi
+from nav_env.ships.moving_ship import MovingShip
+
 
 # TODO: Make possible to use SailingShip (Guided by a pose function) as own_ship in NavigationEnvironment
 
-class SailingShip(MovingObstacle):
+class SailingShip(MovingShip):
     """
     A target ship that moves according to either:
     - a given pose function p_t: t -> (x, y, heading)
@@ -30,7 +32,7 @@ class SailingShip(MovingObstacle):
                  domain_margin_wrt_enveloppe=0., 
                  dt:float=None,
                  id:int=None,
-                 name:str=None,
+                 name:str="SailingShip",
                  **kwargs
                  ):
         
@@ -47,8 +49,19 @@ class SailingShip(MovingObstacle):
         else:
             raise ValueError(f"Expected States2 or States3 for initial_state, got {type(initial_state).__name__}")
         
-        enveloppe = ShipEnveloppe(length=length, width=width, ratio=ratio, **kwargs)
-        super().__init__(pose_fn=pose_fn, initial_state=initial_state, xy=enveloppe.get_xy_as_list(), domain=domain, id=id, dt=dt, domain_margin_wrt_enveloppe=domain_margin_wrt_enveloppe)
+        # enveloppe = ShipEnveloppe(length=length, width=width, ratio=ratio, **kwargs)
+        super().__init__(
+            pose_fn=pose_fn,
+            length=length,
+            width=width,
+            ratio=ratio,
+            states=initial_state,
+            domain=domain,
+            id=id,
+            dt=dt,
+            domain_margin_wrt_enveloppe=domain_margin_wrt_enveloppe,
+            name=name
+        )
 
     def plot(self, *args, params:dict={'envelsoppe':1}, ax=None, **kwargs):
         super().plot(*args, ax=ax, **kwargs)

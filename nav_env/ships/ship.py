@@ -16,11 +16,12 @@ from nav_env.control.states import DeltaStates
 import matplotlib.pyplot as plt
 from copy import deepcopy
 import pygame
+from nav_env.ships.moving_ship import MovingShip
 
 # TODO: Use MMSI (Maritime Mobile Service Identity) to identify ships 
 # TODO: Use SOG (Speed Over Ground) and COG (Course Over Ground) to update the ship states
 
-class ShipWithDynamicsBase(MovingObstacle):
+class ShipWithDynamicsBase(MovingShip):
     def __init__(self,
                  states:States3,
                  physics:phy.ShipPhysics=None,
@@ -29,7 +30,9 @@ class ShipWithDynamicsBase(MovingObstacle):
                  derivatives:TimeDerivatives3=None,
                  name:str="ShipWithDynamicsBase",
                  domain:Obstacle=None,
-                 domain_margin_wrt_enveloppe:float=0.
+                 domain_margin_wrt_enveloppe:float=0.,
+                 id:int=None,
+                 **kwargs
                  ):
         self._states = states
         self._initial_states = deepcopy(states)
@@ -41,8 +44,16 @@ class ShipWithDynamicsBase(MovingObstacle):
         self._accumulated_dx = DeltaStates(0., 0., 0., 0., 0., 0.) # Initialize accumulated differential to 0
         self._generalized_forces = GeneralizedForces() # Initialize generalized forces acting on the ship to 0
 
-        enveloppe = ShipEnveloppe(length=self._physics.length, width=self._physics.width)
-        super().__init__(initial_state=states, xy=enveloppe.get_xy_as_list(), dt=self._integrator.dt, domain=domain, domain_margin_wrt_enveloppe=domain_margin_wrt_enveloppe, name=name)
+        super().__init__(
+            states=states,
+            length=self._physics.length,
+            width=self._physics.width,
+            dt=self._integrator.dt,
+            domain=domain,
+            domain_margin_wrt_enveloppe=domain_margin_wrt_enveloppe,
+            name=name,
+            id=id
+        )
 
     def reset(self):
         """
