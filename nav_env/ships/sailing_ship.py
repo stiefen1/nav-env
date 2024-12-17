@@ -5,7 +5,7 @@ s2 = ShipObstacle(domain=domain, p_t=lambda t: p(t))
 
 """
 from nav_env.ships.states import States3, States2
-from nav_env.obstacles.obstacles import ObstacleWithKinematics
+from nav_env.obstacles.obstacles import MovingObstacle
 from nav_env.obstacles.obstacles import Obstacle
 from nav_env.ships.enveloppe import ShipEnveloppe
 from typing import Callable
@@ -13,7 +13,7 @@ from math import atan2, pi
 
 # TODO: Make possible to use SailingShip (Guided by a pose function) as own_ship in NavigationEnvironment
 
-class SailingShip(ObstacleWithKinematics):
+class SailingShip(MovingObstacle):
     """
     A target ship that moves according to either:
     - a given pose function p_t: t -> (x, y, heading)
@@ -30,6 +30,7 @@ class SailingShip(ObstacleWithKinematics):
                  domain_margin_wrt_enveloppe=0., 
                  dt:float=None,
                  id:int=None,
+                 name:str=None,
                  **kwargs
                  ):
         
@@ -49,6 +50,12 @@ class SailingShip(ObstacleWithKinematics):
         enveloppe = ShipEnveloppe(length=length, width=width, ratio=ratio, **kwargs)
         super().__init__(pose_fn=pose_fn, initial_state=initial_state, xy=enveloppe.get_xy_as_list(), domain=domain, id=id, dt=dt, domain_margin_wrt_enveloppe=domain_margin_wrt_enveloppe)
 
+    def plot(self, *args, params:dict={'envelsoppe':1}, ax=None, **kwargs):
+        super().plot(*args, ax=ax, **kwargs)
+
+    def draw(self, *args, params:dict={'enveloppe':1}, ax=None, **kwargs):
+        super().draw(*args, ax=ax, **kwargs)
+
     def pose_fn(self, t:float) -> States3:
         """
         Override get_pose_at to make the heading consistent with the trajectory.
@@ -63,7 +70,7 @@ class SailingShip(ObstacleWithKinematics):
 
 def test():
     import matplotlib.pyplot as plt
-    from nav_env.obstacles.collection import ObstacleWithKinematicsCollection
+    from nav_env.obstacles.collection import MovingObstacleCollection
     from nav_env.obstacles.obstacles import Ellipse
     import numpy as np
     from math import cos, sin
@@ -72,7 +79,7 @@ def test():
     Ts1 = SailingShip(pose_fn=p, domain=Ellipse(0., 0., 5., 10.))
     Ts2 = SailingShip(length=30, width=10, ratio=7/9, initial_state=States2(0, 0, 1, 1))
     Ts3 = SailingShip(width=8, ratio=3/7, pose_fn=lambda t: States3(t, -t, t*10))
-    coll = ObstacleWithKinematicsCollection([Ts1, Ts2, Ts3])
+    coll = MovingObstacleCollection([Ts1, Ts2, Ts3])
     
     fig2 = plt.figure(2)
     ax = fig2.add_axes(111, projection='3d')

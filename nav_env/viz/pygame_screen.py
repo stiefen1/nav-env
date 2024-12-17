@@ -138,11 +138,11 @@ def test_old():
 
 
 def test():
-    from nav_env.obstacles.obstacles import ObstacleWithKinematics
+    from nav_env.obstacles.obstacles import MovingObstacle
     from nav_env.ships.sailing_ship import SailingShip
     from nav_env.ships.states import States3
-    o1 = ObstacleWithKinematics(lambda t: States3(5*t, -5*t, t*10), xy=[(0, 0), (20, 0), (20, 20), (0, 20)]).rotate(45).translate(0., 90.)
-    o2 = ObstacleWithKinematics(lambda t: States3(5*t, 5*t, t*20), xy=[(0, 0), (20, 0), (20, 20), (0, 20)]).rotate(45).translate(0., 0.)
+    o1 = MovingObstacle(lambda t: States3(5*t, -5*t, t*10), xy=[(0, 0), (20, 0), (20, 20), (0, 20)]).rotate(45).translate(0., 90.)
+    o2 = MovingObstacle(lambda t: States3(5*t, 5*t, t*20), xy=[(0, 0), (20, 0), (20, 20), (0, 20)]).rotate(45).translate(0., 0.)
     ts1 = SailingShip(length=200, width=100, ratio=7/9, initial_state=States3(-200, 200, 0, 10, -10, 0))
     coll = [o1, o2, ts1]
 

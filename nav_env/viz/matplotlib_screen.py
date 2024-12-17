@@ -191,7 +191,7 @@ class MatplotlibScreen:
  
 
 def test():
-    from nav_env.obstacles.obstacles import ObstacleWithKinematics
+    from nav_env.obstacles.obstacles import MovingObstacle
     from nav_env.ships.sailing_ship import SailingShip
     from nav_env.ships.states import States3
     from nav_env.viz.matplotlib_screen import MatplotlibScreen
@@ -203,8 +203,8 @@ def test():
     def o2_pose(t:float) -> States3:
         return States3(t, -t, t*20)
 
-    o1 = ObstacleWithKinematics(o1_pose, xy=[(0, 0), (2, 0), (2, 2), (0, 2)])
-    o2 = ObstacleWithKinematics(o2_pose, xy=[(0, 0), (2, 0), (2, 2), (0, 2)])
+    o1 = MovingObstacle(o1_pose, xy=[(0, 0), (2, 0), (2, 2), (0, 2)])
+    o2 = MovingObstacle(o2_pose, xy=[(0, 0), (2, 0), (2, 2), (0, 2)])
     ts1 = SailingShip(length=20, width=10, ratio=7/9, initial_state=States3(-10, 10, 0, 1, -1, 0))
     coll = [o1, o2, ts1]
 

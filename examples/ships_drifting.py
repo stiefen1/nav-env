@@ -25,7 +25,7 @@ if __name__ == '__main__':
     obs3 = Obstacle(xy=[(0, 0), (50, 0), (80, 10), (100, 50), (60, 90), (10, 30)], id=3).rotate_and_translate(200, 30, 90)
 
     # Ostacles (Moving)
-    kin_obs = ObstacleWithKinematics(initial_state=States3(-200., -100., 0., 10., -10., 30.), xy=[(0, 0), (50, 0), (80, 10), (100, 50), (60, 90), (10, 30)], id=4)
+    kin_obs = MovingObstacle(initial_state=States3(-200., -100., 0., 10., -10., 30.), xy=[(0, 0), (50, 0), (80, 10), (100, 50), (60, 90), (10, 30)], id=4)
     # sailing_ship = SailingShip(length=200, width=50, ratio=7/9, initial_state=States2(100., -100., -10., 5.), id=5, domain=Ellipse(0, 0, 150, 100, 0, 0))
     sailing_ship = SimpleShip(states=States3(100., -100., 60, -10., 5., 0.), domain=Ellipse(0, 0, 150, 100), name="TS1")
     # sailing_ship_os = SailingShip(length=100, width=50, ratio=7/9, initial_state=States2(-100., -100., 10., 5.), id=5)

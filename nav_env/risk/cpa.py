@@ -1,10 +1,10 @@
-from nav_env.obstacles.obstacles import ObstacleWithKinematics
+from nav_env.obstacles.obstacles import MovingObstacle
 from nav_env.risk.utils import get_relative_position_and_speed
 from nav_env.risk.risk import RiskMetric
 from nav_env.environment.environment import NavigationEnvironment
 
 
-def get_tcpa(own_ship: ObstacleWithKinematics, target_ship: ObstacleWithKinematics) -> float:
+def get_tcpa(own_ship: MovingObstacle, target_ship: MovingObstacle) -> float:
     """
     Calculate the Degree of Domain Violation of the target ship by the own ship.
     """
@@ -18,7 +18,7 @@ def get_tcpa(own_ship: ObstacleWithKinematics, target_ship: ObstacleWithKinemati
     tcpa:float = -(px_rel * vx_rel + py_rel * vy_rel)/(v_rel_squared)
     return tcpa
 
-def get_dcpa(own_ship: ObstacleWithKinematics, target_ship: ObstacleWithKinematics) -> float:
+def get_dcpa(own_ship: MovingObstacle, target_ship: MovingObstacle) -> float:
     """
     Calculate the Degree of Domain Violation of the target ship by the own ship.
     """
@@ -36,7 +36,7 @@ class TCPA(RiskMetric):
     def __init__(self, env:NavigationEnvironment):
         super().__init__(env)
         
-    def calculate(self, ship:ObstacleWithKinematics) -> float:
+    def calculate(self, ship:MovingObstacle) -> float:
         """
         Calculate the Time to Closest Point of Approach of the target ship by the own ship.
         """
@@ -59,7 +59,7 @@ class DCPA(RiskMetric):
     def __init__(self, env:NavigationEnvironment):
         super().__init__(env)
         
-    def calculate(self, ship:ObstacleWithKinematics) -> float:
+    def calculate(self, ship:MovingObstacle) -> float:
         """
         Calculate the Distance to Closest Point of Approach of the target ship by the own ship.
         """

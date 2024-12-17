@@ -1,6 +1,6 @@
-from nav_env.obstacles.obstacles import ObstacleWithKinematics
+from nav_env.obstacles.obstacles import MovingObstacle
 
-def get_relative_position_and_speed(own_ship: ObstacleWithKinematics, target_ship: ObstacleWithKinematics) -> tuple:
+def get_relative_position_and_speed(own_ship: MovingObstacle, target_ship: MovingObstacle) -> tuple:
     """
     Get the relative position and speed of the target ship with respect to the own ship.
     """

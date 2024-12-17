@@ -1,13 +1,13 @@
 from nav_env.environment.environment import NavigationEnvironment
 from nav_env.ships.ship import Ship
-from nav_env.obstacles.obstacles import ObstacleWithKinematics
+from nav_env.obstacles.obstacles import MovingObstacle
 from nav_env.risk.risk import RiskMetric
 from nav_env.risk.utils import get_relative_position_and_speed
 from nav_env.obstacles.obstacles import Ellipse
 from math import cos, sin, pi
 
 
-def get_ddv_terms(own_ship: ObstacleWithKinematics, target_ship: ObstacleWithKinematics) -> float:
+def get_ddv_terms(own_ship: MovingObstacle, target_ship: MovingObstacle) -> float:
     assert isinstance(target_ship.domain, Ellipse), "Target ship domain must be an ellipse" # Degree of domain violation is only handled for elliptical domains
     px_rel, py_rel, vx_rel, vy_rel = get_relative_position_and_speed(own_ship, target_ship)
     
@@ -78,7 +78,7 @@ def get_approach_factors(t1, t2, a2, b21, b22, d, e, f) -> tuple[float, float, f
 
     return f1, f2, f3, f4
 
-def get_min_approach_factor(own_ship: ObstacleWithKinematics, target_ship: ObstacleWithKinematics) -> float:
+def get_min_approach_factor(own_ship: MovingObstacle, target_ship: MovingObstacle) -> float:
     """
     Calculate the minimum approach factor of the target ship by the own ship.
     """
@@ -92,7 +92,7 @@ def get_min_approach_factor(own_ship: ObstacleWithKinematics, target_ship: Obsta
     fmin:float = min([f1, f2, f3, f4]) # Minimum approach factor
     return fmin
 
-def get_time_min_approach_factor(own_ship: ObstacleWithKinematics, target_ship: ObstacleWithKinematics) -> float:
+def get_time_min_approach_factor(own_ship: MovingObstacle, target_ship: MovingObstacle) -> float:
     if not isinstance(target_ship.domain, Ellipse): # Degree of domain violation is only handled for elliptical domains
         return float("NaN")
 
@@ -107,7 +107,7 @@ def get_time_min_approach_factor(own_ship: ObstacleWithKinematics, target_ship: 
         tmin = t2
     return tmin
 
-def get_ddv(own_ship: ObstacleWithKinematics, target_ship: ObstacleWithKinematics) -> float:
+def get_ddv(own_ship: MovingObstacle, target_ship: MovingObstacle) -> float:
     """
     Calculate the Degree of Domain Violation of the target ship by the own ship.
     """
@@ -118,7 +118,7 @@ def get_ddv(own_ship: ObstacleWithKinematics, target_ship: ObstacleWithKinematic
     ddv:float = max(0.0, 1.0 - fmin)
     return ddv
 
-def get_tdv(own_ship: ObstacleWithKinematics, target_ship: ObstacleWithKinematics) -> float:
+def get_tdv(own_ship: MovingObstacle, target_ship: MovingObstacle) -> float:
     """
     Calculate the Time to Domain Violation of the target ship by the own ship.
     """
@@ -147,7 +147,7 @@ def get_tdv(own_ship: ObstacleWithKinematics, target_ship: ObstacleWithKinematic
     tdv:float = min(tdv1, tdv2)
     return tdv
 
-def get_current_ddv(obstacle: ObstacleWithKinematics, x:float, y:float) -> float:
+def get_current_ddv(obstacle: MovingObstacle, x:float, y:float) -> float:
     """
     Calculate the current Degree of Domain Violation of an object located at x, y
     """

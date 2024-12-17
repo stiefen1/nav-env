@@ -56,7 +56,7 @@ class ShipCollection:
         Set the integration step for all ships.
         """
         for ship in self._ships:
-            ship.integrator.dt = dt
+            ship.dt = dt
 
     def __setitem__(self, index: int, ship: ShipWithDynamicsBase):
         self._ships[index] = ship

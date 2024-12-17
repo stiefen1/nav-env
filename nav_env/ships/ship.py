@@ -11,7 +11,7 @@ from nav_env.obstacles.obstacles import Obstacle
 from nav_env.simulation.integration import Integrator, Euler
 from nav_env.control.command import GeneralizedForces
 from nav_env.control.controller import ControllerBase, Controller
-from nav_env.obstacles.obstacles import ObstacleWithKinematics
+from nav_env.obstacles.obstacles import MovingObstacle
 from nav_env.control.states import DeltaStates
 import matplotlib.pyplot as plt
 from copy import deepcopy
@@ -20,7 +20,7 @@ import pygame
 # TODO: Use MMSI (Maritime Mobile Service Identity) to identify ships 
 # TODO: Use SOG (Speed Over Ground) and COG (Course Over Ground) to update the ship states
 
-class ShipWithDynamicsBase(ObstacleWithKinematics):
+class ShipWithDynamicsBase(MovingObstacle):
     def __init__(self,
                  states:States3,
                  physics:phy.ShipPhysics=None,
@@ -37,13 +37,12 @@ class ShipWithDynamicsBase(ObstacleWithKinematics):
         self._controller = controller or Controller()
         self._integrator = integrator or Euler()
         self._derivatives = derivatives or TimeDerivatives3()
-        self._name = name
         self._dx = None # Initialize differential to None
         self._accumulated_dx = DeltaStates(0., 0., 0., 0., 0., 0.) # Initialize accumulated differential to 0
         self._generalized_forces = GeneralizedForces() # Initialize generalized forces acting on the ship to 0
 
         enveloppe = ShipEnveloppe(length=self._physics.length, width=self._physics.width)
-        super().__init__(initial_state=states, xy=enveloppe.get_xy_as_list(), dt=self._integrator.dt, domain=domain, domain_margin_wrt_enveloppe=domain_margin_wrt_enveloppe)
+        super().__init__(initial_state=states, xy=enveloppe.get_xy_as_list(), dt=self._integrator.dt, domain=domain, domain_margin_wrt_enveloppe=domain_margin_wrt_enveloppe, name=name)
 
     def reset(self):
         """
@@ -219,16 +218,17 @@ class ShipWithDynamicsBase(ObstacleWithKinematics):
         return self._integrator
     
     @property
-    def derivatives(self) -> TimeDerivatives3:
-        return self._derivatives
+    def dt(self) -> float:
+        return self._dt
+    
+    @dt.setter
+    def dt(self, value:float) -> None:
+        self._integrator.dt = value
+        self._dt = value
     
     @property
-    def name(self) -> str:
-        return self._name
-    
-    @name.setter
-    def name(self, val:str) -> None:
-        self._name = val
+    def derivatives(self) -> TimeDerivatives3:
+        return self._derivatives
     
     @property
     def position(self) -> tuple:

@@ -1,5 +1,5 @@
 from nav_env.ships.collection import ShipCollection
-from nav_env.obstacles.collection import ObstacleWithKinematicsCollection, ObstacleCollection
+from nav_env.obstacles.collection import MovingObstacleCollection, ObstacleCollection
 from nav_env.geometry.vector_source import VectorSource
 from nav_env.water.water_source import WaterSource
 from nav_env.wind.wind_source import WindSource
@@ -20,7 +20,7 @@ class NavigationEnvironment:
                  ): 
         self._own_ships = ShipCollection(own_ships or [])
         self._target_ships = ShipCollection(target_ships or [])
-        self._obstacles = ObstacleWithKinematicsCollection(obstacles or []) # TODO: Separate shore from moving obstacles as we might want to consider them separately, e.g. for TTG
+        self._obstacles = MovingObstacleCollection(obstacles or []) # TODO: Separate shore from moving obstacles as we might want to consider them separately, e.g. for TTG
         self._shore = ObstacleCollection(shore or [])
         self._wind_source = wind_source or WindSource()
         self._water_source = water_source or WaterSource()
@@ -126,7 +126,7 @@ class NavigationEnvironment:
         return self._shore
 
     @property
-    def obstacles(self) -> ObstacleWithKinematicsCollection:
+    def obstacles(self) -> MovingObstacleCollection:
         return self._obstacles
     
     @property

@@ -1,4 +1,4 @@
-from nav_env.obstacles.obstacles import Obstacle, ObstacleWithKinematics
+from nav_env.obstacles.obstacles import Obstacle, MovingObstacle
 import matplotlib.pyplot as plt
 import networkx as nx
 from copy import deepcopy
@@ -95,16 +95,16 @@ class ObstacleCollection:
             yield obs
 
 
-class ObstacleWithKinematicsCollection:
-    def __init__(self, obstacles: list[ObstacleWithKinematics] = []):
+class MovingObstacleCollection:
+    def __init__(self, obstacles: list[MovingObstacle] = []):
         assert isinstance(obstacles, list), f"Expected list got {type(obstacles).__name__}"
         self._obstacles = obstacles
 
-    def append(self, obstacle: ObstacleWithKinematics):
-        assert isinstance(obstacle, ObstacleWithKinematics), f"Obstacle must be an instance of Obstacle not {type(obstacle)}"
+    def append(self, obstacle: MovingObstacle):
+        assert isinstance(obstacle, MovingObstacle), f"Obstacle must be an instance of Obstacle not {type(obstacle)}"
         self._obstacles.append(obstacle)
 
-    def remove(self, obstacle: ObstacleWithKinematics):
+    def remove(self, obstacle: MovingObstacle):
         self._obstacles.remove(obstacle)
 
     def plot3(self, t:float|tuple[float, float], ax=None, **kwargs):
@@ -254,9 +254,9 @@ def test_collection():
 
 def test_time_varying_collection():
     import time
-    o1 = ObstacleWithKinematics(lambda t: (t, -t, t*10), xy=[(0, 0), (2, 0), (2, 2), (0, 2)]).rotate(45).translate(0., 9.)
-    o2 = ObstacleWithKinematics(lambda t: (t, t, t*20), xy=[(0, 0), (2, 0), (2, 2), (0, 2)]).rotate(45).translate(0., 0.)
-    coll = ObstacleWithKinematicsCollection([o1, o2])
+    o1 = MovingObstacle(lambda t: (t, -t, t*10), xy=[(0, 0), (2, 0), (2, 2), (0, 2)]).rotate(45).translate(0., 9.)
+    o2 = MovingObstacle(lambda t: (t, t, t*20), xy=[(0, 0), (2, 0), (2, 2), (0, 2)]).rotate(45).translate(0., 0.)
+    coll = MovingObstacleCollection([o1, o2])
     ax = coll(0).plot()
     ax.set_xlim(0, 10)
     ax.set_ylim(0, 10)

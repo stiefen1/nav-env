@@ -102,7 +102,7 @@ class Circle(Ellipse):
         self._radius = value
         self._geometry = affinity.scale(Point(self.center).buffer(1), value, value)
 
-class ObstacleWithKinematics(Obstacle):
+class MovingObstacle(Obstacle):
     """
     Model an obstacle that changes over time.
     """
@@ -115,6 +115,7 @@ class ObstacleWithKinematics(Obstacle):
                  geometry_type: type=Polygon,
                  domain:Obstacle=None,
                  domain_margin_wrt_enveloppe:float=0.,
+                 name:str="MovingObstacle",
                  id:int=None):
         """
         pose_fn: Callable that returns the pose of the obstacle at a given time as a tuple (x, y, angle).
@@ -139,6 +140,7 @@ class ObstacleWithKinematics(Obstacle):
         self._t0 = t0
         self._t = t0
         self._dt = dt or DEFAULT_INTEGRATION_STEP
+        self._name = name
         
         # Domain of the obstacle
         if domain is None:
@@ -159,7 +161,7 @@ class ObstacleWithKinematics(Obstacle):
         self.rotate_and_translate_inplace(self._initial_states.x, self._initial_states.y, self._initial_states.psi_deg) # Change geometry (enveloppe)
         self._domain.rotate_and_translate_inplace(self._initial_states.x, self._initial_states.y, self._initial_states.psi_deg, origin=prev_center) # Change geometry (enveloppe)
 
-    def step(self) -> None:
+    def step(self, *args, **kwargs) -> None:
         """
         Step the obstacle.
         """
@@ -231,7 +233,7 @@ class ObstacleWithKinematics(Obstacle):
         return Obstacle(polygon=self._initial_geometry).rotate_and_translate(states_at_t.x, states_at_t.y, states_at_t.psi_deg)
 
     def __repr__(self):
-        return f"ObstacleWithKinematics({self.centroid[0]:.2f}, {self.centroid[1]:.2f})"
+        return f"MovingObstacle({self.centroid[0]:.2f}, {self.centroid[1]:.2f})"
     
     def pose_fn_from_initial_state(self, t) -> States3:
         initial_state = self._initial_states
@@ -287,6 +289,13 @@ class ObstacleWithKinematics(Obstacle):
     def states(self) -> States3:
         return self._states
     
+    @property
+    def name(self) -> str:
+        return self._name
+    
+    @name.setter
+    def name(self, value:str) -> None:
+        self._name = value
     
 
 def test_basic_obstacle():
@@ -307,16 +316,16 @@ def test_basic_obstacle():
 def show_time_varying_obstacle_as_3d():
     from matplotlib import pyplot as plt
     import numpy as np
-    from nav_env.obstacles.collection import ObstacleWithKinematicsCollection, ObstacleCollection
+    from nav_env.obstacles.collection import MovingObstacleCollection, ObstacleCollection
     from nav_env.obstacles.obstacles import Obstacle
     from scipy.spatial.transform import Rotation as R
 
-    o1 = ObstacleWithKinematics(initial_state=States3(0., 0., 45, -1., 2., 0.), xy=[(0, 0), (2, 0), (2, 2), (0, 2)])
-    o2 = ObstacleWithKinematics(initial_state=States3(10., 5., 90., -2., -1., 0), xy=[(0, 0), (2, 0), (3, 1), (2, 2), (0, 2)])
-    o3 = ObstacleWithKinematics(initial_state=States3(0., 5., 0., -1.2, -0.5, 0.), xy=[(0, 0), (2, 0), (3, 1), (2, 2), (0, 2)])
-    o4 = ObstacleWithKinematics(initial_state=States3(-3., -5., 0., 2., 0.2, 0.), xy=[(0, 0), (2, 0), (3, 1), (2, 2), (0, 2)])
+    o1 = MovingObstacle(initial_state=States3(0., 0., 45, -1., 2., 0.), xy=[(0, 0), (2, 0), (2, 2), (0, 2)])
+    o2 = MovingObstacle(initial_state=States3(10., 5., 90., -2., -1., 0), xy=[(0, 0), (2, 0), (3, 1), (2, 2), (0, 2)])
+    o3 = MovingObstacle(initial_state=States3(0., 5., 0., -1.2, -0.5, 0.), xy=[(0, 0), (2, 0), (3, 1), (2, 2), (0, 2)])
+    o4 = MovingObstacle(initial_state=States3(-3., -5., 0., 2., 0.2, 0.), xy=[(0, 0), (2, 0), (3, 1), (2, 2), (0, 2)])
     
-    coll = ObstacleWithKinematicsCollection([o1, o2, o3, o4])
+    coll = MovingObstacleCollection([o1, o2, o3, o4])
 
     fig = plt.figure()
     ax = fig.add_subplot(111, projection='3d')
