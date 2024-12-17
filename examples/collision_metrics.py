@@ -26,12 +26,8 @@ if __name__ == "__main__":
     # Ships
     os1 = SimpleShip(States3(200., -250., 45., -10., 12., 0.), integrator=Euler(dt), domain=Ellipse(100, 0, 200, 100), name="OS1")
     os2 = SimpleShip(States3(-200., -150., -30., 10., 18., 0.), integrator=Euler(dt), domain_margin_wrt_enveloppe=30, name="OS2")
-    # ts1 = SailingShip(length=50, width=12, ratio=7/9, initial_state=States3(-150, 150, 0, 10, -15, 0), domain_margin_wrt_enveloppe=50)
-    # ts2 = SailingShip(length=80, width=40, ratio=7/9, initial_state=States3(-200, -250, 0, 25, 5, 0), domain=Ellipse(0, 0, 150, 100, 0, 0))
-    # ts3 = SailingShip(length=30, width=15, ratio=7/9, initial_state=States3(100, 400, 135, -10, -10, 0), domain=Ellipse(0, 0, 150, 100, 0, 0))
 
     ts1 = SimpleShip(States3(-150, 150, -150, 10, -15, 0), integrator=Euler(dt), domain=Ellipse(0, 0, 200, 100), name="TS1")
-
     sailing_ship = SailingShip(20, 10, pose_fn=get_pose, domain=Ellipse(0, 0, 50, 30))
 
     # Environment

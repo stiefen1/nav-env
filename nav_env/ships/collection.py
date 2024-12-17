@@ -1,4 +1,5 @@
 from nav_env.ships.ship import SimpleShip, ShipWithDynamicsBase
+from nav_env.ships.moving_ship import MovingShip
 import matplotlib.pyplot as plt
 # from nav_env.environment.disturbances import DisturbanceCollection
 from nav_env.control.command import GeneralizedForces
@@ -6,7 +7,7 @@ from nav_env.wind.wind_source import WindSource
 from nav_env.water.water_source import WaterSource
 
 class ShipCollection:
-    def __init__(self, ships: list[ShipWithDynamicsBase] = None):
+    def __init__(self, ships: list[MovingShip] = None):
         assert isinstance(ships, list), f"Expected list got {type(ships).__name__}"
         self._ships = ships or []
 
@@ -45,7 +46,7 @@ class ShipCollection:
         for ship in self._ships:
             ship.draw(screen, params=params, scale=scale, **kwargs)
 
-    def get_except(self, ship: ShipWithDynamicsBase):
+    def get_except(self, ship: MovingShip):
         """
         Get all ships except the given ship.
         """
@@ -58,21 +59,21 @@ class ShipCollection:
         for ship in self._ships:
             ship.dt = dt
 
-    def __setitem__(self, index: int, ship: ShipWithDynamicsBase):
+    def __setitem__(self, index: int, ship: MovingShip):
         self._ships[index] = ship
 
-    def __getitem__(self, index: int) -> ShipWithDynamicsBase:
+    def __getitem__(self, index: int) -> MovingShip:
         return self._ships[index]
     
     def append(self, ship):
-        if isinstance(ship, ShipWithDynamicsBase):
+        if isinstance(ship, MovingShip):
             self._ships.append(ship)
         elif isinstance(ship, ShipCollection):
             self._ships.extend(ship._ships)
         else:
             raise ValueError(f"Expected ShipWithDynamicsBase or ShipCollection got {type(ship)}")
 
-    def remove(self, ship: ShipWithDynamicsBase):
+    def remove(self, ship: MovingShip):
         self._ships.remove(ship)
 
     def __len__(self):

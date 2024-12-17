@@ -63,11 +63,11 @@ class SailingShip(MovingShip):
             name=name
         )
 
-    def plot(self, *args, params:dict={'envelsoppe':1}, ax=None, **kwargs):
-        super().plot(*args, ax=ax, **kwargs)
+    # def plot(self, *args, ax=None, params:dict={'envelsoppe':1}, **kwargs):
+    #     super().plot(*args, ax=ax, params=params, **kwargs)
 
-    def draw(self, *args, params:dict={'enveloppe':1}, ax=None, **kwargs):
-        super().draw(*args, ax=ax, **kwargs)
+    # def draw(self, *args, params:dict={'enveloppe':1}, **kwargs):
+    #     super().draw(*args, params=params, **kwargs)
 
     def pose_fn(self, t:float) -> States3:
         """

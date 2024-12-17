@@ -66,7 +66,7 @@ class NavigationEnvironment:
         self._obstacles.reset()
         self._t = self._t0
 
-    def plot(self, lim:tuple, ax=None, own_ships_physics:dict={'enveloppe':1, 'frame':1, 'acceleration':1, 'velocity':1, 'forces':1, 'ghost':10}, target_ships_physics:dict={'enveloppe':1}, **kwargs):
+    def plot(self, lim:tuple, ax=None, own_ships_physics:dict={'enveloppe':1, 'frame':1, 'acceleration':1, 'velocity':1, 'forces':1, 'ghost':10}, target_ships_physics:dict={'enveloppe':1}, obstacles_params:dict={'enveloppe':1}, **kwargs):
         """
         Plot the environment.
         """
@@ -76,7 +76,7 @@ class NavigationEnvironment:
         self._own_ships.plot(ax=ax, params=own_ships_physics, **kwargs)
         # self._own_ships[0].enveloppe_fn_from_current_state(10).plot(ax=ax, **kwargs)
         self._target_ships.plot(ax=ax, params=target_ships_physics, **kwargs)
-        self._obstacles.plot(ax=ax, domain=False, **kwargs)
+        self._obstacles.plot(ax=ax, params=obstacles_params, **kwargs)
         self._wind_source.quiver(lim, ax=ax, facecolor='grey', alpha=0.3, **kwargs)
         # self._water_source.plot(ax=ax, **kwargs)
         ax.set_xlim((lim[0][0], lim[1][0]))

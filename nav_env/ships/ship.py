@@ -79,27 +79,17 @@ class ShipWithDynamicsBase(MovingShip):
         if 'forces' in keys:
             self._generalized_forces.draw(screen, self._states.xy, *args, scale=scale, unit_scale=1e-4, color=(0, 0, 0), **kwargs)
 
-    def plot(self, params:dict={'enveloppe':1}, ax=None, **kwargs):
+    def plot(self, ax=None, params:dict={'enveloppe':1}, **kwargs):
         """
         Plot the ship. Add 'enveloppe', 'frame', 'acceleration', 'velocity', 'forces' to keys to plot the corresponding elements.
         """
         # TODO: Add forces / acceleration / speed / frame of reference to the plot
-        keys = params.keys()
         if ax is None:
             _, ax = plt.subplots()
-        if 'enveloppe' in keys:
-            super().plot(ax=ax, c='r', alpha=1.)
-        if 'domain' in keys:
-            self.domain.plot(ax=ax, c='r', linestyle='dashed')
-        if 'ghost' in keys:
-            """
-            plot the ghost ship enveloppe at different times, assuming speed is constant
-            """
-            times = params['ghost']
-            if isinstance(times, int):
-                times = [times]
-            for t in times:
-                self.enveloppe_fn_from_current_state(t).plot(ax=ax, c='r', alpha=0.3)
+        
+        keys = params.keys()
+        super().plot(ax=ax, params=params, **kwargs)
+        
         if 'frame' in keys:
             self.plot_frame(ax=ax)
         if 'acceleration' in keys:
@@ -108,10 +98,6 @@ class ShipWithDynamicsBase(MovingShip):
             self._states.plot(ax=ax, c='orange', angles='xy', scale_units='xy', scale=1e-1)
         if 'forces' in keys:
             self._generalized_forces.plot(self._states.xy, ax=ax, color='black', angles='xy', scale_units='xy', scale=1e3)
-        if 'name' in keys:
-            ax.text(*self._states.xy, self._name, fontsize=8, c='black')
-
-        # print(self.name, self._physics.generalized_forces.f_x / self._derivatives.x_dot_dot, self._physics.generalized_forces.f_y / self._derivatives.y_dot_dot)
         return ax
     
     def plot_frame(self, ax=None, **kwargs):

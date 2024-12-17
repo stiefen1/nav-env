@@ -9,7 +9,6 @@ if __name__ == '__main__':
     from nav_env.ships.states import *
     from nav_env.wind.wind_source import UniformWindSource
     from nav_env.obstacles.obstacles import *
-    from nav_env.ships.sailing_ship import SailingShip
     from nav_env.risk.monitor import RiskMonitor
 
 
@@ -26,14 +25,10 @@ if __name__ == '__main__':
 
     # Ostacles (Moving)
     kin_obs = MovingObstacle(initial_state=States3(-200., -100., 0., 10., -10., 30.), xy=[(0, 0), (50, 0), (80, 10), (100, 50), (60, 90), (10, 30)], id=4)
-    # sailing_ship = SailingShip(length=200, width=50, ratio=7/9, initial_state=States2(100., -100., -10., 5.), id=5, domain=Ellipse(0, 0, 150, 100, 0, 0))
     sailing_ship = SimpleShip(states=States3(100., -100., 60, -10., 5., 0.), domain=Ellipse(0, 0, 150, 100), name="TS1")
-    # sailing_ship_os = SailingShip(length=100, width=50, ratio=7/9, initial_state=States2(-100., -100., 10., 5.), id=5)
 
     # Ships
-    ship1 = Ship(States3(-200., -250., -40., 20., 30., 0.), integrator=Euler(dt), name="OS")#, domain=Ellipse(0, 0, 100, 50, -20, 30))
-    # ship1 = SimpleShip(States3(-200., -250., -40., 7., 10, 0.), integrator=Euler(dt), name="Ship1")#, domain=Ellipse(0, 0, 150, 100, -20, 30))   
-    # ship2 = Ship(States3(-50., 50., -70., 10., 0., -10.), integrator=Euler(dt), name="Ship2", domain_margin_wrt_enveloppe=30)
+    ship1 = Ship(States3(-200., -250., -40., 20., 30., 0.), integrator=Euler(dt), name="OS", domain_margin_wrt_enveloppe=30)#, domain=Ellipse(0, 0, 100, 50, -20, 30))
     ship2 = SimpleShip(States3(-50., 0., -90., 10., 0., 0.), integrator=Euler(dt), name="Ship2")
     ship3 = Ship(States3(10., -100., -30., 0., 0., 0.), integrator=Euler(dt), name="Ship3", domain=Circle(0, 0, 50))
     ship4 = Ship(States3(250., -200., 0., 0., 0., 60.), integrator=Euler(dt), name="Ship4")
@@ -47,7 +42,7 @@ if __name__ == '__main__':
         own_ships=[ship1, ship2],
         target_ships=[sailing_ship],
         # wind_source=uniform_wind,
-        # obstacles=[sailing_ship],
+        obstacles=[kin_obs],
         shore=[obs1]
         )
 

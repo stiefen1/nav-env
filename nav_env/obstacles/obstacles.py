@@ -185,13 +185,29 @@ class MovingObstacle(Obstacle):
         self.rotate_and_translate_inplace(self._initial_states.x, self._initial_states.y, self._initial_states.psi_deg) # Change geometry (enveloppe)
         self._domain.rotate_and_translate_inplace(self._initial_states.x, self._initial_states.y, self._initial_states.psi_deg, origin=prev_center) # Change geometry (enveloppe)
 
-    def plot(self, *args, ax=None, domain:bool=False, **kwargs):
+    def plot(self, *args, ax=None, params:dict={'enveloppe':1}, domain:bool=False, **kwargs):
         """
         Plot the obstacle.
         """
-        ax = super().plot(*args, ax=ax, **kwargs)
-        if domain:
-            return self._domain.plot(*args, ax=ax, linestyle='dashed', **kwargs)
+        if ax is None:
+            _, ax = plt.subplots()
+
+        keys=params.keys()
+        if 'enveloppe' in keys:
+            ax = super().plot(*args, ax=ax, **kwargs)
+        if 'domain' in keys:
+            ax = self._domain.plot(*args, ax=ax, linestyle='dashed', **kwargs)
+        if 'name' in keys:
+            ax.text(*self._states.xy, self._name, fontsize=8, c='black')
+        if 'ghost' in keys:
+            """
+            plot the ghost ship enveloppe at different times, assuming speed is constant
+            """
+            times = params['ghost']
+            if isinstance(times, int):
+                times = [times]
+            for t in times:
+                self.enveloppe_fn_from_current_state(t).plot(ax=ax, c='r', alpha=0.3)
         return ax
 
     def plot3(self, t:float, *args, ax=None, domain:bool=False, **kwargs):

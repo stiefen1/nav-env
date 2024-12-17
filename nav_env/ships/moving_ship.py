@@ -3,17 +3,11 @@ Goal: Create an intermediate class between MovingObstacle and ShipWithDynamicsBa
 
 """
 from nav_env.obstacles.obstacles import MovingObstacle
-from nav_env.ships.states import States3, TimeDerivatives3
-from nav_env.wind.wind_vector import WindVector
-from nav_env.water.water_vector import WaterVector
-from nav_env.ships.params import ShipPhysicalParams
+from nav_env.ships.states import States3
 # from physics import ShipPhysics
 from nav_env.ships.sailing_ship import ShipEnveloppe
-from nav_env.obstacles.collection import ObstacleCollection
 from nav_env.obstacles.obstacles import Obstacle
-from nav_env.control.states import DeltaStates
 from typing import Callable
-
 
 class MovingShip(MovingObstacle):
     def __init__(self,
@@ -41,3 +35,6 @@ class MovingShip(MovingObstacle):
             name=name,
             id=id
             )
+        
+    def plot(self, *args, ax=None, params={'enveloppe':1}, **kwargs):
+        super().plot(*args, ax=ax, params=params, c='r', **kwargs)
