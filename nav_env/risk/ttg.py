@@ -96,7 +96,10 @@ class TTGMaxWorsening(RiskMetric):
         nominal = results.pop(0)
 
         # Worst case
-        max_worsening_wrt_nominal = max([nominal - result for result in results])/nominal * 100
+        if nominal == 0:
+            max_worsening_wrt_nominal = 0.
+        else:
+            max_worsening_wrt_nominal = max([nominal - result for result in results]) / nominal * 100
 
         return max_worsening_wrt_nominal
 

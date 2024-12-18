@@ -66,7 +66,7 @@ class NavigationEnvironment:
         self._obstacles.reset()
         self._t = self._t0
 
-    def plot(self, lim:tuple, ax=None, own_ships_physics:dict={'enveloppe':1, 'frame':1, 'acceleration':1, 'velocity':1, 'forces':1, 'ghost':10}, target_ships_physics:dict={'enveloppe':1}, obstacles_params:dict={'enveloppe':1}, **kwargs):
+    def plot(self, lim:tuple, ax=None, own_ships_physics:dict={'enveloppe':1}, target_ships_physics:dict={'enveloppe':1}, obstacles_params:dict={'enveloppe':1}, **kwargs):
         """
         Plot the environment.
         """
@@ -83,7 +83,7 @@ class NavigationEnvironment:
         ax.set_ylim((lim[0][1], lim[1][1]))
         return ax
     
-    def draw(self, screen, own_ships_physics:dict={'enveloppe':1, 'frame':1, 'acceleration':1, 'velocity':1, 'forces':1, 'ghost':10}, target_ships_physics:dict={'enveloppe':1}, scale=1, **kwargs):
+    def draw(self, screen, own_ships_physics:dict={'enveloppe':1}, target_ships_physics:dict={'enveloppe':1}, scale=1, **kwargs):
         """
         Draw the environment for pygame.
         """
