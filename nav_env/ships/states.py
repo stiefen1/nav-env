@@ -80,6 +80,11 @@ class States3(States):
         """
         self.__draw__(screen, self.xy, ['x_dot', 'y_dot'], *args, scale=scale, unit_scale=unit_scale, color=color, **kwargs)
 
+    def __iter__(self):
+        for value in self.__dict__.values():
+            yield value
+        
+
     @property
     def x(self) -> float:
         return self['x']

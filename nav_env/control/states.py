@@ -48,6 +48,7 @@ class BaseStateVector(ABC):
 
         pygame.draw.line(screen, color, (x, y), (x_tip, y_tip), *args, **kwargs)
 
+
     def __mul__wrapper__(self, scalar:float, output_type):
         new_values = tuple([value * scalar for value in self.__dict__.values()])
         new_dict = dict(zip(self.__dict__.keys(), new_values))

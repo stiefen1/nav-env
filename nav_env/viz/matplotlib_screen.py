@@ -47,6 +47,7 @@ class MatplotlibScreen:
              ax=None,
              own_ships_verbose={'enveloppe':1, 'frame':1, 'acceleration':1, 'velocity':1, 'forces':1},
              target_ships_verbose={'enveloppe':1},
+             speed:float=1., 
              **kwargs
              ):
         """
@@ -55,9 +56,9 @@ class MatplotlibScreen:
         self._env.dt = dt # Enforce the time step for the whole environment
 
         if self._monitor is not None:
-            self.play_with_monitor(tf, ax, own_ships_verbose, target_ships_verbose, **kwargs)
+            self.play_with_monitor(tf, ax, own_ships_verbose, target_ships_verbose, speed=speed, **kwargs)
         else:
-            self.play_without_monitor(tf, ax, own_ships_verbose, target_ships_verbose, **kwargs)
+            self.play_without_monitor(tf, ax, own_ships_verbose, target_ships_verbose, speed=speed, **kwargs)
 
     def play_with_monitor(self,
                           tf:float=10,
@@ -65,6 +66,7 @@ class MatplotlibScreen:
                           own_ships_verbose={'enveloppe':1, 'frame':1, 'acceleration':1, 'velocity':1, 'forces':1},
                           target_ships_verbose={'enveloppe':1},
                           buffer:int=10,
+                          speed:float=1.0,
                           **kwargs):
         """
         Play the environment during an interval of time.
@@ -145,13 +147,14 @@ class MatplotlibScreen:
                 break
 
             loop_end = time.time()
-            plt.pause(max(1e-9, self._env.dt - (loop_end - loop_start)))
+            plt.pause(max(1e-9, (self._env.dt/speed) - (loop_end - loop_start)))
 
     def play_without_monitor(self,
                           tf:float=10,
                           ax=None,
                           own_ships_verbose={'enveloppe':1, 'frame':1, 'acceleration':1, 'velocity':1, 'forces':1},
                           target_ships_verbose={'enveloppe':1},
+                          speed:float=1.0,
                           **kwargs):
         """
         Play the environment during an interval of time.
@@ -177,7 +180,7 @@ class MatplotlibScreen:
 
 
             loop_end = time.time()
-            plt.pause(max(1e-12, self._env.dt - (loop_end - loop_start) - 5e-3))
+            plt.pause(max(1e-12, (self._env.dt/speed) - (loop_end - loop_start) - 5e-3))
 
     @property
     def lim_x(self) -> tuple:

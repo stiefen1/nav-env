@@ -220,17 +220,17 @@ class DDV2(RiskMetric):
             max_ddv = get_current_ddv(ship, x, y)
         else:
             for moving_obstacle in self.env.obstacles:
-                ddv = get_current_ddv(ship, moving_obstacle.states.x, moving_obstacle.states.y)
+                ddv = get_current_ddv(ship, moving_obstacle.centroid[0], moving_obstacle.centroid[1])
                 if ddv > max_ddv:
                     max_ddv = ddv
 
             for target_ship in self.env.target_ships:
-                ddv = get_current_ddv(ship, target_ship.states.x, target_ship.states.y)
+                ddv = get_current_ddv(ship, target_ship.centroid[0], target_ship.centroid[1])
                 if ddv > max_ddv:
                     max_ddv = ddv
 
             for own_ship in self.env.own_ships.get_except(ship):
-                ddv = get_current_ddv(ship, own_ship.states.x, own_ship.states.y)
+                ddv = get_current_ddv(ship, own_ship.centroid[0], own_ship.centroid[1])
                 if ddv > max_ddv:
                     max_ddv = ddv
 
