@@ -192,8 +192,11 @@ class GeometryWrapper:
     
     def simplify(self, tolerance: float, **kwargs) -> "GeometryWrapper":
         new = deepcopy(self)
-        new._geometry = self._geometry.simplify(tolerance, **kwargs)
+        new._geometry = self._geometry.simplify(tolerance=tolerance, **kwargs)
         return new
+    
+    def simplify_inplace(self, tolerance: float, **kwargs) -> None:
+        self._geometry.simplify(tolerance=tolerance, **kwargs)
     
     def distance(self, other, **kwargs) -> float:
         return self._geometry.distance(get_geometry_from_object(other), **kwargs)

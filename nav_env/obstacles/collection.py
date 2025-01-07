@@ -2,6 +2,7 @@ from nav_env.obstacles.obstacles import Obstacle, MovingObstacle
 import matplotlib.pyplot as plt
 import networkx as nx
 from copy import deepcopy
+from shapely import intersection, Polygon, MultiPolygon
 
 class ObstacleCollection:
     def __init__(self, obstacles: list[Obstacle] = []):
@@ -41,6 +42,22 @@ class ObstacleCollection:
         new = deepcopy(self)
         new.group_obstacles_closer_than(min_distance, recursive=recursive)
         return new
+    
+    def get_group_of_obstacles_in_window(self, center:tuple, size:tuple) -> "ObstacleCollection":
+        x0, y0 = center
+        lx, ly = size
+        window = Polygon(((x0-lx/2, y0-ly/2), (x0+lx/2, y0-ly/2), (x0+lx/2, y0+ly/2), (x0-lx/2, y0+ly/2)))
+        obstacles = []
+        for obs in self._obstacles:
+            inter = intersection(window, obs._geometry)
+            if isinstance(inter, MultiPolygon): # Might happen for non-convex obstacles
+                for polygon in list(inter.geoms):
+                    if polygon.area > 0:
+                        obstacles.append(Obstacle(polygon=polygon, depth=obs.depth))
+            elif isinstance(inter, Polygon):
+                if inter.area > 0:
+                    obstacles.append(Obstacle(polygon=inter, depth=obs.depth))
+        return ObstacleCollection(obstacles)
 
     def buffer(self, distance:float, **kwargs) -> "ObstacleCollection":
         """
@@ -59,6 +76,13 @@ class ObstacleCollection:
         Translate the obstacles.
         """
         return ObstacleCollection([obs.translate(x, y) for obs in self._obstacles])
+    
+    def simplify(self, tolerance: float, **kwargs) -> None:
+        for obs in self._obstacles:
+            obs.simplify_inplace(tolerance=tolerance, **kwargs)
+
+    def as_list(self) -> list:
+        return self._obstacles
 
     def plot(self, *args, ax=None, text=False, **kwargs):
         """
@@ -73,7 +97,19 @@ class ObstacleCollection:
             if text:
                 ax.text(*obs.centroid, f'{i}: {str(obs)}')
         return ax
-    
+
+    def plot3(self, z:float, *args, ax=None, **kwargs):
+        """
+        Plot the obstacle in 3D.
+        """
+        if ax is None:
+            _, ax = plt.subplots(subplot_kw={'projection': '3d'})
+
+        for obs in self._obstacles:
+            obs.plot3(z, *args, ax=ax, **kwargs)
+
+        return ax
+
     def draw(self, screen, scale=1, **kwargs):
         """
         Draw the obstacles.

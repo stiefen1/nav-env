@@ -9,8 +9,9 @@ from copy import deepcopy
 
 DEFAULT_INTEGRATION_STEP = 0.1
 class Obstacle(GeometryWrapper):
-    def __init__(self, xy: list=None, polygon: Polygon=None, geometry_type: type=Polygon, img:str=None, id:int=None):
+    def __init__(self, xy: list=None, polygon: Polygon=None, geometry_type: type=Polygon, img:str=None, id:int=None, depth:float=None):
         self._id = id
+        self._depth = depth
         super().__init__(xy=xy, polygon=polygon, geometry_type=geometry_type)
 
     def distance_to_obstacle(self, x:float, y:float) -> float:
@@ -31,6 +32,25 @@ class Obstacle(GeometryWrapper):
         Plot the obstacle.
         """
         return super().plot(*args, ax=ax, c=c, **kwargs)
+    
+    def plot3(self, z:float, *args, ax=None, **kwargs):
+        """
+        Plot the obstacle in 3D.
+        """
+        if ax is None:
+            _, ax = plt.subplots(subplot_kw={'projection': '3d'})
+
+        z = [z]*len(self.xy[0])
+        ax.plot(*self.xy, z, *args, **kwargs)
+        return ax
+    
+    @property
+    def id(self) -> int:
+        return self._id
+    
+    @property
+    def depth(self) -> float:
+        return self._depth
     
 class Ellipse(Obstacle):
     def __init__(self,
