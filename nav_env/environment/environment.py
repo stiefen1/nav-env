@@ -35,7 +35,7 @@ class NavigationEnvironment:
         Enforce the same integration step for all ships.
         """
         if dt is None:
-            dt_list = [ship.integrator.dt for ship in self._own_ships] + [ship.integrator.dt for ship in self._target_ships] + [obs.dt for obs in self._obstacles]
+            dt_list = [ship.dt for ship in self._own_ships] + [ship.dt for ship in self._target_ships] + [obs.dt for obs in self._obstacles]
             if len(dt_list) <= 0:
                 return
             dt = min(dt_list)
@@ -77,7 +77,7 @@ class NavigationEnvironment:
         # self._own_ships[0].enveloppe_fn_from_current_state(10).plot(ax=ax, **kwargs)
         self._target_ships.plot(ax=ax, params=target_ships_physics, **kwargs)
         self._obstacles.plot(ax=ax, params=obstacles_params, **kwargs)
-        self._wind_source.quiver(lim, ax=ax, facecolor='grey', alpha=0.3, **kwargs)
+        self._wind_source.quiver(lim, ax=ax, nx=5, ny=5, facecolor='grey', alpha=0.3, **kwargs)
         # self._water_source.plot(ax=ax, **kwargs)
         ax.set_xlim((lim[0][0], lim[1][0]))
         ax.set_ylim((lim[0][1], lim[1][1]))

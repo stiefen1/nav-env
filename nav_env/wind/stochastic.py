@@ -1,7 +1,7 @@
 from nav_env.geometry.stochastic import StochasticVectorFactory
-from nav_env.wind.wind_vector import WindVector
+from nav_env.wind.wind_vector import WindVector, DEFAULT_ANGLE_REFERENCE
 from nav_env.wind.wind_source import UniformWindSource
-import random
+import random, math
 
 class StochasticWindVectorFactory(StochasticVectorFactory):
     """
@@ -27,15 +27,26 @@ class StochasticUniformWindSourceFactory(UniformWindSource):
         self._sigma_direction_rad = sigma_direction_rad
         self._nominal_velocity_x = nominal_velocity_x
         self._nominal_velocity_y = nominal_velocity_y
+        self._nominal_wind_vector = WindVector((0, 0), vector=(self._nominal_velocity_x, self._nominal_velocity_y))
 
     def __call__(self) -> UniformWindSource:
         """
         Create a stochastic uniform wind source.
         """
-        wind_vector = WindVector((0, 0), vector=(self._nominal_velocity_x, self._nominal_velocity_y))
-        stochastic_intensity = random.gauss(wind_vector.intensity, self._sigma_intensity)
-        stochastic_direction = random.gauss(wind_vector.direction, self._sigma_direction_rad)
-        stochastic_wind_vector = WindVector(wind_vector.position, intensity=stochastic_intensity, direction=stochastic_direction)
+        # print(f"{self._nominal_wind_vector.direction:.2f}, {self._nominal_wind_vector.intensity:.2f}")
+        
+        max_iter, i = 100, 0
+        while True:
+            i+=1
+            stochastic_intensity = random.gauss(self._nominal_wind_vector.intensity, self._sigma_intensity)
+            if stochastic_intensity > 0:
+                break
+            elif i>= max_iter:
+                raise ValueError("Intensity is always zero, try to decrease intensity uncertainty.")
+        
+        stochastic_direction = random.gauss(self._nominal_wind_vector.direction, self._sigma_direction_rad)
+        stochastic_wind_vector = WindVector(self._nominal_wind_vector.position, intensity=stochastic_intensity, direction=stochastic_direction)
+            
         return UniformWindSource(stochastic_wind_vector.vx, stochastic_wind_vector.vy, domain=self.domain)
     
 def test_stochastic_wind_vector_factory():

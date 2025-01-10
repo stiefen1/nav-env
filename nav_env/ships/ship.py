@@ -95,7 +95,7 @@ class ShipWithDynamicsBase(MovingShip):
         if 'acceleration' in keys:
             self._derivatives.plot_acc(self._states.xy, ax=ax, c='purple', angles='xy', scale_units='xy', scale=5e-3)
         if 'velocity' in keys:
-            self._states.plot(ax=ax, c='orange', angles='xy', scale_units='xy', scale=1e-1)
+            self._states.plot(ax=ax, angles='xy', scale_units='xy', scale=1e-1)
         if 'forces' in keys:
             self._generalized_forces.plot(self._states.xy, ax=ax, color='black', angles='xy', scale_units='xy', scale=1e3)
         return ax
