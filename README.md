@@ -2,7 +2,7 @@
 ## Clone
 Clone this repository:
 
-```git clone git@github.com:stiefen1/nav-env.git```
+```git clone --recurse-submodules git@github.com:stiefen1/nav-env.git```
 
 ## Conda Environment
 
@@ -21,6 +21,10 @@ Don't forget to change <env-name> with the name you would like to use for your e
 ## Install the library
 
 ```pip install -e .```
+
+## Install the seacharts dependency
+
+```pip install -e submodules\seacharts```
 
 ## Install the cython package
 

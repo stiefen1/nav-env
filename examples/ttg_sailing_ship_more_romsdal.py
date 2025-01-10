@@ -1,5 +1,6 @@
 def test() -> None:
-    import os
+    import os, sys
+    from pathlib import Path
     from nav_env.map.map import Map
     from nav_env.environment.environment import NavigationEnvironment as Env
     from nav_env.wind.wind_source import UniformWindSource
@@ -11,6 +12,9 @@ def test() -> None:
     from nav_env.viz.matplotlib_screen import MatplotlibScreen as Screen
     from nav_env.risk.ttg import TTG, TTGMaxWorsening, TTGWorstCase, TTGExpectation, TTGCurvature
     from nav_env.risk.monitor import RiskMonitor
+
+    # current_dir = os.path.abspath(Path(__file__).parent)
+    # sys.path.insert(0, current_dir)
 
     dt = 1.
     tf = 160
