@@ -6,6 +6,7 @@ from shapely import affinity
 from nav_env.ships.states import States3
 from nav_env.control.states import DeltaStates
 from copy import deepcopy
+from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 
 DEFAULT_INTEGRATION_STEP = 0.1
 class Obstacle(GeometryWrapper):
@@ -32,6 +33,12 @@ class Obstacle(GeometryWrapper):
         Plot the obstacle.
         """
         return super().plot(*args, ax=ax, c=c, **kwargs)
+    
+    def fill(self, *args, ax=None, c='black', **kwargs):
+        """
+        Fill the obstacle.
+        """
+        return super().fill(*args, ax=ax, c=c, **kwargs)
     
     def plot3(self, z:float, *args, ax=None, **kwargs):
         """
@@ -248,6 +255,58 @@ class MovingObstacle(Obstacle):
             ax.plot(*xy, z, *args, linestyle='dashed', **kwargs)
 
         return ax
+    
+    def plot3_polyhedron(self, t0:float, tf:float, *args, ax=None, **kwargs):
+        """
+        Plot the obstacle in 3D as a polyhedron
+        """
+        if ax is None:
+            _, ax = plt.subplots(subplot_kw={'projection': '3d'})
+
+        states_at_t0:States3 = self.pose_fn(t0)
+        xy0 = Obstacle(polygon=self._initial_geometry).rotate_and_translate(states_at_t0.x, states_at_t0.y, states_at_t0.psi_deg).xy
+        z0 = [t0]*len(xy0[0])
+
+        states_at_tf:States3 = self.pose_fn(tf)
+        xyf = Obstacle(polygon=self._initial_geometry).rotate_and_translate(states_at_tf.x, states_at_tf.y, states_at_tf.psi_deg).xy
+        zf = [tf]*len(xy0[0])
+
+        x = xy0[0]+xyf[0]
+        y = xy0[1]+xyf[1]
+        z = z0+zf
+
+        for i, (xyz0, xyzf) in enumerate(zip(zip(xy0[0], xy0[1], z0), zip(xyf[0], xyf[1], zf))):            
+            if i==0:
+                xyz0_prev = xyz0
+                xyzf_prev = xyzf
+                continue
+
+            polygon = Poly3DCollection([[xyz0_prev, xyz0, xyzf, xyzf_prev, xyz0_prev]], *args, **kwargs)
+            ax.add_collection(polygon)
+
+            xyz0_prev = xyz0
+            xyzf_prev = xyzf
+
+        polygon_at_t0 = Poly3DCollection([list(zip(xy0[0], xy0[1], z0))], *args, **kwargs)
+        polygon_at_tf = Poly3DCollection([list(zip(xyf[0], xyf[1], zf))], *args, **kwargs)
+
+        ax.add_collection(polygon_at_t0)
+        ax.add_collection(polygon_at_tf)
+
+            
+            
+
+        # test = list(zip(, , ))
+        # print(len(test), len(test[0]))
+        # polygon = Poly3DCollection([test])
+        # ax.add_collection(polygon)
+
+        # ax.scatter(xy0[0] + xyf[0], xy0[1] + xyf[1], z0+zf)
+        # ax.scatter(xyf[0], xyf[1], zf)
+
+        return ax
+
+
     
     def quiver_speed(self, *args, ax=None, **kwargs):
         """

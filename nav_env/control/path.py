@@ -7,7 +7,7 @@ from typing import Any
 
 class Waypoints(GeometryWrapper):
     def __init__(self, waypoints: list = None):
-        self._waypoints = waypoints or []
+        self._waypoints = [] if waypoints is None else waypoints
         super().__init__(xy=self._waypoints, geometry_type=LineString)
 
     def __iter__(self):

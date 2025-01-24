@@ -55,14 +55,19 @@ class VectorSource(ABC):
 
         x_min, y_min = lim[0]
         x_max, y_max = lim[1]
-        x_mean, y_mean = (x_min + x_max) / 2, (y_min + y_max) / 2
+
+        label = None
+        if 'label' in kwargs.keys():
+            label = kwargs['label']
+            kwargs.pop('label')
         
         x = np.linspace(x_min, x_max, nx)
         y = np.linspace(y_min, y_max, ny)
         for xi in x:
             for yi in y:
                 vec = self((xi, yi))
-                ax.quiver(vec.x, vec.y, vec.vx, vec.vy, **kwargs)
+                ax.quiver(vec.x, vec.y, vec.vx, vec.vy, label=label, **kwargs)
+                label = None
         return ax
 
     def draw():

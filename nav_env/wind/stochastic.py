@@ -1,7 +1,9 @@
 from nav_env.geometry.stochastic import StochasticVectorFactory
 from nav_env.wind.wind_vector import WindVector, DEFAULT_ANGLE_REFERENCE
 from nav_env.wind.wind_source import UniformWindSource
-import random, math
+from scipy.stats import multivariate_normal
+from mpl_toolkits.mplot3d import Axes3D
+import random, math, numpy as np, matplotlib.pyplot as plt
 
 class StochasticWindVectorFactory(StochasticVectorFactory):
     """
@@ -17,6 +19,33 @@ class StochasticWindVectorFactory(StochasticVectorFactory):
         stochastic_vector = super().__call__()
         return WindVector(stochastic_vector.position, vector=stochastic_vector.vector)
     
+    def plot_multivariate(self, *args, ax=None, **kwargs):
+        if ax is None:
+            _, ax = plt.subplots(subplot_kw={'projection': '3d'})
+
+        #Parameters to set
+        mu_x = self.intensity
+        sigma_x = self.sigma_intensity
+
+        mu_y = self.direction
+        sigma_y = self.sigma_direction_rad
+
+        #Create grid and multivariate normal
+        N = 3
+        x = np.linspace(mu_x-N*sigma_x,mu_x+N*sigma_x,100)
+        y = np.linspace(mu_y-N*sigma_y,mu_y+N*sigma_y,100)
+        X, Y = np.meshgrid(x,y)
+        pos = np.empty(X.shape + (2,))
+        pos[:, :, 0] = X; pos[:, :, 1] = Y
+        rv = multivariate_normal([mu_x, mu_y], [[sigma_x**2, 0], [0, sigma_y**2]])
+
+        #Make a 3D plot
+        ax.plot_surface(X, Y, rv.pdf(pos),cmap='viridis',linewidth=0)
+        ax.set_xlabel('Wind Intensity [m/s]')
+        ax.set_ylabel('Wind Direction [rad]')
+        ax.set_zlabel('pdf [-]')
+        return ax
+    
 class StochasticUniformWindSourceFactory(UniformWindSource):
     """
     Used as a factory to generate perturbed uniform wind sources, based on a nominal wind vector and standard deviations on intensity and direction.
@@ -29,12 +58,15 @@ class StochasticUniformWindSourceFactory(UniformWindSource):
         self._nominal_velocity_y = nominal_velocity_y
         self._nominal_wind_vector = WindVector((0, 0), vector=(self._nominal_velocity_x, self._nominal_velocity_y))
 
-    def __call__(self) -> UniformWindSource:
+    def __call__(self, nominal=False) -> UniformWindSource:
         """
         Create a stochastic uniform wind source.
         """
         # print(f"{self._nominal_wind_vector.direction:.2f}, {self._nominal_wind_vector.intensity:.2f}")
         
+        if nominal:
+            return  UniformWindSource(self._nominal_velocity_x, self._nominal_velocity_y, domain=self.domain)
+
         max_iter, i = 100, 0
         while True:
             i+=1
@@ -78,6 +110,13 @@ def test_stochastic_uniform_wind_source_factory():
     
     ax.set_xlim(-10, 10)
     ax.set_ylim(-10, 10)
+    plt.show()
+    plt.close()
+
+    sigma:dict={'intensity':3, 'angle':15*pi/180}
+    wind_factory = StochasticWindVectorFactory(nominal_position=(0, 0), nominal_vector=(10, 5), sigma_intensity=sigma['intensity'], sigma_direction_rad=sigma['angle'])
+    ax = wind_factory.plot_multivariate()
+    ax.view_init(elev=31, azim=-45, roll=0)
     plt.show()
 
 if __name__ == "__main__":

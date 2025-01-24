@@ -36,5 +36,5 @@ class MovingShip(MovingObstacle):
             id=id
             )
         
-    def plot(self, *args, ax=None, params={'enveloppe':1}, **kwargs):
-        super().plot(*args, ax=ax, params=params, c='r', **kwargs)
+    def plot(self, *args, ax=None, params={'enveloppe':1}, c='r', **kwargs):
+        super().plot(*args, ax=ax, params=params, c=c, **kwargs)

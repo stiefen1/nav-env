@@ -27,6 +27,7 @@ def generate_data() -> None:
     obs = shore.get_obstacle_collection_in_window_from_enc(center=center, size=size)
 
     ship = Ship(States3(43150, 6957670, 0., 0., 10., 0.), integrator=Euler(dt), name="Ship1")
+    
 
     for direction in np.linspace(np.pi, 2*np.pi, 19):
 

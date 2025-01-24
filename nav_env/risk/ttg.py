@@ -29,8 +29,9 @@ class TTG(RiskMetric):
     def __init__(self, env:NavigationEnvironment):
         # warnings.warn(UserWarning("This class must be fixed, it is not working properly."))
         super().__init__(env)
+        self._full_trajectory = []
     
-    def calculate(self, ship:MovingShip, t_max:float=100., precision_sec:float=1., output_final_state:bool=False, **kwargs) -> float | tuple[float, States3]:
+    def calculate(self, ship:MovingShip, t_max:float=200., precision_sec:float=1., output_final_state:bool=False, **kwargs) -> float | tuple[float, States3]:
         """
         Calculate the Time To Grounding (TTG) for a ship.
 
@@ -39,6 +40,7 @@ class TTG(RiskMetric):
             t_max (float, optional): Maximum time to simulate. Defaults to 100..
             precision_sec (float, optional): Period at which we check for collision with the environment. Defaults to 1..
         """
+
         if isinstance(ship, ShipWithDynamicsBase):
             # Meaning user has specified an integrator
             ship_copy = Ship(integrator=ship.integrator, states=ship.states)
@@ -65,6 +67,7 @@ class TTG(RiskMetric):
                 
         dt = ship_copy.integrator.dt
         t:float = 0.
+        self._full_trajectory = [(t, ship_copy.states)]
 
         while t < t_max:
             # start_loop = time.time()
@@ -79,12 +82,21 @@ class TTG(RiskMetric):
             ship_copy.step(self.env.wind_source(ship_copy.states.xy), self.env.water_source(ship_copy.states.xy), update_enveloppe=False) 
             t += dt
 
+            # Add current states to trajectory
+            self._full_trajectory.append((t, ship_copy.states))
+
         if output_final_state:
             return t_max, ship_copy.states
         return t_max
     
+    @property
+    def full_trajectory(self) -> list[tuple[float, States3]]:
+        return self._full_trajectory
+    
     def plot(self, ax=None, **kwargs):
         pass
+
+
     
     
 # TODO: Sometimes TTG are 0 when running 100 environments in parallel, why ?
@@ -151,6 +163,31 @@ class TTGMaxWorsening(TTGStochasticWind):
             # max_worsening_wrt_nominal = min([result for result in results]) # / nominal * 100
 
         return max_worsening_wrt_nominal
+
+    def _run_ttg(self, ship: Ship, env: NavigationEnvironment, t_max: float, precision_sec: float, kwargs) -> float:
+        ttg = TTG(env)
+        return ttg.calculate(ship, t_max, precision_sec, **kwargs)
+    
+    def plot(self, ax=None, **kwargs):
+        pass
+
+class TTGExpectedWorsening(TTGStochasticWind):
+    def __init__(self, env:NavigationEnvironment, num_workers: int = 4):
+        warnings.warn(UserWarning("This class must be fixed, it is not working properly."))
+        self.num_workers = num_workers
+        super().__init__(env, num_workers=num_workers)
+
+
+    def calculate(self, ship:Ship, n:int = 20, t_max: float = 100., precision_sec:float = 1., sigma:dict={'intensity':5, 'angle':30*pi/180}, **kwargs) -> float:
+        results, winds = self.get_results(ship, n=n, t_max=t_max, precision_sec=precision_sec, sigma=sigma, **kwargs)
+
+        # Extract nominal TTG
+        nominal = results.pop(0)
+
+        # Expected Worst
+        expected_worsening_wrt_nominal = sum([nominal - result for result in results])  / len(results)
+
+        return expected_worsening_wrt_nominal
 
     def _run_ttg(self, ship: Ship, env: NavigationEnvironment, t_max: float, precision_sec: float, kwargs) -> float:
         ttg = TTG(env)

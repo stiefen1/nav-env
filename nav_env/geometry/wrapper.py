@@ -31,6 +31,16 @@ class GeometryWrapper:
         ax.plot(*self.xy, *args, c=c, **kwargs)
         return ax
     
+    def fill(self, *args, ax=None, c=None, **kwargs):
+        """
+        Fill the geometry.
+        """
+        if ax is None:
+            _, ax = plt.subplots()
+
+        ax.fill(*self.xy, *args, c=c, **kwargs)
+        return ax
+    
     def scatter(self, *args, ax=None, **kwargs):
         """
         Scatter plot the geometry.

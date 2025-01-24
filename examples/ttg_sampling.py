@@ -10,6 +10,7 @@ def test() -> None:
     from nav_env.risk.ttg import TTG
     from math import pi
     from scipy.spatial import Delaunay  
+    from scipy.stats import gaussian_kde
 
 
     dt = 1.
@@ -24,9 +25,11 @@ def test() -> None:
     obs = shore.get_obstacle_collection_in_window_from_enc(center=center, size=size)
 
     ship = Ship(States3(43093, 6957670, 20., -3., 10., 0.), integrator=Euler(dt), name="Ship1")
+    # ship = Ship(States3(43040, 6957925, -50., -3., 10., 0.), integrator=Euler(dt), name="Ship1")
+
 
     # Wind
-    uniform_wind = UniformWindSource(10, -30)
+    uniform_wind = UniformWindSource(10, -10)
 
     # Environment
     env = Env(
@@ -34,11 +37,16 @@ def test() -> None:
         wind_source=uniform_wind,
         shore=obs.as_list()
         )
+
+    # Nominal TTG
+    t_max = 200
+    ttg = TTG(env)
+    ttg_nominal = ttg.calculate(ship, t_max=t_max)
     
     env.plot(lim=((xlim[0], ylim[0]), (xlim[1], ylim[1])))
     plt.show()
 
-    N = 100
+    N = 1000
     wind_factory = StochasticUniformWindSourceFactory(10, -10, 4, pi)
     ttg_list = []
     w_list = []
@@ -49,7 +57,7 @@ def test() -> None:
         w, theta = wind_vec.intensity, wind_vec.direction
         env.wind_source = uniform_wind
         ttg = TTG(env)
-        ttg_list.append(ttg.calculate(ship))
+        ttg_list.append(ttg.calculate(ship, t_max=t_max))
         w_list.append(w)
         theta_list.append(theta)
         print(f"ttg({n}) = {ttg_list[-1]:.2f}")
@@ -77,6 +85,27 @@ def test() -> None:
     ax.set_ylabel('theta')
     ax.set_zlabel('TTG')
     plt.show()
+    plt.close()
+
+    kernel = gaussian_kde(ttg_list)
+    kernel.integrate_box_1d(0, t_max)
+    ttg_to_test_in_pdf = np.linspace(0, t_max, 100)
+    fig = plt.figure()
+    ax1 = fig.add_subplot(2, 1, 1)
+    ax1.hist(ttg_list, bins=200, range=(0, t_max))
+    ax1.axvline(x=ttg_nominal, color='r', linestyle='--', label='$w=\\bar{w}$')
+    ax1.axvline(x=np.mean(ttg_list), color='orange', linestyle='--', label='$\\bar{TTG}$')
+
+    ax1.set_ylabel("Number of samples [-]")
+
+    ax2 = fig.add_subplot(2, 1, 2)
+    ax2.plot(ttg_to_test_in_pdf, kernel.pdf(ttg_to_test_in_pdf))
+    ax2.axvline(x=ttg_nominal, color='r', linestyle='--', label='$w=\\bar{w}$')
+    ax2.axvline(x=np.mean(ttg_list), color='orange', linestyle='--', label='$\\bar{TTG}$')
+    ax2.set_ylabel("PDF from Gaussian KDE [-]")
+    plt.show()
+    plt.close()
+    
 
 if __name__=="__main__":
     test()

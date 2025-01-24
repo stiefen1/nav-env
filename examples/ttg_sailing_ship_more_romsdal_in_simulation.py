@@ -8,7 +8,7 @@ from nav_env.control.path import TimeStampedWaypoints
 from nav_env.ships.states import States3
 from nav_env.simulation.integration import Euler
 from nav_env.viz.matplotlib_screen import MatplotlibScreen as Screen
-from nav_env.risk.ttg import TTG, TTGMaxWorsening, TTGWorstCase, TTGExpectation, TTGCurvature
+from nav_env.risk.ttg import TTG, TTGMaxWorsening, TTGWorstCase, TTGExpectation, TTGCurvature, TTGExpectedWorsening
 from nav_env.risk.monitor import RiskMonitor
 from nav_env.simulation.simulator import Simulator, SimulationRecord
 import matplotlib.pyplot as plt
@@ -17,7 +17,7 @@ def test() -> None:
 
 
     dt = 1.
-    tf = 160
+    tf = 240
     center = (43150, 6958000)
     size = (1500, 850)
     xlim = center[0]-size[0]/2, center[0]+size[0]/2
@@ -30,11 +30,13 @@ def test() -> None:
 
     # Route to follow
     wpts = [
-        (0, States3(43080, 6957615)),
-        (40, States3(43025, 6957906)),
-        (80, States3(43234, 6958050)),
-        (120, States3(43610, 6958251)),
-        (160, States3(43425, 6958354))
+        (0, States3(43900, 6957472)),
+        (40, States3(43642, 6957472)),
+        (80, States3(43080, 6957615)),
+        (120, States3(43025, 6957906)),
+        (160, States3(43234, 6958050)),
+        (200, States3(43610, 6958251)),
+        (240, States3(43425, 6958354))
         ]
 
     # ship1 = Ship(States3(*center, -40., 10., 10., 0.), integrator=Euler(dt), name="Ship1")
@@ -51,19 +53,21 @@ def test() -> None:
         )
 
 
-    sim = Simulator(env=env, monitor=RiskMonitor([TTG, TTGCurvature]))
+    sim = Simulator(env=env, monitor=RiskMonitor([TTG, TTGWorstCase]))
     sim.run(tf=tf, record_results_dt=5, dt=dt)
 
-    # Save simulation record
-    sim.record.save('recordings\\more_og_romsdal.csv')
+    # # Save simulation record
+    filename = 'more_og_romsdal_worst_case'
+    path_to_filename = 'recordings\\' + filename + '.csv'
+    sim.record.save(path_to_filename)
 
     # Load it back
-    new_sim_record = SimulationRecord(path_to_existing_data='recordings\\more_og_romsdal.csv')
+    new_sim_record = SimulationRecord(path_to_existing_data=path_to_filename)
 
     # Plot environment
     ax = env.plot(lim=((xlim[0], ylim[0]), (xlim[1], ylim[1])))
 
-    ax.scatter(new_sim_record['SailingShip']['states']['x'], new_sim_record['SailingShip']['states']['y'], c=new_sim_record['SailingShip']['risks']['TTGCurvature'])
+    ax.scatter(new_sim_record['SailingShip']['states']['x'], new_sim_record['SailingShip']['states']['y'], c=new_sim_record['SailingShip']['risks']['TTGWorstCase'])
     ax.axis('equal')
     plt.show()
     # plt.show()

@@ -97,6 +97,20 @@ class ObstacleCollection:
             if text:
                 ax.text(*obs.centroid, f'{i}: {str(obs)}')
         return ax
+    
+    def fill(self, *args, ax=None, text=False, **kwargs):
+        """
+        Plot the obstacles.
+        """
+
+        if ax is None:
+            _, ax = plt.subplots()
+        
+        for i, obs in enumerate(self._obstacles):
+            obs.fill(*args, ax=ax, **kwargs)
+            if text:
+                ax.text(*obs.centroid, f'{i}: {str(obs)}')
+        return ax
 
     def plot3(self, z:float, *args, ax=None, **kwargs):
         """

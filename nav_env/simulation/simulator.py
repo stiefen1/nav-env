@@ -22,7 +22,7 @@ class Simulator:
             
             self._env.step()
 
-        print(self._record._own_ships_data)
+        # print(self._record._own_ships_data)
 
     @property
     def record(self) -> SimulationRecord:

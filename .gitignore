@@ -5,4 +5,5 @@ build/
 *.egg-info/
 *.pyd
 *.csv
+*.npz
 data/
