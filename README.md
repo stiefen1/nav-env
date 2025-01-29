@@ -2,7 +2,7 @@
 ## Clone
 Clone this repository:
 
-```git clone --recurse-submodules git@github.com:stiefen1/nav-env.git```
+```git clone --recurse-submodules https://github.com/stiefen1/nav-env.git```
 
 ## Conda Environment
 
