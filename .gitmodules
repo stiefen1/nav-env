@@ -1,0 +1,7 @@
+[submodule "submodules/UTCRisk"]
+    path = submodules/UTCRisk
+    url = https://github.com/aduragbemiadetunji/UTCRisk
+
+[submodule "submodules/seacharts"]
+    path = submodules/seacharts
+    url = https://github.com/simbli/seacharts
