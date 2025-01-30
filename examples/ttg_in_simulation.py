@@ -8,8 +8,14 @@ def test():
     from nav_env.obstacles.obstacles import Obstacle, Ellipse
     from nav_env.risk.monitor import RiskMonitor
     from nav_env.wind.wind_source import UniformWindSource
-    import matplotlib.pyplot as plt
+    import matplotlib.pyplot as plt, os
     from math import cos, sin, pi
+
+    # Make folder
+    record_folder = 'recordings'
+    filename = 'test.csv'
+    path_to_file = os.path.join(record_folder, filename)
+    os.makedirs(record_folder, exist_ok=True)
 
     # Shore (Made of obstacles)
     island1 = Obstacle(xy=[(-400, -300), (-200, -300), (-100, -150), (-150, -50), (0, 200), (-400, 300)]).buffer(-100).buffer(50).rotate(-10).translate(0, 50)
@@ -30,21 +36,21 @@ def test():
         )
     
     # Monitor
-    monitor = RiskMonitor([TTG, TTGMaxWorsening])
+    monitor = RiskMonitor([TTG])
     sim = Simulator(env=env, monitor=monitor)
     sim.run(tf=100, record_results_dt=5)
 
     # Save simulation record
-    sim.record.save('recordings\\test.csv')
+    sim.record.save(path_to_file)
 
     # Load it back
-    new_sim_record = SimulationRecord(path_to_existing_data='recordings\\test.csv')
+    new_sim_record = SimulationRecord(path_to_existing_data=path_to_file)
 
     # Plot environment
     lim = 800
     ax = env.plot(lim=((-lim, -lim), (lim, lim)))
 
-    ax.scatter(new_sim_record['OS']['states']['x'], new_sim_record['OS']['states']['y'], c=new_sim_record['OS']['risks']['TTGMaxWorsening'])
+    ax.scatter(new_sim_record['OS']['states']['x'], new_sim_record['OS']['states']['y'], c=new_sim_record['OS']['risks']['TTG'])
     ax.axis('equal')
     plt.show()
 
