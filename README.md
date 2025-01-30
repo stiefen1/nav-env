@@ -18,6 +18,20 @@ Don't forget to change <env-name> with the name you would like to use for your e
 
 ```conda activate <env-name>```
 
+# If you don't want compiled physics 
+## Switch to 'uncompiled' branch
+
+```git checkout uncompiled```
+
+## Install the library
+
+```pip install -e .```
+
+## Install the seacharts dependency
+
+```pip install -e submodules\seacharts```
+
+# If you want compiled physics
 ## Install the library
 
 ```pip install -e .```
