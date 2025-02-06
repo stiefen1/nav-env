@@ -858,7 +858,7 @@ static CYTHON_INLINE void *__Pyx_PyModule_GetState(PyObject *op)
     void *result;
     result = PyModule_GetState(op);
     if (!result)
-        Py_FatalError("Couldn't find the module states");
+        Py_FatalError("Couldn't find the module state");
     return result;
 }
 #endif
