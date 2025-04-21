@@ -182,9 +182,10 @@ class TimeStampedWaypoints(Waypoints):
         return colors
 
     
-    def to_sql(self, path_to_database:str, mmsi:str, colormap:str='viridis', table:str='AIS', t0:str='26-08-2024 08:00:00', heading_in_seacharts_frame:bool=True) -> None:
+    def to_sql(self, path_to_database:str, mmsi:int, colormap:str='viridis', table:str='AIS', t0:str='26-08-2024 08:00:00', heading_in_seacharts_frame:bool=True) -> None:
         """
-        Save timestamped waypoints into a SQL database. 
+        Save timestamped waypoints into a SQL database. Currently, we use a trick to visualize the same ship multiple times. If we have to show one ship at N different timestamps,
+        we create N different mmsi. If the input mmsi=100000000, and we have 3 timestamps to show, then we will have mmsi = [100000000, 100000001, 100000002]
         """
         headings = self.get_default_headings_deg(seacharts_frame=heading_in_seacharts_frame)
         times_sql = self.get_times_in_sql_format(t0)
@@ -206,8 +207,8 @@ class TimeStampedWaypoints(Waypoints):
             if not table_exist:
                 cursor.execute(f"""CREATE TABLE {table} (mmsi text, lon int, lat int, heading float, last_updated text, color text)""")
 
-            for wpt_i, heading_i, time_sql_i, color_i in zip(self._waypoints, headings, times_sql, colors):
-                cursor.execute(f"""INSERT INTO {table} (mmsi, lon, lat, heading, last_updated, color) VALUES ('{mmsi}', {wpt_i[0]}, {wpt_i[1]}, {heading_i}, '{time_sql_i.strftime(format=TIME_FORMAT)}', '{color_i}')""")
+            for i, (wpt_i, heading_i, time_sql_i, color_i) in enumerate(zip(self._waypoints, headings, times_sql, colors)):
+                cursor.execute(f"""INSERT INTO {table} (mmsi, lon, lat, heading, last_updated, color) VALUES ('{str(mmsi+i)}', {wpt_i[0]}, {wpt_i[1]}, {heading_i}, '{time_sql_i.strftime(format=TIME_FORMAT)}', '{color_i}')""")
 
                 
     def __repr__(self) -> str:
@@ -255,7 +256,7 @@ def test_db():
     wpts_traj = TimeStampedWaypoints([(0, (0, -1)), (1, (0.5, -2)), (2, (1, 1)), (3, (2, 0.5)), (4, (1.5, 0))])
     ax = wpts_traj.plot(-8, 12, 100, mode='traj', text=True)
     wpts_traj.scatter(-8, 12, 100, mode='traj', ax=ax)
-    wpts_traj.to_sql('test_db.db', '111111111')
+    wpts_traj.to_sql('test_db.db', 100000000)
     ax.axis('equal')
     plt.show()
 
