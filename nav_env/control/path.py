@@ -1,9 +1,12 @@
 from shapely import LineString
 from nav_env.geometry.wrapper import GeometryWrapper
 from nav_env.obstacles.obstacles import Obstacle
-import matplotlib.pyplot as plt
-import warnings
+import matplotlib.pyplot as plt, matplotlib.colors as mat_colors
+import warnings, sqlite3
+from datetime import datetime, timedelta, time
+from math import atan2, pi
 from typing import Any
+TIME_FORMAT = "%d-%m-%Y %H:%M:%S"
 
 class Waypoints(GeometryWrapper):
     def __init__(self, waypoints: list = None):
@@ -46,6 +49,24 @@ class Waypoints(GeometryWrapper):
     def idx_closest_from(self, x, y):
         return self.closest_from(x, y)[0]
     
+    def get_default_headings_deg(self, seacharts_frame:bool=True) -> list:
+        """
+        Compute headings based on x, y positions. 
+        """
+        headings_deg = []
+        w_prev = self.waypoints[0]
+        wpt = self.waypoints[1]
+        heading_deg = compute_heading_deg_from_wpts(w_prev, wpt, seacharts_frame=seacharts_frame)
+        headings_deg.append(heading_deg)                                     
+
+        for i in range(1, len(self._waypoints)-1):
+            heading_deg = compute_heading_deg_from_wpts(self._waypoints[i-1], self._waypoints[i+1], seacharts_frame=seacharts_frame)
+            headings_deg.append(heading_deg)
+
+        heading_deg = compute_heading_deg_from_wpts(self._waypoints[i], self._waypoints[i+1], seacharts_frame=seacharts_frame)
+        headings_deg.append(heading_deg)
+        return headings_deg
+    
     @property
     def waypoints(self) -> list:
         return self._waypoints
@@ -59,7 +80,7 @@ class TimeStampedWaypoints(Waypoints):
         self._dim_idx_for_viz = dim_idx_for_viz
         self._timestamped_waypoints = timestamped_waypoints or []
         waypoints = [wpt[1] for wpt in self._timestamped_waypoints]
-        self._times = [xy[0] for xy in self._timestamped_waypoints]
+        self._times = [wpt[0] for wpt in self._timestamped_waypoints]
 
         if len(self) <= 0:
             warnings.warn(f"{self} object instantiated without any timestamped waypoint")
@@ -138,14 +159,68 @@ class TimeStampedWaypoints(Waypoints):
             raise ValueError(f"mode must be either traj, x or y but is {mode}")
         return ax
     
+    def get_times_in_sql_format(self, t0:str, format:str=TIME_FORMAT) -> list[datetime]:
+        t0 = datetime.strptime(t0, format)
+        times_sql = []
+        for t in self._times:
+            t_sql = t0 + timedelta(seconds=t)
+            times_sql.append(t_sql)
+        return times_sql
     
+    def get_colors_from_time(self, colormap:str='viridis') -> list[str]:
+        t_min = min(self._times)
+        t_max = max(self._times)
+        norm = mat_colors.Normalize(vmin=t_min, vmax=t_max)
+        cmap = plt.get_cmap(colormap)
+        
+        colors = []
+        for ti in self._times:
+            rgb = cmap(norm(ti))[:3]
+            color = mat_colors.rgb2hex(rgb)
+            colors.append(color)
+
+        return colors
+
+    
+    def to_sql(self, path_to_database:str, mmsi:str, colormap:str='viridis', table:str='AIS', t0:str='26-08-2024 08:00:00', heading_in_seacharts_frame:bool=True) -> None:
+        """
+        Save timestamped waypoints into a SQL database. 
+        """
+        headings = self.get_default_headings_deg(seacharts_frame=heading_in_seacharts_frame)
+        times_sql = self.get_times_in_sql_format(t0)
+        colors = self.get_colors_from_time(colormap=colormap)
+
+        with sqlite3.connect(path_to_database) as connection:
+            cursor = connection.cursor()
+
+            # Get existing tables in the database
+            list_of_tables = cursor.execute(f"""SELECT name FROM sqlite_master WHERE type='table' AND name='{table}'; """).fetchall()
+            
+            # Check if table does already exist in database
+            table_exist = False
+            for table_i in list_of_tables:
+                if table in table_i:
+                    table_exist = True
+
+            # If table does not exist, create it
+            if not table_exist:
+                cursor.execute(f"""CREATE TABLE {table} (mmsi text, lon int, lat int, heading float, last_updated text, color text)""")
+
+            for wpt_i, heading_i, time_sql_i, color_i in zip(self._waypoints, headings, times_sql, colors):
+                cursor.execute(f"""INSERT INTO {table} (mmsi, lon, lat, heading, last_updated, color) VALUES ('{mmsi}', {wpt_i[0]}, {wpt_i[1]}, {heading_i}, '{time_sql_i.strftime(format=TIME_FORMAT)}', '{color_i}')""")
+
+                
     def __repr__(self) -> str:
         return self.__str__()
 
     def __str__(self) -> str:
         return f"{type(self).__name__}"
 
-    
+def compute_heading_deg_from_wpts(wpt1, wpt2, seacharts_frame:bool=True) -> float:
+    x1, y1 = wpt1
+    x2, y2 = wpt2
+    angle = 180 * atan2((x1-x2), (y2-y1)) / pi
+    return -angle if seacharts_frame else angle
 
 def test():
     import numpy as np
@@ -174,5 +249,20 @@ def test():
     empty_traj(10) # Must raise an assertion error (No waypoints were provided for interpolation)
 
 
+def test_db():
+    import numpy as np
+
+    wpts_traj = TimeStampedWaypoints([(0, (0, -1)), (1, (0.5, -2)), (2, (1, 1)), (3, (2, 0.5)), (4, (1.5, 0))])
+    ax = wpts_traj.plot(-8, 12, 100, mode='traj', text=True)
+    wpts_traj.scatter(-8, 12, 100, mode='traj', ax=ax)
+    wpts_traj.to_sql('test_db.db', '111111111')
+    ax.axis('equal')
+    plt.show()
+
+
+
+
+
 if __name__ == "__main__":
-    test()
+    # test()
+    test_db()
