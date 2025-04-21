@@ -1,5 +1,5 @@
 from nav_env.control.controller import Controller
-from nav_env.ships.states_old import ShipStates
+from nav_env.control.states import States
 from nav_env.control.command import GeneralizedForces
 
 class PID(Controller):
@@ -9,5 +9,5 @@ class PID(Controller):
         self._kd = kd
         self._integral = 0
 
-    def get(self, states:ShipStates) -> GeneralizedForces:
+    def get(self, states:States) -> GeneralizedForces:
         pass

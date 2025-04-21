@@ -5,7 +5,7 @@ Goal: Create an intermediate class between MovingObstacle and ShipWithDynamicsBa
 from nav_env.obstacles.obstacles import MovingObstacle
 from nav_env.ships.states import States3
 # from physics import ShipPhysics
-from nav_env.ships.sailing_ship import ShipEnveloppe
+from nav_env.ships.enveloppe import ShipEnveloppe
 from nav_env.obstacles.obstacles import Obstacle
 from typing import Callable
 

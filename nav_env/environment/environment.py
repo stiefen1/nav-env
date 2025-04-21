@@ -1,6 +1,5 @@
 from nav_env.ships.collection import ShipCollection
 from nav_env.obstacles.collection import MovingObstacleCollection, ObstacleCollection
-from nav_env.geometry.vector_source import VectorSource
 from nav_env.water.water_source import WaterSource
 from nav_env.wind.wind_source import WindSource
 import matplotlib.pyplot as plt

@@ -28,9 +28,28 @@ class Waypoints(GeometryWrapper):
         point = self.interpolate(value, normalized=True)
         return point.x, point.y
     
+    def closest_from(self, x, y) -> tuple[int, tuple]:
+        min_dist = float('inf')
+        wpt_closest = None
+        for idx, wpt in enumerate(self._waypoints):
+            wx, wy = wpt
+            d = (wx - x)**2 + (wy - y)**2
+            if d < min_dist:
+                idx_closest = idx
+                wpt_closest = wpt
+        
+        return idx_closest, wpt_closest
+
+    def wpt_closest_from(self, x, y):
+        return self.closest_from(x, y)[1]
+
+    def idx_closest_from(self, x, y):
+        return self.closest_from(x, y)[0]
+    
     @property
     def waypoints(self) -> list:
         return self._waypoints
+
     
 class TimeStampedWaypoints(Waypoints):
     def __init__(self, timestamped_waypoints:list=None, dim_idx_for_viz:tuple=(0, 1)):

@@ -30,7 +30,6 @@ class WindSource(VectorSource):
         """
         return WindVector((x, y), vector=(0., 0.))
 
-
 class UniformWindSource(WindSource):
     """
     Wind source with a uniform wind vector.

@@ -5,7 +5,7 @@ from nav_env.water.water_vector import WaterVector
 from nav_env.ships.params import ShipPhysicalParams
 # from physics import ShipPhysics
 import nav_env.ships.physics as phy
-from nav_env.ships.sailing_ship import ShipEnveloppe
+from nav_env.ships.enveloppe import ShipEnveloppe
 from nav_env.obstacles.collection import ObstacleCollection
 from nav_env.obstacles.obstacles import Obstacle
 from nav_env.simulation.integration import Integrator, Euler
@@ -197,10 +197,6 @@ class ShipWithDynamicsBase(MovingShip):
 
     def __repr__(self):
         return f"{type(self).__name__}({self._states.__dict__})"
-    
-    @property
-    def states(self) -> States3:
-        return self._states
     
     @property
     def enveloppe(self) -> ShipEnveloppe:

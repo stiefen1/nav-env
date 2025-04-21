@@ -354,7 +354,7 @@ class TTGUnderConstantUniformPerturbations(RiskMetric):
         cont = ax.contourf(X, Y, Z, **kwargs)
         self._line.plot('--r', ax=ax)
         self._ship.reset()
-        self._ship.plot(ax=ax, keys=['enveloppe', 'velocity'])
+        self._ship.plot(ax=ax, params={'enveloppe':1, 'velocity':1})
         self._env.shore.plot('r', ax=ax)
         plt.colorbar(cont, ax=ax)
         ax.set_xlim((lim[0][0], lim[1][0]))
@@ -417,9 +417,9 @@ def show_ttg_contour_under_constant_uniform_perturbations():
     from nav_env.wind.wind_source import UniformWindSource
     from nav_env.risk.ttg import TTGUnderConstantUniformPerturbations
 
-    shore = [Circle(300., -0., 50.), Ellipse(400, -200, 40, 80)]
-    ship = Ship(integrator=Euler(1.), states=States3(0., 0., 60., 30., 10., 0.))
-    wind_source = UniformWindSource(50, -50)
+    shore = [Circle(800., -400., 50.), Ellipse(400, -200, 40, 80)]
+    ship = Ship(integrator=Euler(1.), states=States3(0., 0., -15., 5., 20., 0.))
+    wind_source = UniformWindSource(10, -10)
     env = NavigationEnvironment(wind_source=wind_source, shore=shore)  # Create a list of ships
     ttg_uniform = TTGUnderConstantUniformPerturbations(ship, env, t_max=100., precision_sec=0.1)
     lim = ((-200, -800), (1200, 600))

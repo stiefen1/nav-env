@@ -69,7 +69,7 @@ class Ellipse(Obstacle):
                 # db:float=0,
                 id:int=None
                 ):
-        super().__init__(polygon=affinity.translate(affinity.scale(Point([0, 0]).buffer(1), b, a), y, x), id=id)
+        super().__init__(polygon=affinity.translate(affinity.scale(Point([0, 0]).buffer(1), b, a), x, y), id=id)
         self._a = a
         self._b = b
         self._da = x
@@ -383,6 +383,10 @@ class MovingObstacle(Obstacle):
     @property
     def states(self) -> States3:
         return self._states
+    
+    @states.setter
+    def states(self, value:States3) -> None:
+        self._states = value
     
     @property
     def name(self) -> str:

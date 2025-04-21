@@ -23,7 +23,7 @@ def plot_nominal() -> None:
 
     import sys, pathlib
     sys.path.append(os.path.join(pathlib.Path(__file__).parent.parent.parent, 'submodules', 'UTCRisk'))
-    from RiskModelJSON import RiskModel
+    # from RiskModelJSON import RiskModel
 
     config_path = os.path.join(os.path.curdir, 'submodules', 'UTCRisk', 'ship_config.json')
     risk_model = RiskModel(config_path)
@@ -872,5 +872,5 @@ if __name__ == "__main__":
     # plot_data()
     # plot_pdns()
     # plot_ed()
-    # plot_nominal()
-    plot_all_risk_along_traj()
+    plot_nominal()
+    # plot_all_risk_along_traj()

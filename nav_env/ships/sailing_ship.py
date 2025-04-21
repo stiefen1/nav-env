@@ -5,9 +5,7 @@ s2 = ShipObstacle(domain=domain, p_t=lambda t: p(t))
 
 """
 from nav_env.ships.states import States3, States2
-from nav_env.obstacles.obstacles import MovingObstacle
 from nav_env.obstacles.obstacles import Obstacle
-from nav_env.ships.enveloppe import ShipEnveloppe
 from typing import Callable
 from math import atan2, pi
 from nav_env.ships.moving_ship import MovingShip
@@ -49,7 +47,6 @@ class SailingShip(MovingShip):
         else:
             raise ValueError(f"Expected States2 or States3 for initial_state, got {type(initial_state).__name__}")
         
-        # enveloppe = ShipEnveloppe(length=length, width=width, ratio=ratio, **kwargs)
         super().__init__(
             pose_fn=pose_fn,
             length=length,
