@@ -1,0 +1,17 @@
+enc:
+  size: [ 2.5, 1 ]
+  origin: [ 17.5, 54.0 ]
+  depths: [ 0, 1, 2, 5, 10, 20, 50, 100, 200, 350, 500 ]
+  crs: "WGS84"
+  S57_layers:
+    "TSSLPT": "#8B0000" #tss
+  resources: [ "data/db/PL2MP500" ]
+
+display:
+  colorbar: False
+  dark_mode: False
+  fullscreen: False
+  controls: True
+  resolution: 640
+  anchor: "center"
+  dpi: 96
