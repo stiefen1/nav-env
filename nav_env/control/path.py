@@ -182,7 +182,7 @@ class TimeStampedWaypoints(Waypoints):
         return colors
 
     
-    def to_sql(self, path_to_database:str, mmsi:int, colormap:str='viridis', table:str='AIS', t0:str='26-08-2024 08:00:00', heading_in_seacharts_frame:bool=True) -> None:
+    def to_sql(self, path_to_database:str, mmsi:int, colormap:str='viridis', table:str='AIS', t0:str='26-08-2024 08:00:00', heading_in_seacharts_frame:bool=True, clear_table:bool=False) -> None:
         """
         Save timestamped waypoints into a SQL database. Currently, we use a trick to visualize the same ship multiple times. If we have to show one ship at N different timestamps,
         we create N different mmsi. If the input mmsi=100000000, and we have 3 timestamps to show, then we will have mmsi = [100000000, 100000001, 100000002]
@@ -202,6 +202,11 @@ class TimeStampedWaypoints(Waypoints):
             for table_i in list_of_tables:
                 if table in table_i:
                     table_exist = True
+
+            # Clear table if it does exist and if it is required
+            if table_exist and clear_table:
+                cursor.execute(f"""DROP TABLE {table}""")
+                table_exist = False
 
             # If table does not exist, create it
             if not table_exist:
