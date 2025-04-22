@@ -25,7 +25,7 @@ class SailingShip(MovingShip):
                  width: float=None,
                  ratio: float=None,
                  pose_fn: Callable[[float], States3]=None,
-                 initial_state: States2 | States3=None,
+                 initial_state: States2 | States3 | tuple=None,
                  domain:Obstacle=None,
                  domain_margin_wrt_enveloppe=0., 
                  dt:float=None,
@@ -40,6 +40,10 @@ class SailingShip(MovingShip):
             
         if initial_state is None:
             pass
+        elif isinstance(initial_state, tuple) and len(initial_state) == 4:
+            initial_state = States3(initial_state[0], initial_state[1], 0, initial_state[2], initial_state[3], 0)
+        elif isinstance(initial_state, tuple) and len(initial_state) == 6:
+            initial_state = States3(*initial_state)
         elif isinstance(initial_state, States2):
             initial_state = States3(*initial_state.xy, 0, *initial_state.xy_dot, 0)
         elif isinstance(initial_state, States3):

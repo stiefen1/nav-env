@@ -3,9 +3,9 @@ from nav_env.geometry.wrapper import GeometryWrapper
 from nav_env.obstacles.obstacles import Obstacle
 import matplotlib.pyplot as plt, matplotlib.colors as mat_colors
 import warnings, sqlite3
-from datetime import datetime, timedelta, time
+from datetime import datetime, timedelta
 from math import atan2, pi
-from typing import Any
+from typing import Any, Callable
 TIME_FORMAT = "%d-%m-%Y %H:%M:%S"
 
 class Waypoints(GeometryWrapper):
@@ -88,6 +88,15 @@ class TimeStampedWaypoints(Waypoints):
         else:
             self._t0, self._tf, self._wpt_type = self._times[0], self._times[-1], type(waypoints[0])
         super().__init__(waypoints=[(wpt[dim_idx_for_viz[0]], wpt[dim_idx_for_viz[1]]) for wpt in waypoints])
+
+    @staticmethod
+    def from_trajectory_fn(traj_fn:Callable, timestamps:list) -> "TimeStampedWaypoints":
+        """
+        Build a TimeStampedWaypoints object from a trajectory function a list of timestamps to specify
+        when to evaluate the function.
+        """
+        return TimeStampedWaypoints([(ti, traj_fn(ti)) for ti in timestamps])
+
 
     def __len__(self) -> int:
         return len(self._timestamped_waypoints)
@@ -223,8 +232,8 @@ class TimeStampedWaypoints(Waypoints):
         return f"{type(self).__name__}"
 
 def compute_heading_deg_from_wpts(wpt1, wpt2, seacharts_frame:bool=True) -> float:
-    x1, y1 = wpt1
-    x2, y2 = wpt2
+    x1, y1 = wpt1[0], wpt1[1]
+    x2, y2 = wpt2[0], wpt2[1]
     angle = 180 * atan2((x1-x2), (y2-y1)) / pi
     return -angle if seacharts_frame else angle
 
