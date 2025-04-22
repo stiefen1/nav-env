@@ -6,4 +6,4 @@
     url = https://github.com/simbli/seacharts
 [submodule "submodules/seacharts_ais"]
 	path = submodules/seacharts_ais
-	url = https://github.com/komeg1/seacharts_ais.git
+	url = https://github.com/stiefen1/seacharts_ais.git
