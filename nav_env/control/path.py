@@ -190,12 +190,22 @@ class TimeStampedWaypoints(Waypoints):
 
         return colors
 
-    
-    def to_sql(self, path_to_database:str, mmsi:int, colormap:str='viridis', table:str='AIS', t0:str='26-08-2024 08:00:00', heading_in_seacharts_frame:bool=True, clear_table:bool=False) -> None:
+    def to_sql(self,
+               path_to_database:str,
+               mmsi:int,
+               colormap:str='viridis',
+               table:str='AisHistory',
+               t0:str='26-08-2024 08:00:00',
+               heading_in_seacharts_frame:bool=True,
+               clear_table:bool=False,
+               length:float=None,
+               width:float=None,
+               ) -> None:
         """
         Save timestamped waypoints into a SQL database. Currently, we use a trick to visualize the same ship multiple times. If we have to show one ship at N different timestamps,
         we create N different mmsi. If the input mmsi=100000000, and we have 3 timestamps to show, then we will have mmsi = [100000000, 100000001, 100000002]
         """
+        print("TABLE: ", table)
         headings = self.get_default_headings_deg(seacharts_frame=heading_in_seacharts_frame)
         times_sql = self.get_times_in_sql_format(t0)
         colors = self.get_colors_from_time(colormap=colormap)
@@ -219,10 +229,10 @@ class TimeStampedWaypoints(Waypoints):
 
             # If table does not exist, create it
             if not table_exist:
-                cursor.execute(f"""CREATE TABLE {table} (mmsi text, lon int, lat int, heading float, last_updated text, color text)""")
+                cursor.execute(f"""CREATE TABLE {table} (mmsi text, lon int, lat int, heading float, last_updated text, color text, length float, width float)""")
 
             for i, (wpt_i, heading_i, time_sql_i, color_i) in enumerate(zip(self._waypoints, headings, times_sql, colors)):
-                cursor.execute(f"""INSERT INTO {table} (mmsi, lon, lat, heading, last_updated, color) VALUES ('{str(mmsi+i)}', {wpt_i[0]}, {wpt_i[1]}, {heading_i}, '{time_sql_i.strftime(format=TIME_FORMAT)}', '{color_i}')""")
+                cursor.execute(f"""INSERT INTO {table} (mmsi, lon, lat, heading, last_updated, color, length, width) VALUES ('{str(mmsi+i)}', {wpt_i[0]}, {wpt_i[1]}, {heading_i}, '{time_sql_i.strftime(format=TIME_FORMAT)}', '{color_i}', {length if length is not None else "NULL"}, {width if width is not None else "NULL"})""")
 
                 
     def __repr__(self) -> str:

@@ -31,6 +31,7 @@ class SailingShip(MovingShip):
                  dt:float=None,
                  id:int=None,
                  name:str="SailingShip",
+                 mmsi:str=None,
                  **kwargs
                  ):
         
@@ -50,7 +51,7 @@ class SailingShip(MovingShip):
             pass
         else:
             raise ValueError(f"Expected States2 or States3 for initial_state, got {type(initial_state).__name__}")
-        
+
         super().__init__(
             pose_fn=pose_fn,
             length=length,
@@ -61,7 +62,8 @@ class SailingShip(MovingShip):
             id=id,
             dt=dt,
             domain_margin_wrt_enveloppe=domain_margin_wrt_enveloppe,
-            name=name
+            name=name,
+            mmsi=mmsi
         )
 
     # def plot(self, *args, ax=None, params:dict={'envelsoppe':1}, **kwargs):
@@ -81,6 +83,7 @@ class SailingShip(MovingShip):
         dydt = (pose_at_t2.y - pose_at_t1.y) / dt
         heading = atan2(dydt, dxdt) * 180 / pi - 90
         return States3(pose_at_t1.x, pose_at_t1.y, heading, pose_at_t1.x_dot, pose_at_t1.y_dot, pose_at_t1.psi_dot_deg)    
+
 
 def test():
     import matplotlib.pyplot as plt
