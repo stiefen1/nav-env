@@ -62,7 +62,8 @@ class MovingShip(MovingObstacle):
         colormap:str='viridis',
         table:str='AisHistory',
         heading_in_seacharts_frame:bool=True,
-        clear_table:bool=False  
+        clear_table:bool=False,
+        scale:float=1.
     ) -> None:
         return TSWPT.from_trajectory_fn(self.pose_fn, timestamps).to_sql(path_to_database=path_to_database,
                                                                   mmsi=int(self.mmsi),
@@ -71,7 +72,8 @@ class MovingShip(MovingObstacle):
                                                                   heading_in_seacharts_frame=heading_in_seacharts_frame,
                                                                   clear_table=clear_table,
                                                                   length=self.length,
-                                                                  width=self.width
+                                                                  width=self.width,
+                                                                  scale=scale
                                                                   )
 
     @property

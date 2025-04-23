@@ -97,6 +97,11 @@ class TimeStampedWaypoints(Waypoints):
         """
         return TimeStampedWaypoints([(ti, traj_fn(ti)) for ti in timestamps])
 
+    def resample(self, N:int) -> "TimeStampedWaypoints":
+        dt = (self._tf-self._t0)/(N-1)
+        return TimeStampedWaypoints(
+            timestamped_waypoints=[(n*dt+self._t0, self(n*dt+self._t0)) for n in range(0, N, 1)],
+            dim_idx_for_viz=self._dim_idx_for_viz)
 
     def __len__(self) -> int:
         return len(self._timestamped_waypoints)
@@ -122,9 +127,11 @@ class TimeStampedWaypoints(Waypoints):
                 else:
                     return self._wpt_type(*val_list)
             
-    def plot(self, t0:float, tf:float, N:int, *args, mode='traj', ax=None, text:bool=False, grid:bool=True, **kwargs):
+    def plot(self, t0:float=None, tf:float=None, N:int=None, *args, mode='traj', ax=None, text:bool=False, grid:bool=True, **kwargs):
         if ax is None:
             _, ax = plt.subplots()
+        if t0 is None:
+            t0, tf, N = self._t0, self._tf, len(self._timestamped_waypoints)
         return self._plot_and_scatter_wrapper(ax.plot.__name__, t0, tf, N, ax, *args, mode=mode, text=text, grid=grid, **kwargs)
         
     def scatter(self, t0:float, tf:float, N:int, *args, mode='traj', ax=None, text:bool=False, grid:bool=True, **kwargs):
@@ -137,19 +144,31 @@ class TimeStampedWaypoints(Waypoints):
         x = []
         y = []
         t = []
-        for i in range(N):
+        v = []
+        eps = 1e-6 * dt # small time increment to approximate derivative
+        for i in range(N+1):
             t_i = t0 + dt * i
             obj_i = self(t_i)
             x_i, y_i = obj_i[self._dim_idx_for_viz[0]], obj_i[self._dim_idx_for_viz[1]]
+            obj_eps = self(t_i + eps)
+            x_eps, y_eps = obj_eps[self._dim_idx_for_viz[0]], obj_i[self._dim_idx_for_viz[1]]
+            v_i = ((x_eps-x_i)**2 + (y_eps-y_i)**2)**0.5 / eps
             x.append(x_i)
             y.append(y_i)
             t.append(t_i)
+            v.append(v_i)
 
         if text:
             for xi, yi, ti in zip(x, y, t):
                 ax.text(xi, yi, f"{ti:.2f}")
 
-        if mode=='traj':
+
+        if mode=='speed_profile':
+            getattr(ax, func_name)(t, v, *args, **kwargs) # call the func_name method of ax object
+            ax.grid(grid)
+            ax.set_xlabel('t')
+            ax.set_ylabel('v')
+        elif mode=='traj':
             getattr(ax, func_name)(x, y, *args, **kwargs) # call the func_name method of ax object
             ax.grid(grid)
             ax.set_xlabel('x')
@@ -200,12 +219,12 @@ class TimeStampedWaypoints(Waypoints):
                clear_table:bool=False,
                length:float=None,
                width:float=None,
+               scale:float=1.
                ) -> None:
         """
         Save timestamped waypoints into a SQL database. Currently, we use a trick to visualize the same ship multiple times. If we have to show one ship at N different timestamps,
         we create N different mmsi. If the input mmsi=100000000, and we have 3 timestamps to show, then we will have mmsi = [100000000, 100000001, 100000002]
         """
-        print("TABLE: ", table)
         headings = self.get_default_headings_deg(seacharts_frame=heading_in_seacharts_frame)
         times_sql = self.get_times_in_sql_format(t0)
         colors = self.get_colors_from_time(colormap=colormap)
@@ -232,7 +251,7 @@ class TimeStampedWaypoints(Waypoints):
                 cursor.execute(f"""CREATE TABLE {table} (mmsi text, lon int, lat int, heading float, last_updated text, color text, length float, width float)""")
 
             for i, (wpt_i, heading_i, time_sql_i, color_i) in enumerate(zip(self._waypoints, headings, times_sql, colors)):
-                cursor.execute(f"""INSERT INTO {table} (mmsi, lon, lat, heading, last_updated, color, length, width) VALUES ('{str(mmsi+i)}', {wpt_i[0]}, {wpt_i[1]}, {heading_i}, '{time_sql_i.strftime(format=TIME_FORMAT)}', '{color_i}', {length if length is not None else "NULL"}, {width if width is not None else "NULL"})""")
+                cursor.execute(f"""INSERT INTO {table} (mmsi, lon, lat, heading, last_updated, color, length, width) VALUES ('{str(mmsi+i)}', {wpt_i[0]}, {wpt_i[1]}, {heading_i}, '{time_sql_i.strftime(format=TIME_FORMAT)}', '{color_i}', {length*scale if length is not None else "NULL"}, {width*scale if width is not None else "NULL"})""")
 
                 
     def __repr__(self) -> str:
