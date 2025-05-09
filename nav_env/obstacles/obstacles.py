@@ -7,6 +7,7 @@ from nav_env.ships.states import States3
 from nav_env.control.states import DeltaStates
 from copy import deepcopy
 from mpl_toolkits.mplot3d.art3d import Poly3DCollection
+import numpy as np
 
 DEFAULT_INTEGRATION_STEP = 0.1
 class Obstacle(GeometryWrapper):
@@ -28,11 +29,11 @@ class Obstacle(GeometryWrapper):
     def __repr__(self):
         return f"Obstacle({self.centroid[0]:.2f}, {self.centroid[1]:.2f})"
     
-    def plot(self, *args, ax=None, c='black', **kwargs):
+    def plot(self, *args, ax=None, c='black', offset:tuple=None, **kwargs):
         """
         Plot the obstacle.
         """
-        return super().plot(*args, ax=ax, c=c, **kwargs)
+        return super().plot(*args, ax=ax, c=c, offset=offset, **kwargs)
     
     def fill(self, *args, ax=None, c='black', **kwargs):
         """
@@ -256,6 +257,54 @@ class MovingObstacle(Obstacle):
 
         return ax
     
+    def plot3_polyhedron_with_uncertainties(self, t:float, interval:dict, *args, ax=None, **kwargs):
+        """
+        Plot the obstacle in 3D while interval of confidence for both speed intensity and direction (in degrees)
+        """
+        if ax is None:
+            _, ax = plt.subplots(subplot_kw={'projection': '3d'})
+
+        # Get uncertainties as an interval of confidence, i.e. we assume v \in [v_min, v_max] and alpha \in [alpha_min, alpha_max]   
+        dv, dalpha  = 0., 0.
+        if 'speed' in interval.keys():
+            dv = interval['speed']
+        if 'direction' in interval.keys():
+            dalpha = 3.14159/180 * interval['direction'] # alpha in radians
+        alpha0 = self._initial_states.psi_rad
+        R = lambda a: np.array([[np.cos(a), -np.sin(a)], [np.sin(a), np.cos(a)]])
+        p_of_t = np.array([*self._pose_fn(t).xy]).T
+        p0 = np.array([*self._pose_fn(self._t0).xy]).T
+        n = np.array([-np.sin(alpha0), np.cos(alpha0)]).T
+        xy_0 = self.xy
+        z_0 = [self._t0]*len(xy_0[0])
+        
+        boundaries = [(-dv, -dalpha), (-dv, dalpha), (dv, dalpha), (dv, -dalpha)]
+        for dv_i, dalpha_i in boundaries:
+            p_i = R(dalpha_i) @ (p_of_t - p0 + n * dv_i * t) + p0
+            states_i = States3(p_i[0], p_i[1], (alpha0+dalpha_i)*180/np.pi)
+            xy_i = Obstacle(polygon=self._initial_geometry).rotate_and_translate(states_i.x, states_i.y, states_i.psi_deg).xy
+            z_i = [t]*len(xy_i[0])
+        
+            for j, (xyz_0j, xyz_ij) in enumerate(zip(zip(xy_0[0], xy_0[1], z_0), zip(xy_i[0], xy_i[1], z_i))):
+                if j==0:
+                    xyz0_prev = xyz_0j
+                    xyzf_prev = xyz_ij
+                    continue
+
+                polygon = Poly3DCollection([[xyz0_prev, xyz_0j, xyz_ij, xyzf_prev, xyz0_prev]], *args, **kwargs)
+                ax.add_collection(polygon)
+
+                xyz0_prev = xyz_0j
+                xyzf_prev = xyz_ij
+
+            polygon_i = Poly3DCollection([list(zip(xy_i[0], xy_i[1], z_i))], *args, **kwargs)
+            ax.add_collection(polygon_i)
+
+        polygon_at_t0 = Poly3DCollection([list(zip(xy_0[0], xy_0[1], z_0))], *args, **kwargs)
+        ax.add_collection(polygon_at_t0)
+        return ax
+
+    
     def plot3_polyhedron(self, t0:float, tf:float, *args, ax=None, **kwargs):
         """
         Plot the obstacle in 3D as a polyhedron
@@ -270,10 +319,6 @@ class MovingObstacle(Obstacle):
         states_at_tf:States3 = self.pose_fn(tf)
         xyf = Obstacle(polygon=self._initial_geometry).rotate_and_translate(states_at_tf.x, states_at_tf.y, states_at_tf.psi_deg).xy
         zf = [tf]*len(xy0[0])
-
-        x = xy0[0]+xyf[0]
-        y = xy0[1]+xyf[1]
-        z = z0+zf
 
         for i, (xyz0, xyzf) in enumerate(zip(zip(xy0[0], xy0[1], z0), zip(xyf[0], xyf[1], zf))):            
             if i==0:
@@ -424,14 +469,21 @@ def show_time_varying_obstacle_as_3d():
     o3 = MovingObstacle(initial_state=States3(0., 5., 0., -1.2, -0.5, 0.), xy=[(0, 0), (2, 0), (3, 1), (2, 2), (0, 2)])
     o4 = MovingObstacle(initial_state=States3(-3., -5., 0., 2., 0.2, 0.), xy=[(0, 0), (2, 0), (3, 1), (2, 2), (0, 2)])
     
-    coll = MovingObstacleCollection([o1, o2, o3, o4])
+    # coll = MovingObstacleCollection([o1, o2, o3, o4])
+    coll = MovingObstacleCollection([o1])
 
     fig = plt.figure()
     ax = fig.add_subplot(111, projection='3d')
     tmin, tmax = 0,  6
     
+    ax = coll.plot3_polyhedra_with_uncertainties(50, intervals={'speed': 1., 'direction': 5}, ax=ax)
+    o1.plot3_polyhedron(0, 50, ax=ax)
     for t in np.linspace(tmin, tmax, 50):
-        ax = coll.plot3(t, ax=ax, c='black', alpha=0.5, domain=True)
+        # ax = coll.plot3_polyhedra_with_uncertainties(t, intervals={'speed': 2., 'direction': 50}, ax=ax)
+        pass
+        # ax = o1.plot3_polyhedron()
+        # ax = coll.plot3(t, ax=ax, c='black', alpha=0.5, domain=True)
+
 
     # Build plane
     x0, y0, t0 = -10, -10, 0

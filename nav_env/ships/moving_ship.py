@@ -10,6 +10,9 @@ from nav_env.obstacles.obstacles import Obstacle
 from typing import Callable
 from random import randint
 from nav_env.control.path import TimeStampedWaypoints as TSWPT
+from seacharts import ENC
+import matplotlib.colors as mat_colors
+import matplotlib.pyplot as plt
 
 
 class MovingShip(MovingObstacle):
@@ -55,19 +58,47 @@ class MovingShip(MovingObstacle):
     def plot(self, *args, ax=None, params={'enveloppe':1}, c='r', **kwargs):
         super().plot(*args, ax=ax, params=params, c=c, **kwargs)
 
+    def plot_traj_to_enc(self, enc:ENC, times:list, colormap:str='viridis', alpha=1., width:float=None, thickness:float=None, edge_style:str | tuple=None, marker_type:str=None) -> None:
+        # Compute colors
+        t_min = min(times)
+        t_max = max(times)
+        norm = mat_colors.Normalize(vmin=t_min, vmax=t_max)
+        cmap = plt.get_cmap(colormap)
+
+        t_prev = None
+        wpt_prev = None
+        for t in times:
+            wpt = self.pose_fn(t).xy
+            if t_prev is None:
+                t_prev = t
+                wpt_prev = wpt
+                continue
+            # Get corresponding color
+            t_mean = (t+t_prev)/2
+            rgb = cmap(norm(t_mean))[:3]
+            color = mat_colors.to_hex((*rgb, alpha), keep_alpha=True)
+            enc.display.draw_line([wpt_prev, wpt], color=color, width=width, thickness=thickness, edge_style=edge_style, marker_type=marker_type)
+            t_prev = t
+            wpt_prev = wpt
+        return None
+
     def export_future_to_database(
         self,
+        times:list,
         timestamps:list,
         path_to_database:str,
         colormap:str='viridis',
+        alpha:float=1.,
         table:str='AisHistory',
         heading_in_seacharts_frame:bool=True,
         clear_table:bool=False,
         scale:float=1.
     ) -> None:
-        return TSWPT.from_trajectory_fn(self.pose_fn, timestamps).to_sql(path_to_database=path_to_database,
+        return TSWPT.from_trajectory_fn(self.pose_fn, times).to_sql(path_to_database=path_to_database,
                                                                   mmsi=int(self.mmsi),
+                                                                  timestamps=timestamps,
                                                                   colormap=colormap,
+                                                                  alpha=alpha,
                                                                   table=table,
                                                                   heading_in_seacharts_frame=heading_in_seacharts_frame,
                                                                   clear_table=clear_table,

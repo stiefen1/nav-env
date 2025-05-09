@@ -168,6 +168,19 @@ class MovingObstacleCollection:
             obs.plot3(t, ax=ax, **kwargs)
         return ax
     
+    def plot3_polyhedra_with_uncertainties(self, t:float, intervals:list[dict] | dict, *args, ax=None, **kwargs):
+        if ax is None:
+            _, ax = plt.subplots(subplot_kw={'projection': '3d'})
+
+        if not(isinstance(intervals, list)):
+            intervals = len(self._obstacles) * [intervals]
+
+        assert self.__len__() == len(intervals), f"You must specify either one or as many intervals as you have obstacles. Got {len(intervals)} intervals instead of {self.__len__()}."            
+
+        for obs, interval in zip(self._obstacles, intervals):
+            obs.plot3_polyhedron_with_uncertainties(t, interval, *args, ax=ax, **kwargs)
+        return ax
+    
     def quiver_speed(self, ax=None, **kwargs):
         """
         Plot the speed of the obstacles.

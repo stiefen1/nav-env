@@ -1,10 +1,10 @@
 from nav_env.environment.environment import NavigationEnvironment
 from nav_env.ships.ship import Ship
-from nav_env.obstacles.obstacles import MovingObstacle
+from nav_env.obstacles.obstacles import MovingObstacle, Obstacle, Ellipse
 from nav_env.risk.risk import RiskMetric
 from nav_env.risk.utils import get_relative_position_and_speed
-from nav_env.obstacles.obstacles import Ellipse
 from math import cos, sin, pi
+import numpy as np
 
 
 def get_ddv_terms(own_ship: MovingObstacle, target_ship: MovingObstacle) -> float:
@@ -147,6 +147,39 @@ def get_tdv(own_ship: MovingObstacle, target_ship: MovingObstacle) -> float:
     tdv:float = min(tdv1, tdv2)
     return tdv
 
+def get_static_ddv(domain: Ellipse, heading:float, x:float, y:float, return_fmin:bool=False) -> float:
+    """
+    
+    """
+
+    da_ts = domain.da # offset
+    db_ts = domain.db
+    a_ts = domain.a # radius
+    b_ts = domain.b
+
+    # print(f"da: {da_ts}, db: {db_ts}, a: {a_ts}, b: {b_ts}")
+
+    # # Place center in the ellipse frame
+    x -= domain.center[0]
+    y -= domain.center[1]
+
+    # Rotate the point to the ellipse frame
+    sin2:float = sin(heading + pi/2)
+    cos2:float = cos(heading + pi/2)
+
+    x_rot:float = x * cos2 + y * sin2
+    y_rot:float = x * sin2 - y * cos2
+
+    # Calculate the degree of domain violation
+    fmin:float = ((x_rot - da_ts) / a_ts)**2 + ((y_rot - db_ts) / b_ts)**2 # If this equals 1, no violation
+
+    # print(f"Rotated point: ({x_rot}, {y_rot}), fmin: {fmin}, x: {x}, y: {y}, a: {a_ts}, b: {b_ts}, da: {da_ts}, db: {db_ts}")
+    ddv = max(0.0, 1.0 - fmin)
+
+    if return_fmin:
+        return ddv, fmin
+    return ddv
+
 def get_current_ddv(obstacle: MovingObstacle, x:float, y:float) -> float:
     """
     Calculate the current Degree of Domain Violation of an object located at x, y
@@ -173,12 +206,89 @@ def get_current_ddv(obstacle: MovingObstacle, x:float, y:float) -> float:
     y_rot:float = x * sin2 - y * cos2
 
     # Calculate the degree of domain violation
-    fmin:float = ((x_rot - da_ts) / a_ts)**2 + ((y_rot - db_ts) / b_ts)**2 # If this equals 1, no violation
+    fmin:float = ((x_rot - da_ts) / a_ts)**2 + ((y_rot - db_ts) / b_ts)**2 # If this equals 1, (x_rot, y_rot) is at the boundary of the ellipse
 
     # print(f"Rotated point: ({x_rot}, {y_rot}), fmin: {fmin}, x: {x}, y: {y}, a: {a_ts}, b: {b_ts}, da: {da_ts}, db: {db_ts}")
 
     ddv = max(0.0, 1.0 - fmin)
     return ddv
+
+def get_distance_to_domain(domain: Ellipse, heading:float, x:float, y:float) -> float:
+    """
+    
+    """
+
+    da_ts = domain.da # offset
+    db_ts = domain.db
+    a_ts = domain.a # radius
+    b_ts = domain.b
+
+    # print(f"da: {da_ts}, db: {db_ts}, a: {a_ts}, b: {b_ts}")
+
+    # # Place center in the ellipse frame
+    x -= domain.center[0]
+    y -= domain.center[1]
+    # print(x,y)
+
+    # Rotate the point to the ellipse frame
+    sin2:float = sin(heading + pi/2)
+    cos2:float = cos(heading + pi/2)
+
+    x_rot:float = x * cos2 + y * sin2
+    y_rot:float = x * sin2 - y * cos2
+
+    p = np.array([x_rot, y_rot]).T
+    norm_of_p = np.linalg.norm(p)
+    n = p / norm_of_p
+    # print(x_rot, y_rot)
+    # print(nx, ny, xy_norm)
+
+    a, b = da_ts, db_ts
+    A, B = a_ts**2, b_ts**2
+
+    a_viete = (B*n[0]**2 + A*n[1]**2)
+    b_viete = -2*(B*n[0]*a+A*n[1]*b)
+    c_viete = B * a**2 + A * b**2 - (A * B)
+
+    discrim = b_viete**2 - 4*a_viete*c_viete
+    # print(a, b, c)
+
+    s1 = (-b_viete + discrim**0.5)/(2*a_viete)
+    s2 = (-b_viete - discrim**0.5)/(2*a_viete)
+    # print(s1, s2)
+    # print(abs(s1-1), abs(s2-1))
+    # dist = min([abs(s1-1), abs(s2-1)])
+    if s1 >= 0:
+        s = s1
+    elif s2 > 0:
+        s = s2
+    else:
+        raise ValueError(f"Unable to solve ellipsoid equation, s should have at least one solution that satisfies s>=0 but s1={s1}, s2={s2}")
+
+    p1 = s*n # This vector is supposed to be at the boundary of the ellipse
+    dist = np.linalg.norm(p-p1)
+    return dist if norm_of_p > s else -dist
+    # p2 = s2*p0
+    # if p0.T@p1 > 0:
+        # return np.linalg.norm(p-p1)
+    # elif p0.T@p2 > 0:
+    #     return np.linalg.norm(p-p2)
+
+    # print(xy_norm-s1, xy_norm-s2)
+    # return dist
+    
+    # p1 = s1*np.array([nx, ny])
+    # p2 = s2*np.array([nx, ny])
+
+    # d1 = np.linalg.norm(p1)
+
+    # Calculate the degree of domain violation
+    # fmin:float = ((x_rot - da_ts) / a_ts)**2 + ((y_rot - db_ts) / b_ts)**2 # If this equals 1, (x_rot, y_rot) is at the boundary of the ellipse
+
+    # print(f"Rotated point: ({x_rot}, {y_rot}), fmin: {fmin}, x: {x}, y: {y}, a: {a_ts}, b: {b_ts}, da: {da_ts}, db: {db_ts}")
+
+    # ddv = max(0.0, 1.0 - fmin)
+    # return ddv
 
 
 class DDV(RiskMetric):

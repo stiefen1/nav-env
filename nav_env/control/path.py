@@ -6,6 +6,7 @@ import warnings, sqlite3
 from datetime import datetime, timedelta
 from math import atan2, pi
 from typing import Any, Callable
+from seacharts import ENC
 TIME_FORMAT = "%d-%m-%Y %H:%M:%S"
 
 class Waypoints(GeometryWrapper):
@@ -131,12 +132,22 @@ class TimeStampedWaypoints(Waypoints):
         if ax is None:
             _, ax = plt.subplots()
         if t0 is None:
-            t0, tf, N = self._t0, self._tf, len(self._timestamped_waypoints)
+            t0 = self._t0
+        if tf is None:
+            tf = self._tf
+        if N is None:
+            N = len(self._timestamped_waypoints)
         return self._plot_and_scatter_wrapper(ax.plot.__name__, t0, tf, N, ax, *args, mode=mode, text=text, grid=grid, **kwargs)
         
-    def scatter(self, t0:float, tf:float, N:int, *args, mode='traj', ax=None, text:bool=False, grid:bool=True, **kwargs):
+    def scatter(self, t0:float=None, tf:float=None, N:int=None, *args, mode='traj', ax=None, text:bool=False, grid:bool=True, **kwargs):
         if ax is None:
             _, ax = plt.subplots()
+        if t0 is None:
+            t0 = self._t0
+        if tf is None:
+            tf = self._tf
+        if N is None:
+            N = len(self._timestamped_waypoints)
         return self._plot_and_scatter_wrapper(ax.scatter.__name__, t0, tf, N, ax, *args, mode=mode, text=text, grid=grid, **kwargs)
 
     def _plot_and_scatter_wrapper(self, func_name:str, t0:float, tf:float, N:int, ax, *args, mode='traj', text:bool=False, grid:bool=True, **kwargs):
@@ -187,32 +198,67 @@ class TimeStampedWaypoints(Waypoints):
             raise ValueError(f"mode must be either traj, x or y but is {mode}")
         return ax
     
-    def get_times_in_sql_format(self, t0:str, format:str=TIME_FORMAT) -> list[datetime]:
+    def get_times_in_sql_format(self, t0:str, timestamps:list=None, format:str=TIME_FORMAT) -> list[datetime]:
+        timestamps = self._times if timestamps is None else timestamps
         t0 = datetime.strptime(t0, format)
         times_sql = []
-        for t in self._times:
+        for t in timestamps:
             t_sql = t0 + timedelta(seconds=t)
             times_sql.append(t_sql)
         return times_sql
     
-    def get_colors_from_time(self, colormap:str='viridis') -> list[str]:
+    def get_colors_from_time(self, timestamps:list=None, colormap:str='viridis', alpha=1.) -> list[str]:
+        timestamps = self._times if timestamps is None else timestamps
         t_min = min(self._times)
         t_max = max(self._times)
         norm = mat_colors.Normalize(vmin=t_min, vmax=t_max)
         cmap = plt.get_cmap(colormap)
         
         colors = []
-        for ti in self._times:
+        for ti in timestamps:
             rgb = cmap(norm(ti))[:3]
-            color = mat_colors.rgb2hex(rgb)
+            # color = mat_colors.rgb2hex(rgb)
+            color = mat_colors.to_hex((*rgb, alpha), keep_alpha=True)
             colors.append(color)
 
         return colors
+    
+    def plot_to_enc(self, enc:ENC, colormap:str='viridis', alpha=1., width:float=None, thickness:float=None, edge_style:str | tuple=None, marker_type:str=None) -> None:
+        # Compute colors
+        t_min = min(self._times)
+        t_max = max(self._times)
+        norm = mat_colors.Normalize(vmin=t_min, vmax=t_max)
+        cmap = plt.get_cmap(colormap)
+
+        t_prev = None
+        wpt_prev = None
+        for t, wpt in self._timestamped_waypoints:
+            if t_prev is None:
+                t_prev = t
+                wpt_prev = wpt
+                continue
+            # Get corresponding color
+            t_mean = (t+t_prev)/2
+            rgb = cmap(norm(t_mean))[:3]
+            color = mat_colors.to_hex((*rgb, alpha), keep_alpha=True)
+            enc.display.draw_line([wpt_prev, wpt], color=color, width=width, thickness=thickness, edge_style=edge_style, marker_type=marker_type)
+            t_prev = t
+            wpt_prev = wpt
+        return None
+    
+    def get_waypoints(self, timestamps:list=None) -> list:
+        timestamps = self._times if timestamps is None else timestamps
+        waypoints = []
+        for ti in timestamps:
+            waypoints.append(self(ti))
+        return waypoints
 
     def to_sql(self,
                path_to_database:str,
                mmsi:int,
+               timestamps:list=None,
                colormap:str='viridis',
+               alpha:float=1.,
                table:str='AisHistory',
                t0:str='26-08-2024 08:00:00',
                heading_in_seacharts_frame:bool=True,
@@ -225,9 +271,12 @@ class TimeStampedWaypoints(Waypoints):
         Save timestamped waypoints into a SQL database. Currently, we use a trick to visualize the same ship multiple times. If we have to show one ship at N different timestamps,
         we create N different mmsi. If the input mmsi=100000000, and we have 3 timestamps to show, then we will have mmsi = [100000000, 100000001, 100000002]
         """
-        headings = self.get_default_headings_deg(seacharts_frame=heading_in_seacharts_frame)
-        times_sql = self.get_times_in_sql_format(t0)
-        colors = self.get_colors_from_time(colormap=colormap)
+        if not isinstance(timestamps, list):
+            timestamps = [timestamps]
+        headings = self.get_default_headings_from_fn_deg(timestamps=timestamps, seacharts_frame=heading_in_seacharts_frame)
+        times_sql = self.get_times_in_sql_format(t0, timestamps=timestamps)
+        colors = self.get_colors_from_time(timestamps=timestamps, colormap=colormap, alpha=alpha)
+        waypoints = self.get_waypoints(timestamps=timestamps)
 
         with sqlite3.connect(path_to_database) as connection:
             cursor = connection.cursor()
@@ -250,7 +299,7 @@ class TimeStampedWaypoints(Waypoints):
             if not table_exist:
                 cursor.execute(f"""CREATE TABLE {table} (mmsi text, lon int, lat int, heading float, last_updated text, color text, length float, width float)""")
 
-            for i, (wpt_i, heading_i, time_sql_i, color_i) in enumerate(zip(self._waypoints, headings, times_sql, colors)):
+            for i, (wpt_i, heading_i, time_sql_i, color_i) in enumerate(zip(waypoints, headings, times_sql, colors)):
                 cursor.execute(f"""INSERT INTO {table} (mmsi, lon, lat, heading, last_updated, color, length, width) VALUES ('{str(mmsi+i)}', {wpt_i[0]}, {wpt_i[1]}, {heading_i}, '{time_sql_i.strftime(format=TIME_FORMAT)}', '{color_i}', {length*scale if length is not None else "NULL"}, {width*scale if width is not None else "NULL"})""")
 
                 
@@ -259,12 +308,33 @@ class TimeStampedWaypoints(Waypoints):
 
     def __str__(self) -> str:
         return f"{type(self).__name__}"
+    
+    def get_single_default_heading_from_fn_deg(self, t:float, eps:float=1e-6, seacharts_frame:bool=True) -> float:
+        if t + eps > self._tf:
+            wpt1 = self(self._tf-eps)
+            wpt2 = self(self._tf)
+        elif t - eps < self._t0:
+            wpt1 = self(self._t0)
+            wpt2 = self(self._t0 + eps)
+        else:
+            wpt1 = self(t-eps)
+            wpt2 = self(t+eps)
+        return compute_heading_deg_from_wpts(wpt1, wpt2, seacharts_frame=seacharts_frame)
+    
+    def get_default_headings_from_fn_deg(self, timestamps:list=None, eps:float=1e-6, seacharts_frame:bool=True) -> list[float]:
+        timestamps = self._times if timestamps is None else timestamps
+
+        headings = []
+        for ti in timestamps:
+            headings.append(self.get_single_default_heading_from_fn_deg(ti, eps=eps, seacharts_frame=seacharts_frame))
+        return headings
 
 def compute_heading_deg_from_wpts(wpt1, wpt2, seacharts_frame:bool=True) -> float:
     x1, y1 = wpt1[0], wpt1[1]
     x2, y2 = wpt2[0], wpt2[1]
     angle = 180 * atan2((x1-x2), (y2-y1)) / pi
     return -angle if seacharts_frame else angle
+
 
 def test():
     import numpy as np

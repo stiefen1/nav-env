@@ -20,15 +20,16 @@ class GeometryWrapper:
             raise ValueError("Either xy or polygon must be provided.")
         
 
-    def plot(self, *args, ax=None, c=None, **kwargs):
+    def plot(self, *args, ax=None, c=None, offset:np.ndarray=np.array([0., 0.]), **kwargs):
         """
         Plot the geometry.
         """
 
         if ax is None:
             _, ax = plt.subplots()
-        
-        ax.plot(*self.xy, *args, c=c, **kwargs)
+
+        xy = self.translate(-offset[0], -offset[1]).xy
+        ax.plot(*xy, *args, c=c, **kwargs)
         return ax
     
     def fill(self, *args, ax=None, c=None, **kwargs):
@@ -212,7 +213,9 @@ class GeometryWrapper:
         return self._geometry.distance(get_geometry_from_object(other), **kwargs)
     
     
-def get_geometry_from_object(geometry: Geometry|GeometryWrapper) -> GeometryWrapper:
+def get_geometry_from_object(geometry: Geometry|GeometryWrapper|tuple) -> GeometryWrapper:
     if isinstance(geometry, (Polygon, LineString)):
         return geometry
+    elif isinstance(geometry, tuple):
+        return Point(*geometry)
     return geometry()
