@@ -31,7 +31,13 @@ class LOSLookAhead(Guidance):
         self._ki = ki
 
     def get_desired_heading(self, x, y, *args, degree=False, **kwargs):
-        return 0
+        if self.within_radius_of_acceptance(x, y):
+            self.next_waypoint()
+        next_wpt = self.get_next_waypoint()
+        prev_wpt = self.get_prev_waypoint()
+        convert_unit = 180/pi if degree else 1
+        return convert_unit*LOS_lookahead(x, y, prev_wpt, next_wpt, *args, kp=self._kp, **kwargs)
+    
 
 class LOSLoopEnclosure(Guidance):
     def __init__(self, waypoints: Waypoints, radius:float, *args, current_wpt_idx:int=0, radius_of_acceptance:float=50, **kwargs):
@@ -39,9 +45,14 @@ class LOSLoopEnclosure(Guidance):
         self._radius = radius
 
     def get_desired_heading(self, x, y, *args, degree=False, **kwargs):
-        return 0
+        if self.within_radius_of_acceptance(x, y):
+            self.next_waypoint()
+        next_wpt = self.get_next_waypoint()
+        prev_wpt = self.get_prev_waypoint()
+        convert_unit = 180/pi if degree else 1
+        return convert_unit*LOS_enclosure(x, y, prev_wpt, next_wpt, *args, R=self._radius, **kwargs)
 
-def LOS_enclosure(x, y, w_prev, w_next, R:float=50):
+def LOS_enclosure(x, y, w_prev, w_next, *args, R:float=50, **kwargs):
     dwx = w_next[0] - w_prev[0]
     dwy = w_next[1] - w_prev[1]
 
@@ -86,7 +97,7 @@ def LOS_enclosure(x, y, w_prev, w_next, R:float=50):
 
     return x_los, y_los, psi_d*180/pi
 
-def LOS_lookahead(x, y, w_prev, w_next, kp:float=3.5e-2):
+def LOS_lookahead(x, y, w_prev, w_next, *args, kp:float=3.5e-2, **kwargs):
     """
     psi_d(e) = psi_p + psi_r(e) = alpha_k + atan(-Kp*e)
     """

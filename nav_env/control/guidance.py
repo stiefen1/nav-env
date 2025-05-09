@@ -16,6 +16,13 @@ class Guidance(ABC):
     def get_next_waypoint(self):
         return self._waypoints[self._current_wpt_idx+1]
     
+    def get_prev_waypoint(self):
+        if self._current_wpt_idx > 0:
+            return self._waypoints[self._current_wpt_idx-1]
+        else:
+            print("Unable to fetch a previous waypoint, the initial waypoint will be returned instead..")
+            return self._waypoints[0]
+    
     def next_waypoint(self):
         # If we reached the final waypoint do not increment
         if self._current_wpt_idx >= self.n - 1:
@@ -26,6 +33,7 @@ class Guidance(ABC):
     def within_radius_of_acceptance(self, x, y) -> bool:
         wx, wy = self.get_next_waypoint()
         return ((wx-x)**2 + (wy-y)**2) <= self._radius_of_acceptance**2
+    
 
     @property
     def n(self) -> int:
