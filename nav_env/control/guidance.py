@@ -2,15 +2,18 @@ from math import atan2, pi, sqrt
 import numpy as np
 from nav_env.control.path import Waypoints
 from abc import ABC, abstractmethod
-
-class Guidance(ABC):
+from nav_env.ships.states import States3
+class GuidanceBase(ABC):
     def __init__(self, waypoints: Waypoints, current_wpt_idx:int, radius_of_acceptance:float, *args, **kwargs):
         self._waypoints = waypoints
         self._current_wpt_idx = current_wpt_idx # Current waypoint is the one we just reached
         self._radius_of_acceptance = radius_of_acceptance
 
     @abstractmethod
-    def get_desired_heading(self, x, y, *args, degree=False, **kwargs) -> float:
+    def get(self, state:States3, *args, **kwargs) -> States3:
+        pass
+
+    def reset(self) -> None:
         pass
 
     def get_next_waypoint(self):
@@ -31,7 +34,7 @@ class Guidance(ABC):
         return
     
     def within_radius_of_acceptance(self, x, y) -> bool:
-        wx, wy = self.get_next_waypoint()
+        wx, wy = self.current_waypoint
         return ((wx-x)**2 + (wy-y)**2) <= self._radius_of_acceptance**2
     
 
@@ -46,3 +49,12 @@ class Guidance(ABC):
     @property
     def current_idx(self) -> int:
         return self._current_wpt_idx
+    
+class Guidance(GuidanceBase):
+    """Just a default class to be instantied if nothing else is provided --> guidance = guidance or Guidance()"""
+    def __init__(self, waypoints: Waypoints=[], current_wpt_idx:int=0, radius_of_acceptance:float=50., *args, **kwargs):
+        super().__init__(waypoints=waypoints, current_wpt_idx=current_wpt_idx, radius_of_acceptance=radius_of_acceptance, *args, **kwargs)
+
+    def get(self, state:States3, *args, **kwargs) -> States3:
+        return state
+    

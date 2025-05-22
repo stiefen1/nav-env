@@ -56,7 +56,7 @@ class MovingShip(MovingObstacle):
             )
         
     def plot(self, *args, ax=None, params={'enveloppe':1}, c='r', **kwargs):
-        super().plot(*args, ax=ax, params=params, c=c, **kwargs)
+        return super().plot(*args, ax=ax, params=params, c=c, **kwargs)
 
     def plot_traj_to_enc(self, enc:ENC, times:list, colormap:str='viridis', alpha=1., width:float=None, thickness:float=None, edge_style:str | tuple=None, marker_type:str=None) -> None:
         # Compute colors
@@ -92,7 +92,8 @@ class MovingShip(MovingObstacle):
         table:str='AisHistory',
         heading_in_seacharts_frame:bool=True,
         clear_table:bool=False,
-        scale:float=1.
+        scale:float=1.,
+        isolate_timestamps:bool=False
     ) -> None:
         return TSWPT.from_trajectory_fn(self.pose_fn, times).to_sql(path_to_database=path_to_database,
                                                                   mmsi=int(self.mmsi),
@@ -104,7 +105,8 @@ class MovingShip(MovingObstacle):
                                                                   clear_table=clear_table,
                                                                   length=self.length,
                                                                   width=self.width,
-                                                                  scale=scale
+                                                                  scale=scale,
+                                                                  isolate_timestamps=isolate_timestamps
                                                                   )
 
     @property

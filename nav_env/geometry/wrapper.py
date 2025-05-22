@@ -20,13 +20,16 @@ class GeometryWrapper:
             raise ValueError("Either xy or polygon must be provided.")
         
 
-    def plot(self, *args, ax=None, c=None, offset:np.ndarray=np.array([0., 0.]), **kwargs):
+    def plot(self, *args, ax=None, c=None, offset=None, **kwargs):
         """
         Plot the geometry.
         """
 
         if ax is None:
             _, ax = plt.subplots()
+
+        if offset is None:
+            offset = np.array([0., 0.])
 
         xy = self.translate(-offset[0], -offset[1]).xy
         ax.plot(*xy, *args, c=c, **kwargs)
@@ -79,6 +82,9 @@ class GeometryWrapper:
     def xy(self) -> tuple:
         if isinstance(self._geometry, Polygon):
             return self._geometry.exterior.coords.xy
+        # if isinstance(self._geometry)
+        # print(type(self._geometry))
+        # print("XY:", self._geometry.xy)
         return self._geometry.xy
     
     @property
@@ -191,6 +197,11 @@ class GeometryWrapper:
         new._geometry = self._geometry.union(get_geometry_from_object(other), **kwargs).convex_hull
         return new
     
+    def union(self, other, **kwargs) -> "GeometryWrapper":
+        new = deepcopy(self)
+        new._geometry = self._geometry.union(get_geometry_from_object(other), **kwargs)
+        return new 
+    
     def difference(self, other, **kwargs) -> "GeometryWrapper":
         new = deepcopy(self)
         new._geometry = self._geometry.difference(get_geometry_from_object(other), **kwargs)
@@ -198,7 +209,21 @@ class GeometryWrapper:
     
     def buffer(self, distance: float, **kwargs) -> "GeometryWrapper":
         new = deepcopy(self)
-        new._geometry = self._geometry.buffer(distance, **kwargs)
+        # print("0", new.centroid, self.centroid)
+        
+        try: # For MovingObstacle objects
+            # print("#-------------------------Moving Obstacle------------------------------#")
+            new._initial_geometry = new._initial_geometry.buffer(distance, **kwargs)
+        except:
+            # print("#-------------------------Static Obstacle------------------------------#")
+            new.center_inplace()
+            # print("1", new.centroid, self.centroid)
+            new._geometry = new._geometry.buffer(distance, **kwargs) 
+            new.center_inplace() # Useful because buffering might change centroid
+            # print("2", new.centroid, self.centroid)
+
+            new.translate_inplace(*self.centroid)
+            # print("3", new.centroid, self.centroid)
         return new
     
     def simplify(self, tolerance: float, **kwargs) -> "GeometryWrapper":

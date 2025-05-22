@@ -4,6 +4,23 @@ from nav_env.geometry.utils import *
 from nav_env.geometry.vector import Vector
 import matplotlib.pyplot as plt
 
+LOC_HASHMAP = {
+    "upper right": (1, 1),
+    "upper left": (-1, 1),
+    "lower right": (1, -1),
+    "lower left": (-1, -1),
+    "center": (0, 0),
+    "center right": (1, 0),
+    "center left": (-1, 0),
+    "lower center": (0, -1),
+    "upper center": (0, 1)
+}
+
+LABEL_HASHMAP = {
+    'SI': (1.0, 'm/s'),
+    'kn': (1.94384001, 'kn')
+}
+
 class VectorSource(ABC):
     """
     Abstract base class for wind sources.
@@ -69,6 +86,41 @@ class VectorSource(ABC):
                 ax.quiver(vec.x, vec.y, vec.vx, vec.vy, label=label, **kwargs)
                 label = None
         return ax
+    
+    def compass(self, lim:tuple[tuple, tuple], *args, ax=None, label:str=None, size:float=0.2, loc:str='upper right', alpha:float=0.8, **kwargs):
+        """
+        size = compass diameter / smallest side
+        """
+        assert size <= 1 and size >= 0.01, f"size must be in range [0.01, 1] but is {size}"
+        if ax is None:
+            _, ax = plt.subplots()
+
+        x_min, y_min = lim[0]
+        x_max, y_max = lim[1]
+        center = (x_min+x_max)/2, (y_min+y_max)/2
+
+        # Diameter
+        dy, dx = abs(y_max - y_min), (x_max - x_min)
+        dmin = min(dy, dx)
+        D = dmin * size # Compass' diameter
+
+        # center
+        d = D/8 # distance between outter circle and limits
+        loc_dir = LOC_HASHMAP[loc]
+        x, y = (dx/2-d-D/2)*loc_dir[0]+center[0], (dy/2-d-D/2)*loc_dir[1]+center[1]
+        outter_circle = plt.Circle((x, y), radius=D/2, facecolor='white', edgecolor='black', alpha=alpha)
+        vec = self((x, y)).normalize() * D * 0.75
+        
+        if label is not None:
+            assert label in LABEL_HASHMAP.keys(), f"label can take values {LABEL_HASHMAP.keys()} but is {label}"
+            ax.text(x-vec.vy/3.5, y+vec.vx/3.5, f'{self((x, y)).norm()*LABEL_HASHMAP[label][0]:.1f}{LABEL_HASHMAP[label][1]}', color='black', size=8, ha='center')
+            ax.text(x+vec.vy/3.5, y-vec.vx/3.5, 'Wind', color='black', size=8, ha='center')
+
+        ax.add_patch(outter_circle)
+        ax.quiver(vec.x-vec.vx/2, vec.y-vec.vy/2, vec.vx, vec.vy, scale_units='xy', scale=1, facecolor='black')
+        
+
+        return ax
 
     def draw():
         """
@@ -96,3 +148,4 @@ class VectorSource(ABC):
     @property
     def domain(self) -> Polygon:
         return self._domain    
+    

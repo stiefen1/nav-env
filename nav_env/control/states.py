@@ -48,6 +48,50 @@ class BaseStateVector(ABC):
 
         pygame.draw.line(screen, color, (x, y), (x_tip, y_tip), *args, **kwargs)
 
+    def __eq__(self, other:"BaseStateVector") -> tuple[bool]:
+        list_of_bool = []
+        for key in self.__dict__.keys():
+            if self[key] == other[key]:
+                list_of_bool.append(True)
+            else:
+                list_of_bool.append(False)
+        return tuple(list_of_bool)
+    
+    def __ge__(self, other:"BaseStateVector") -> tuple[bool]:
+        list_of_bool = []
+        for key in self.__dict__.keys():
+            if self[key] >= other[key]:
+                list_of_bool.append(True)
+            else:
+                list_of_bool.append(False)
+        return tuple(list_of_bool)
+    
+    def __gt__(self, other:"BaseStateVector") -> tuple[bool]:
+        list_of_bool = []
+        for key in self.__dict__.keys():
+            if self[key] > other[key]:
+                list_of_bool.append(True)
+            else:
+                list_of_bool.append(False)
+        return tuple(list_of_bool)
+    
+    def __ne__(self, other:"BaseStateVector") -> tuple[bool]:
+        list_of_bool = []
+        for key in self.__dict__.keys():
+            if self[key] != other[key]:
+                list_of_bool.append(True)
+            else:
+                list_of_bool.append(False)
+        return tuple(list_of_bool)
+    
+    def __neg__(self):
+        new_dict = {}
+        for key, val in zip(self.keys, self.values):
+            new_dict.update({key: -val})
+        return type(self).__call__(**new_dict)
+    
+    def __len__(self) -> int:
+        return len(self.keys)
 
     def __mul__wrapper__(self, scalar:float, output_type):
         new_values = tuple([value * scalar for value in self.__dict__.values()])
@@ -180,6 +224,14 @@ def test():
     print(x['x'], x[0]/2, x.x/4)
     x.x = 30
     print(x['x'], x[0]/2, x.x/4)
+
+    x = States(x=2, y=3, yaw=4)
+    y = States(x=2, y=4, yaw=2)
+    print(x==y)
+    print(x<=y)
+    print(x>y)
+    print(x>=y)
+    print(x!=y)
 
 if __name__ == "__main__":
     test()

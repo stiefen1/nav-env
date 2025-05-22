@@ -28,7 +28,7 @@ class ObstacleCollection:
         """
         obstacles = self._obstacles
         graph = get_graph_of_connected_obstacles(self, min_distance)
-        new_obstacles = get_union_of_connected_obstacles_as_list(graph, obstacles)
+        new_obstacles = get_convex_hull_of_union_of_connected_obstacles_as_list(graph, obstacles)
 
         self._obstacles = new_obstacles
 
@@ -58,6 +58,28 @@ class ObstacleCollection:
                 if inter.area > 0:
                     obstacles.append(Obstacle(polygon=inter, depth=obs.depth))
         return ObstacleCollection(obstacles)
+    
+    def group_intersecting_obstacles(self) -> "ObstacleCollection":
+        """
+        Combine obstacles whose intersection (between them) is not null --> I BELIEVE IT IS NOT WORKING PROPERLY 
+        """
+        obstacles = self._obstacles
+        graph = get_graph_of_intersecting_obstacles(self)
+        new_obstacles = get_union_of_connected_obstacles_as_list(graph, obstacles)
+
+        self._obstacles = new_obstacles
+
+        # if recursive and some_obstacles_are_too_close(new_obstacles, min_distance):
+        #     self.group_obstacles_closer_than(min_distance, recursive=True)
+
+    def get_collection_of_convex_hull(self) -> "ObstacleCollection":
+        new_obstacles = []
+        for obs in self._obstacles:
+            # obs.plot()
+            # plt.show()
+            new_obs = Obstacle(obs.convex_hull().get_xy_as_list())
+            new_obstacles.append(new_obs)
+        return ObstacleCollection(new_obstacles)
 
     def buffer(self, distance:float, **kwargs) -> "ObstacleCollection":
         """
@@ -248,6 +270,42 @@ class MovingObstacleCollection:
             yield obs
 
 
+def get_graph_of_intersecting_obstacles(obstacles: ObstacleCollection) -> nx.Graph:
+    """
+    Get a graph of intersecting obstacles.
+    """
+    graph = nx.Graph()
+    graph.add_nodes_from(range(len(obstacles)))
+    for i in range(1, len(obstacles)):
+        obs_i = obstacles[i]
+        for j in range(i):
+            obs_j = obstacles[j]
+            if obs_j.intersects(obs_i):
+                graph.add_edge(i, j)
+            # d = obs_i.distance(obs_j)
+            # if d < min_distance:
+            #     graph.add_edge(i, j)
+    return graph
+
+def get_union_of_connected_obstacles_as_list(graph: nx.Graph, obstacles: list | ObstacleCollection) -> list[set]:
+    groups = list(nx.connected_components(graph))
+    # combine obstacles in each group
+    new_obstacles = []
+    for group in groups:
+        group_list = list(group)
+        new_obstacle = obstacles[group_list[0]]
+        for i in range(1, len(group_list)):
+            obs_i = obstacles[group_list[i]]
+            print("Intersection? ", obs_i.intersects(new_obstacle))
+            print(type(new_obstacle.union(obs_i)()))
+            ax = new_obstacle.plot()
+            obs_i.plot(ax=ax)
+            plt.show()
+
+            new_obstacle = Obstacle(new_obstacle.union(obs_i).get_xy_as_list())
+        new_obstacles.append(new_obstacle)
+    return new_obstacles
+
 def get_graph_of_connected_obstacles(obstacles: ObstacleCollection, min_distance:float) -> nx.Graph:
     """
     Get a graph of connected obstacles.
@@ -263,7 +321,7 @@ def get_graph_of_connected_obstacles(obstacles: ObstacleCollection, min_distance
                 graph.add_edge(i, j)
     return graph
 
-def get_union_of_connected_obstacles_as_list(graph: nx.Graph, obstacles) -> list[set]:
+def get_convex_hull_of_union_of_connected_obstacles_as_list(graph: nx.Graph, obstacles) -> list[set]:
     groups = list(nx.connected_components(graph))
     # combine obstacles in each group
     new_obstacles = []
@@ -317,8 +375,9 @@ def test_collection():
 
 def test_time_varying_collection():
     import time
-    o1 = MovingObstacle(lambda t: (t, -t, t*10), xy=[(0, 0), (2, 0), (2, 2), (0, 2)]).rotate(45).translate(0., 9.)
-    o2 = MovingObstacle(lambda t: (t, t, t*20), xy=[(0, 0), (2, 0), (2, 2), (0, 2)]).rotate(45).translate(0., 0.)
+    from nav_env.ships.states import States3
+    o1 = MovingObstacle(pose_fn=lambda t: States3(t, 10-t, t*10), xy=[(0, 0), (2, 0), (2, 2), (0, 2)])
+    o2 = MovingObstacle(pose_fn=lambda t: States3(t, t, t*20), xy=[(0, 0), (2, 0), (2, 2), (0, 2)])
     coll = MovingObstacleCollection([o1, o2])
     ax = coll(0).plot()
     ax.set_xlim(0, 10)

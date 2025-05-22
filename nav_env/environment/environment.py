@@ -14,7 +14,7 @@ class NavigationEnvironment:
                  shore: list = None,
                  wind_source:WindSource = None,
                  water_source:WaterSource = None,
-                 dt:float=0.1,
+                 dt:float=None,
                  **kwargs
                  ): 
         self._own_ships = ShipCollection(own_ships or [])

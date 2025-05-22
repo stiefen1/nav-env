@@ -10,9 +10,11 @@ from nav_env.obstacles.collection import ObstacleCollection
 from nav_env.obstacles.obstacles import Obstacle
 from nav_env.simulation.integration import Integrator, Euler
 from nav_env.control.command import GeneralizedForces
-from nav_env.control.controller import ControllerBase, Controller
-from nav_env.obstacles.obstacles import MovingObstacle
+from nav_env.control.controller import ControllerBase
 from nav_env.control.states import DeltaStates
+from nav_env.control.guidance import GuidanceBase
+from nav_env.control.navigation import NavigationBase
+from nav_env.control.gnc import GNC
 import matplotlib.pyplot as plt
 from copy import deepcopy
 import pygame
@@ -25,6 +27,8 @@ class ShipWithDynamicsBase(MovingShip):
     def __init__(self,
                  states:States3,
                  physics:phy.ShipPhysics=None,
+                 guidance:GuidanceBase=None,
+                 navigation:NavigationBase=None,
                  controller:ControllerBase=None,
                  integrator:Integrator=None,
                  derivatives:TimeDerivatives3=None,
@@ -32,12 +36,14 @@ class ShipWithDynamicsBase(MovingShip):
                  domain:Obstacle=None,
                  domain_margin_wrt_enveloppe:float=0.,
                  id:int=None,
+                 length:float=None,
+                 width:float=None,
                  **kwargs
                  ):
         self._states = states
         self._initial_states = deepcopy(states)
         self._physics = physics or phy.ShipPhysics()
-        self._controller = controller or Controller()
+        self._gnc = GNC(guidance=guidance, navigation=navigation, controller=controller)
         self._integrator = integrator or Euler()
         self._derivatives = derivatives or TimeDerivatives3()
         self._dx = None # Initialize differential to None
@@ -46,8 +52,8 @@ class ShipWithDynamicsBase(MovingShip):
 
         super().__init__(
             states=states,
-            length=self._physics.length,
-            width=self._physics.width,
+            length=length or self._physics.length,
+            width=width or self._physics.width,
             dt=self._integrator.dt,
             domain=domain,
             domain_margin_wrt_enveloppe=domain_margin_wrt_enveloppe,
@@ -61,6 +67,7 @@ class ShipWithDynamicsBase(MovingShip):
         """
         self._dx = None
         self._generalized_forces = GeneralizedForces()
+        self._gnc.reset()
         super().reset()
 
     def draw(self, screen:pygame.Surface, *args, scale=1, params:dict={'enveloppe':1}, **kwargs):
@@ -138,7 +145,9 @@ class ShipWithDynamicsBase(MovingShip):
         """
         Step the ship.
         """
-        self.update_derivatives(wind, water, external_forces)
+        command = self._gnc.get(self) # command is currently a force but we will have to change it, in order to include control allocation
+        # controller_force = self._control_allocation(command)
+        self.update_derivatives(wind, water, external_forces+command)
         self.integrate()
 
         # This is a trick, to control when to update the enveloppe
@@ -269,15 +278,32 @@ class Ship(ShipWithDynamicsBase):
     def __init__(self, 
                  states:States3 = None,
                  physics:phy.ShipPhysics = None,
-                 controller:ControllerBase = None,
+                 guidance:GuidanceBase=None,
+                 navigation:NavigationBase=None,
+                 controller:ControllerBase=None,
                  integrator:Integrator = None,
                  derivatives:TimeDerivatives3 = None, 
                  name:str="Ship",
                  domain:Obstacle=None,
-                 domain_margin_wrt_enveloppe:float=0.
+                 domain_margin_wrt_enveloppe:float=0.,
+                 length:float=None,
+                 width:float=None
                  ):
         states = states or States3()
-        super().__init__(states=states, physics=physics, controller=controller, integrator=integrator, derivatives=derivatives, name=name, domain=domain, domain_margin_wrt_enveloppe=domain_margin_wrt_enveloppe)
+        super().__init__(
+            states=states,
+            physics=physics,
+            guidance=guidance,
+            navigation=navigation,
+            controller=controller,
+            integrator=integrator,
+            derivatives=derivatives,
+            name=name, 
+            domain=domain, 
+            domain_margin_wrt_enveloppe=domain_margin_wrt_enveloppe,
+            length=length,
+            width=width
+        )
 
     def update_derivatives(self, wind:WindVector, water:WaterVector, external_forces:GeneralizedForces):
         """
@@ -297,7 +323,6 @@ def test():
     dt = 0.05
     x0 = States3(0., 0., 180., 0., 0., 30.) # 0., 0., -180., 0., 10., 0. --> Effet d'emballement, comme si un coefficient de frotement était négatif
 
-
     obs1 = Circle(0, 40, 50)
     obs2 = Ellipse(-50, -50, 100, 20)
 
@@ -309,7 +334,6 @@ def test():
     lim = 300
     xlim, ylim = (-lim, -lim), (lim, lim)
     env = Env(own_ships=[ship, ship2], target_ships=[ship3, ship4, ship5], wind_source=UniformWindSource(10, 45), shore=[obs1, obs2])
-
     # env = Env(own_ships=ShipCollection([ship, ship2]), target_ships=ShipCollection([ship5]), wind_source=UniformWindSource(10, 45), shore=ObstacleCollection([obs1]))
 
     start = time.time()

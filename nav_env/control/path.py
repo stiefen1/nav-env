@@ -117,9 +117,12 @@ class TimeStampedWaypoints(Waypoints):
         
         for i, point_i in enumerate(self._timestamped_waypoints):
             t_i, obj = point_i
+            # print(f"wpt{i}: ", t_i, obj)
             if t_i > t:
+                # print("t_i > t")
                 t_prev, obj_prev = self._timestamped_waypoints[i-1]
                 factor = (t-t_prev) / (t_i-t_prev)
+                # print("artificial t: ", factor * (t_i - t_prev) + t_prev)
                 val_list = []
                 for val, val_prev in zip(obj, obj_prev):
                     val_list.append(factor * (val-val_prev) + val_prev)
@@ -128,7 +131,7 @@ class TimeStampedWaypoints(Waypoints):
                 else:
                     return self._wpt_type(*val_list)
             
-    def plot(self, t0:float=None, tf:float=None, N:int=None, *args, mode='traj', ax=None, text:bool=False, grid:bool=True, **kwargs):
+    def plot(self, *args, t0:float=None, tf:float=None, N:int=None, mode='traj', ax=None, text:bool=False, grid:bool=False, **kwargs):
         if ax is None:
             _, ax = plt.subplots()
         if t0 is None:
@@ -139,7 +142,7 @@ class TimeStampedWaypoints(Waypoints):
             N = len(self._timestamped_waypoints)
         return self._plot_and_scatter_wrapper(ax.plot.__name__, t0, tf, N, ax, *args, mode=mode, text=text, grid=grid, **kwargs)
         
-    def scatter(self, t0:float=None, tf:float=None, N:int=None, *args, mode='traj', ax=None, text:bool=False, grid:bool=True, **kwargs):
+    def scatter(self, t0:float=None, tf:float=None, N:int=None, *args, mode='traj', ax=None, text:bool=False, grid:bool=False, **kwargs):
         if ax is None:
             _, ax = plt.subplots()
         if t0 is None:
@@ -150,7 +153,7 @@ class TimeStampedWaypoints(Waypoints):
             N = len(self._timestamped_waypoints)
         return self._plot_and_scatter_wrapper(ax.scatter.__name__, t0, tf, N, ax, *args, mode=mode, text=text, grid=grid, **kwargs)
 
-    def _plot_and_scatter_wrapper(self, func_name:str, t0:float, tf:float, N:int, ax, *args, mode='traj', text:bool=False, grid:bool=True, **kwargs):
+    def _plot_and_scatter_wrapper(self, func_name:str, t0:float, tf:float, N:int, ax, *args, mode='traj', text:bool=False, grid:bool=False, **kwargs):
         dt = (tf-t0)/N
         x = []
         y = []
@@ -265,7 +268,8 @@ class TimeStampedWaypoints(Waypoints):
                clear_table:bool=False,
                length:float=None,
                width:float=None,
-               scale:float=1.
+               scale:float=1.,
+               isolate_timestamps:bool=False
                ) -> None:
         """
         Save timestamped waypoints into a SQL database. Currently, we use a trick to visualize the same ship multiple times. If we have to show one ship at N different timestamps,
@@ -273,8 +277,19 @@ class TimeStampedWaypoints(Waypoints):
         """
         if not isinstance(timestamps, list):
             timestamps = [timestamps]
+        if isolate_timestamps:
+            timestamps = [ti for ti in range(min(timestamps), max(timestamps)+1)]
+            timestamps_for_sql = [ti*3600 for ti in timestamps]
+            # timestamps_for_sql = []
+            # for i, ti in enumerate(timestamps):
+            #     new_ti = 3600 * ti
+            #     timestamps_for_sql.append(new_ti)
+        else:
+            timestamps_for_sql = timestamps
+        
+
         headings = self.get_default_headings_from_fn_deg(timestamps=timestamps, seacharts_frame=heading_in_seacharts_frame)
-        times_sql = self.get_times_in_sql_format(t0, timestamps=timestamps)
+        times_sql = self.get_times_in_sql_format(t0, timestamps=timestamps_for_sql)
         colors = self.get_colors_from_time(timestamps=timestamps, colormap=colormap, alpha=alpha)
         waypoints = self.get_waypoints(timestamps=timestamps)
 

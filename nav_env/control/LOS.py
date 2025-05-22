@@ -13,44 +13,71 @@ w_t: Target point
 from math import atan2, pi, sqrt
 import numpy as np
 from nav_env.control.path import Waypoints
-from nav_env.control.guidance import Guidance
+from nav_env.control.guidance import GuidanceBase
 from abc import ABC, abstractmethod
+from nav_env.ships.states import States3
 
 
-class LOSLookAhead(Guidance):
+class LOS(GuidanceBase):
     def __init__(self,
                  waypoints: Waypoints,
                  current_wpt_idx:int,
                  radius_of_acceptance:float=50,
-                 kp:float=3.5e-2,
-                 ki:float=0.,
+                 desired_speed:float = 5.0,
                  *args,
                  **kwargs):
         super().__init__(waypoints=waypoints, current_wpt_idx=current_wpt_idx, radius_of_acceptance=radius_of_acceptance, *args, **kwargs)
+        self._desired_speed = desired_speed # Desired forward speed
+
+    @abstractmethod
+    def get_desired_heading(self, x, y, *args, degree=False, **kwargs) -> float:
+        pass
+
+    @abstractmethod
+    def get(self, state:States3, *args, **kwargs) -> States3:
+        pass
+
+class LOSLookAhead(LOS):
+    def __init__(self,
+                 waypoints: Waypoints,
+                 current_wpt_idx:int=0,
+                 radius_of_acceptance:float=50,
+                 kp:float=3.5e-2,
+                 ki:float=0.,
+                 desired_speed:float = 5.0,
+                 *args,
+                 **kwargs):
+        super().__init__(waypoints=waypoints, current_wpt_idx=current_wpt_idx, radius_of_acceptance=radius_of_acceptance, desired_speed=desired_speed, *args, **kwargs)
         self._kp = kp
         self._ki = ki
 
     def get_desired_heading(self, x, y, *args, degree=False, **kwargs):
         if self.within_radius_of_acceptance(x, y):
             self.next_waypoint()
-        next_wpt = self.get_next_waypoint()
         prev_wpt = self.get_prev_waypoint()
-        convert_unit = 180/pi if degree else 1
-        return convert_unit*LOS_lookahead(x, y, prev_wpt, next_wpt, *args, kp=self._kp, **kwargs)
+        convert_unit = 1 if degree else np.pi/180.0
+        return convert_unit*LOS_lookahead(x, y, prev_wpt, self.current_waypoint, *args, kp=self._kp, **kwargs)
+    
+    def get(self, state:States3, *args, **kwargs) -> States3:
+        psi_des_deg:float = self.get_desired_heading(*state.xy, degree=True) 
+        return States3(psi_deg=psi_des_deg, x_dot=self._desired_speed) # x_dot est interprété comme la norme de la vitesse du bateau
     
 
-class LOSLoopEnclosure(Guidance):
-    def __init__(self, waypoints: Waypoints, radius:float, *args, current_wpt_idx:int=0, radius_of_acceptance:float=50, **kwargs):
-        super().__init__(waypoints=waypoints, current_wpt_idx=current_wpt_idx, radius_of_acceptance=radius_of_acceptance, *args, **kwargs)
+class LOSLoopEnclosure(GuidanceBase):
+    def __init__(self, waypoints: Waypoints, radius:float, *args, current_wpt_idx:int=0, radius_of_acceptance:float=50, desired_speed:float=5.0, **kwargs):
+        super().__init__(waypoints=waypoints, current_wpt_idx=current_wpt_idx, radius_of_acceptance=radius_of_acceptance, desired_speed=desired_speed, *args, **kwargs)
         self._radius = radius
 
     def get_desired_heading(self, x, y, *args, degree=False, **kwargs):
         if self.within_radius_of_acceptance(x, y):
             self.next_waypoint()
-        next_wpt = self.get_next_waypoint()
         prev_wpt = self.get_prev_waypoint()
-        convert_unit = 180/pi if degree else 1
-        return convert_unit*LOS_enclosure(x, y, prev_wpt, next_wpt, *args, R=self._radius, **kwargs)
+        convert_unit = 1 if degree else np.pi/180.0
+        return convert_unit*LOS_enclosure(x, y, prev_wpt, self.current_waypoint, *args, R=self._radius, **kwargs)
+    
+    def get(self, state:States3, *args, **kwargs) -> States3:
+        psi_des_deg:float = self.get_desired_heading(*state.xy, degree=True) 
+        return States3(psi_deg=psi_des_deg, x_dot=self._desired_speed) # x_dot est interprété comme la norme de la vitesse du bateau
 
 def LOS_enclosure(x, y, w_prev, w_next, *args, R:float=50, **kwargs):
     dwx = w_next[0] - w_prev[0]
@@ -121,7 +148,7 @@ def LOS_lookahead(x, y, w_prev, w_next, *args, kp:float=3.5e-2, **kwargs):
     e = (np.linalg.norm(w_n - p) * np.sin(angle)).astype(float)
     psi_r = atan2(kp*e, 1) * 180 / pi
 
-    print(kp*e, psi_p, psi_r)
+    # print(kp*e, psi_p, psi_r)
 
 
     return psi_p + psi_r
@@ -131,6 +158,9 @@ def interactive():
     import matplotlib.pyplot as plt
     from matplotlib.patches import Circle
     from matplotlib.widgets import Slider
+
+    enclosure = LOSLoopEnclosure([], 10.)
+    lookahead = LOSLookAhead([])
 
     global x, y
 

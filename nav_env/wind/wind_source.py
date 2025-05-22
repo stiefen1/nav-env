@@ -41,6 +41,17 @@ class UniformWindSource(WindSource):
 
     def uniform_wind_function(self, x, y):
         return WindVector((x, y), vector=self._velocity)
+    
+    @staticmethod
+    def from_direction_and_intensity(dir_deg:float, v_m_per_sec:float, domain: Polygon = None) -> "WindSource":
+        """
+        direction is 0 when aligned to north
+        """
+        dir_rad = dir_deg*pi/180.0
+        vx = -v_m_per_sec * sin(dir_rad)
+        vy = v_m_per_sec * cos(dir_rad)
+        return UniformWindSource(velocity_x=vx, velocity_y=vy, domain=domain)
+
 
 class MeasuredWindSource(VectorSource):
     """

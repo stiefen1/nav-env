@@ -28,17 +28,24 @@ class Map(ObstacleCollection):
         else:
             depth = [depth]
 
-        for i, depth_i in enumerate(depth):
-            if depth_i < 0:
-                print(f"Map - Depth must be >= 0, ignoring {depth_i}m layer..")
-                depth.pop(i)
+        # for i, depth_i in enumerate(depth):
+            # if depth_i < 0:
+            #     print(f"Map - Depth must be >= 0, ignoring {depth_i}m layer..")
+            #     depth.pop(i)
 
         lx_enc, ly_enc = self.enc.size
         x0_enc, y0_enc = self.enc.center
         window_complete = Polygon(((x0_enc-lx_enc/2, y0_enc-ly_enc/2), (x0_enc+lx_enc/2, y0_enc-ly_enc/2), (x0_enc+lx_enc/2, y0_enc+ly_enc/2), (x0_enc-lx_enc/2, y0_enc+ly_enc/2)))
 
-        size_focus = size or self.enc.size
+        size_focus = size or self.enc.size 
         center_focus = center or self.enc.center
+        if center_focus is None:
+            # meaning both center self.enc.center are None -> We have to compute it from self.enc.origin & self.enc.size
+            xo, yo = self.enc.origin
+            sx, sy = self.enc.size
+            center_focus = (xo + sx/2, yo+sy/2)
+        
+        print(size_focus, center_focus)
 
         lx_focus, ly_focus = size_focus
         x0_focus, y0_focus = center_focus

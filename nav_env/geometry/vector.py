@@ -32,6 +32,15 @@ class Vector:
         y_end = y + vy * scale
         pygame.draw.line(screen, (0, 255, 0), (x, y), (x_end, y_end), *args, **kwargs)
 
+    def normalize(self) -> None:
+        vec_norm = self.norm()
+        vx, vy = self.vx, self.vy
+        self._vector = (vx/vec_norm, vy/vec_norm)
+        return self
+
+    def norm(self) -> float:
+        return float(np.linalg.norm(self.vector))
+
     @property
     def x(self) -> float:
         return self._position[0]

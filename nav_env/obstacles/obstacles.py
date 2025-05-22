@@ -134,7 +134,8 @@ class MovingObstacle(Obstacle):
     """
     Model an obstacle that changes over time.
     """
-    def __init__(self, pose_fn:Callable[[float], States3]=None,
+    def __init__(self,
+                 pose_fn:Callable[[float], States3]=None,
                  initial_state:States3=None,
                  t0:float=0.,
                  dt:float=None,
@@ -539,6 +540,23 @@ def show_time_varying_obstacle_as_3d():
     ax.set_zlabel('Time')
     plt.show()
 
+def test_union_of_obstacles() -> None:
+    from nav_env.obstacles.collection import ObstacleCollection
+    import matplotlib.pyplot as plt
+    o1 = Obstacle(xy=[(0, 0), (2, 0), (2, 2), (0, 2)])
+    o2 = Obstacle(xy=[(0, 0), (2, 0), (3, 1), (2, 2), (0, 2)]).translate(1, -1)
+    coll = ObstacleCollection([o1, o2])
+    coll.group_intersecting_obstacles()
+    coll.plot()
+    plt.show()
+
+    o12 = o1.union(o2)
+    o12.plot()
+    plt.show()
+
+    
+
 if __name__ == "__main__":
     # test_basic_obstacle()
-    show_time_varying_obstacle_as_3d()
+    # show_time_varying_obstacle_as_3d()
+    test_union_of_obstacles()

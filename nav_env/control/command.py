@@ -5,6 +5,21 @@ class Command(BaseStateVector):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
+    def clip(self, u_min, u_max):
+        if isinstance(u_min, float | int):
+            u_min = (u_min,)
+        if isinstance(u_max, float | int):
+            u_max = (u_max,)
+
+        assert len(u_min) == len(self), f"u_min must have {len(self)} components but has {len(u_min)}"
+        assert len(u_max) == len(self), f"u_max must have {len(self)} components but has {len(u_max)}"
+        
+        new_dict = {}
+        for i, (key, val) in enumerate(zip(self.keys, self.values)):
+            assert u_min[i] <= u_max[i], f"Component {i} of u_min is greater than that of u_max: {u_min[i]} > {u_max[i]}"
+            new_dict.update({key: min(max(val, u_min[i]), u_max[i])})
+        return type(self).__call__(**new_dict)
+
     # def __add__(self, other):
     #     self.__add__wrapper__(other, other.keys, type(self))
 
@@ -23,6 +38,17 @@ class GeneralizedForces(Command):
         Draw the vector for pygame.
         """
         self.__draw__(screen, xy, ['f_x', 'f_y'], *args, scale=scale, unit_scale=unit_scale, **kwargs)
+
+    @staticmethod
+    def inf() -> "GeneralizedForces":
+        return GeneralizedForces(
+            f_x=float('inf'),
+            f_y=float('inf'),
+            f_z=float('inf'),
+            tau_x=float('inf'),
+            tau_y=float('inf'),
+            tau_z=float('inf')
+            )
 
     @property
     def f_x(self) -> float:
@@ -77,13 +103,15 @@ class GeneralizedForces(Command):
         return self.f_x, self.f_y, self.tau_z
 
 def test():
+    import numpy as np
     f1 = GeneralizedForces(0.1, 0.2, 0.3, 0.4, 0.5, 0.6)
     f2 = GeneralizedForces(1, 2, 3, 4, 5, 6)
+    print(GeneralizedForces().clip(-f2, -f1))
     f_add = f1 + f2
     f_sub = f1 - f2
     print("All components should be 0: ", -4 * f1 + 2 * f_add + 4 * f_sub / 2)
-    ax = f1.plot(0, 0)
-    f2.plot(0, 0, ax=ax)
+    ax = f1.plot((0, 0))
+    f2.plot((0, 0), ax=ax)
     plt.show()
 
 if __name__ == "__main__":

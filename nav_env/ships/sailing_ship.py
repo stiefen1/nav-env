@@ -9,6 +9,7 @@ from nav_env.obstacles.obstacles import Obstacle
 from typing import Callable
 from math import atan2, pi
 from nav_env.ships.moving_ship import MovingShip
+import warnings
 
 
 # TODO: Make possible to use SailingShip (Guided by a pose function) as own_ship in NavigationEnvironment
@@ -32,6 +33,7 @@ class SailingShip(MovingShip):
                  id:int=None,
                  name:str="SailingShip",
                  mmsi:str=None,
+                 fix_heading:bool=True,
                  **kwargs
                  ):
         
@@ -51,6 +53,10 @@ class SailingShip(MovingShip):
             pass
         else:
             raise ValueError(f"Expected States2 or States3 for initial_state, got {type(initial_state).__name__}")
+        
+        self._fix_heading = fix_heading # Decide whether or not we have to compute heading according to x_dot, y_dot
+        if self._fix_heading:
+            warnings.warn(f"SailingShip will fix heading values automatically to be consistent with x_dot, y_dot. Set fix_heading=False if you want to plot TTG results")
 
         super().__init__(
             pose_fn=pose_fn,
@@ -76,13 +82,17 @@ class SailingShip(MovingShip):
         """
         Override get_pose_at to make the heading consistent with the trajectory.
         """
-        dt = 1e-2
-        pose_at_t1 = self._pose_fn(t)
-        pose_at_t2 = self._pose_fn(t+dt)
-        dxdt = (pose_at_t2.x - pose_at_t1.x) / dt
-        dydt = (pose_at_t2.y - pose_at_t1.y) / dt
-        heading = atan2(dydt, dxdt) * 180 / pi - 90
-        return States3(pose_at_t1.x, pose_at_t1.y, heading, pose_at_t1.x_dot, pose_at_t1.y_dot, pose_at_t1.psi_dot_deg)    
+        if self._fix_heading:
+            dt = 1e-2
+            pose_at_t1 = self._pose_fn(t)
+            pose_at_t2 = self._pose_fn(t+dt)
+            dxdt = (pose_at_t2.x - pose_at_t1.x) / dt
+            dydt = (pose_at_t2.y - pose_at_t1.y) / dt
+            dpsidt = (pose_at_t2.psi_deg - pose_at_t1.psi_deg) / dt
+            heading = atan2(dydt, dxdt) * 180 / pi - 90
+            return States3(pose_at_t1.x, pose_at_t1.y, heading, dxdt, dydt, dpsidt)
+        else:
+            return self._pose_fn(t) 
 
 
 def test():

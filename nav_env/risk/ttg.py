@@ -15,6 +15,9 @@ import warnings
 from copy import deepcopy
 from math import pi
 from scipy.optimize import curve_fit
+from nav_env.control.path import TimeStampedWaypoints
+import warnings
+
 
 
 """
@@ -30,6 +33,7 @@ class TTG(RiskMetric):
         # warnings.warn(UserWarning("This class must be fixed, it is not working properly."))
         super().__init__(env)
         self._full_trajectory = []
+        # self.ax = None
     
     def calculate(self, ship:MovingShip, t_max:float=200., precision_sec:float=1., output_final_state:bool=False, **kwargs) -> float | tuple[float, States3]:
         """
@@ -43,10 +47,10 @@ class TTG(RiskMetric):
 
         if isinstance(ship, ShipWithDynamicsBase):
             # Meaning user has specified an integrator
-            ship_copy = Ship(integrator=ship.integrator, states=ship.states)
+            ship_copy = Ship(integrator=ship.integrator, states=ship.states, length=ship.length, width=ship.width)
         elif isinstance(ship, MovingShip):
             # Meaning we only have dt -> default integrator to Euler
-            ship_copy = Ship(integrator=Euler(ship.dt), states=ship.states)
+            ship_copy = Ship(integrator=Euler(ship.dt), states=ship.states, length=ship.length, width=ship.width)
 
             if isinstance(ship, SailingShip):
                 # Means the ship is following a function, not necessarily considering speed
@@ -66,20 +70,38 @@ class TTG(RiskMetric):
                 ship_copy.states.psi_dot_deg = dpsidt
                 
         dt = ship_copy.integrator.dt
+        # print(precision_sec, dt)
+        if precision_sec < dt:
+            warnings.warn(f"precision_sec ({precision_sec}) is smaller than integration step ({dt}), setting pecision_sec={dt}..")
+            precision_sec = dt
+        
         t:float = 0.
         self._full_trajectory = [(t, ship_copy.states)]
 
+        # if self.ax is None:
+        #     _, self.ax = plt.subplots()
+        # self.ax.cla()
+        
         while t < t_max:
             # start_loop = time.time()
             if t % precision_sec < dt:
+                # print("DX BEFORE UPDATE: ", ship_copy._accumulated_dx)
                 ship_copy.update_enveloppe_from_accumulation() # WE ONLY UPDATE THE ENVELOPPE BEFORE CHECKING FOR COLLISIONS
                 if ship_copy.collide(self.env.shore):
+                    
+                    
+                    # self.env.shore.plot(ax=self.ax)
+                    # ship_copy.plot(ax=self.ax)
+                    # self.ax.set_aspect('equal')
+                    # plt.show(block=False)
+
                     return t
 
             # TODO: Optimize computational time, typically step() takes on average 0.2ms, and overall loop takes 0.25ms -> C++, Cython ?
             
             # Setting update_enveloppe to False to avoid updating the enveloppe at each time step. We only want to update it when checking for collisions.
             ship_copy.step(self.env.wind_source(ship_copy.states.xy), self.env.water_source(ship_copy.states.xy), update_enveloppe=False) 
+            # print(ship_copy.states)
             t += dt
 
             # Add current states to trajectory
@@ -92,6 +114,10 @@ class TTG(RiskMetric):
     @property
     def full_trajectory(self) -> list[tuple[float, States3]]:
         return self._full_trajectory
+    
+    @property
+    def timestamped_waypoints(self) -> TimeStampedWaypoints:
+        return TimeStampedWaypoints(self.full_trajectory)
     
     def plot(self, ax=None, **kwargs):
         pass
