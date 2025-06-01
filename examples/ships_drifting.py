@@ -10,6 +10,7 @@ if __name__ == '__main__':
     from nav_env.wind.wind_source import UniformWindSource
     from nav_env.obstacles.obstacles import *
     from nav_env.risk.monitor import RiskMonitor
+    from nav_env.ships.simplified_physics import SimpleShipPhysics
 
 
     # Simulation parameters
@@ -28,7 +29,7 @@ if __name__ == '__main__':
     sailing_ship = SimpleShip(states=States3(100., -100., 60, -10., 5., 0.), domain=Ellipse(0, 0, 150, 100), name="TS1")
 
     # Ships
-    ship1 = Ship(States3(-200., -250., -40., 20., 30., 0.), integrator=Euler(dt), name="OS1", domain_margin_wrt_enveloppe=30)#, domain=Ellipse(0, 0, 100, 50, -20, 30))
+    ship1 = Ship(States3(-200., -250., -40., 20., 30., 0.), physics=SimpleShipPhysics(), integrator=Euler(dt), name="OS1", domain_margin_wrt_enveloppe=30)#, domain=Ellipse(0, 0, 100, 50, -20, 30))
     ship2 = SimpleShip(States3(-50., 0., -90., 10., 0., 0.), integrator=Euler(dt), name="OS2")
     ship3 = Ship(States3(10., -100., -30., 0., 0., 0.), integrator=Euler(dt), name="Ship3", domain=Circle(0, 0, 50))
     ship4 = Ship(States3(250., -200., 0., 0., 0., 60.), integrator=Euler(dt), name="Ship4")
@@ -53,5 +54,5 @@ if __name__ == '__main__':
 
     # Screen to display simulation results
     screen = Screen(env, scale=1, lim=(xlim, ylim), monitor=RiskMonitor([Distance], dt=1))
-    screen.play(dt=dt, tf=tf, own_ships_verbose={'enveloppe':1, 'name':1, 'domain':1}, target_ships_verbose={'enveloppe':1, 'name':1, 'domain':1})  
+    screen.play(dt=dt, tf=tf, own_ships_verbose={'enveloppe':1, 'name':1, 'domain':1, 'frame':1}, target_ships_verbose={'enveloppe':1, 'name':1, 'domain':1})  
     # screen.play(dt=dt, tf=tf, own_ships_verbose={'enveloppe':1, 'name':1, 'domain':1, 'ghost': [-20, -10, 10, 20, 30]}, target_ships_verbose={'enveloppe':1, 'name':1, 'domain':1, 'ghost': [-20, -10, 10, 20, 30]})  

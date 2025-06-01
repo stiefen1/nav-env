@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from nav_env.control.command import GeneralizedForces
+from nav_env.control.command import GeneralizedForces, AzimuthThrusterCommand, ThrusterCommand, Command
 from math import pi, cos, sin
 
 class Actuator(ABC):
@@ -8,9 +8,14 @@ class Actuator(ABC):
                  angle:float,
                  u_min:tuple | float | int,
                  u_max:tuple | float | int,
-                 f_min:GeneralizedForces,
-                 f_max:GeneralizedForces,
-                 *args, **kwargs):
+                 f_min:float,
+                 f_max:float,
+                 dt:float,
+                 *args,
+                 u_rate_min: tuple | float | int = None,
+                 u_rate_max: tuple | float | int = None,
+                 **kwargs
+            ):
         """
         xy: Tuple containing x, y position w.r.t to cdg
         angle: Actuator's orientation in degrees
@@ -21,13 +26,27 @@ class Actuator(ABC):
             u_min = (u_min,)
         if isinstance(u_max, float|int):
             u_max = (u_max,)
+        
+        if u_rate_min is None:
+            u_rate_min = tuple(len(u_min) * [float('inf')])
+        elif isinstance(u_rate_min, float|int):
+            u_rate_min = (u_rate_min, )
+        
+        if u_rate_max is None:
+            u_rate_max = tuple(len(u_max) * [float('inf')])
+        elif isinstance(u_rate_max, float|int):
+            u_rate_max = (u_rate_max, )
+
         assert len(u_min) == len(u_max), f"min and max input values must have the same length but are {len(u_min)} != {len(u_max)}"
+        assert len(u_rate_min) == len(u_min), f"min input rate value has invalid length {len(u_rate_min)} != {len(u_min)}"
+        assert len(u_rate_max) == len(u_max), f"max input rate value has invalid length {len(u_rate_max)} != {len(u_max)}"
         assert len(xy) == 2, f"The actuator's position must be a 2D tuple but has {len(xy)} dimensions"
+        assert dt > 0.0, f"Sampling time must be greater than 0 but is {dt}"
 
         if f_min is None:
-            f_min = -GeneralizedForces.inf()
+            f_min = -float('inf')
         if f_max is None:
-            f_max = GeneralizedForces.inf()
+            f_max = float('inf')
 
         self._xy = xy
         self._angle_deg = angle
@@ -35,13 +54,26 @@ class Actuator(ABC):
         self._u_max = u_max
         self._f_min = f_min
         self._f_max = f_max
+        self._dt = dt
+        self._u_rate_min = u_rate_min
+        self._u_rate_max = u_rate_max
 
     def __repr__(self):
         return f"{type(self).__name__} object at {self.xy}, {self.angle_deg} deg."
     
+    def dynamics(self, command:Command, *args, v_r:tuple=None, **kwargs) -> GeneralizedForces:
+        """
+        vr: ship's relative speed to water current, required for computing the resulting generalized force
+        Return generalized force based on command, which can be propeller's speed for instance.
+        An actuator can consider different level of dynamics (e.g. the desired value is too further
+        away from the current position, we can either consider the actuator has infinite authority or
+        it is limited)
+        """
+        assert type(command) == self.valid_command, f"Input command must be an instance of {self.valid_command} but is an {type(command)} object"
+        return self.__dynamics__(command, *args, v_r=v_r, **kwargs)
 
     @abstractmethod
-    def dynamics(self, command:tuple, vr:tuple) -> GeneralizedForces:
+    def __dynamics__(self, command:Command, *args, v_r:tuple=None, **kwargs) -> GeneralizedForces:
         """
         vr: ship's relative speed to water current, required for computing the resulting generalized force
         Return generalized force based on command, which can be propeller's speed for instance.
@@ -68,11 +100,11 @@ class Actuator(ABC):
         return self._u_min
     
     @property
-    def f_min(self) -> GeneralizedForces:
+    def f_min(self) -> float:
         return self._f_min
     
     @property
-    def f_max(self) -> GeneralizedForces:
+    def f_max(self) -> float:
         return self._f_max
     
     @property
@@ -94,6 +126,18 @@ class Actuator(ABC):
     @property
     def r(self) -> tuple[float, float, float]:
         return (*self._xy, 0)
+    
+    @property
+    def dt(self) -> float:
+        return self._dt
+    
+    @dt.setter
+    def dt(self, value:float) -> None:
+        self._dt = value
+
+    @property
+    def valid_command(self):
+        return Command
 
 class Rudder(Actuator):
     """
@@ -107,19 +151,24 @@ class Rudder(Actuator):
                  angle:float,
                  u_min:tuple,
                  u_max:tuple,
+                 dt:float,
                  *args,
-                 f_min:GeneralizedForces=None,
-                 f_max:GeneralizedForces=None,
+                 f_min:float=-float('inf'),
+                 f_max:float=float('inf'),
                  angle_0:float=0,
                  **kwargs):
-        super().__init__(xy, angle, u_min, u_max, f_min, f_max, *args, **kwargs)
+        super().__init__(xy, angle, u_min, u_max, f_min, f_max, dt, *args, **kwargs)
         self._angle = angle_0
 
-    def dynamics(self, command:tuple, vr:tuple) -> GeneralizedForces:
+    def __dynamics__(self, command:Command, *args, v_r:tuple=None, **kwargs) -> GeneralizedForces:
         """
         command: (Rudder's angle)
         """
         return GeneralizedForces()
+    
+    @property
+    def valid_command(self):
+        return Command
     
 class ControlSurface(Actuator):
     """
@@ -130,19 +179,24 @@ class ControlSurface(Actuator):
                  angle:float,
                  u_min:tuple,
                  u_max:tuple,
+                 dt:float,
                  *args,
-                 f_min:GeneralizedForces=None,
-                 f_max:GeneralizedForces=None,
+                 f_min:float=-float('inf'),
+                 f_max:float=float('inf'),
                  angle_0:float=0,
                  **kwargs):
-        super().__init__(xy, angle, u_min, u_max, f_min, f_max, *args, **kwargs)
+        super().__init__(xy, angle, u_min, u_max, f_min, f_max, dt, *args, **kwargs)
         self._angle = angle_0
 
-    def dynamics(self, command:tuple, vr:tuple) -> GeneralizedForces:
+    def __dynamics__(self, command:Command, *args, v_r:tuple=None, **kwargs) -> GeneralizedForces:
         """
         command: (control surface's angle)
         """
         return GeneralizedForces()
+    
+    @property
+    def valid_command(self):
+        return Command
     
 class WaterJet(Actuator):
     """
@@ -153,53 +207,111 @@ class WaterJet(Actuator):
                  angle:float,
                  u_min:tuple,
                  u_max:tuple,
+                 dt:float,
                  *args,
-                 f_min:GeneralizedForces=None,
-                 f_max:GeneralizedForces=None,
+                 f_min:float=-float('inf'),
+                 f_max:float=float('inf'),
                  angle_0:float=0,
                  **kwargs):
-        super().__init__(xy, angle, u_min, u_max, f_min, f_max, *args, **kwargs)
+        super().__init__(xy, angle, u_min, u_max, f_min, f_max, dt, *args, **kwargs)
         self._angle = angle_0
 
-    def dynamics(self, command:tuple, vr:tuple) -> GeneralizedForces:
+    def __dynamics__(self, command:Command, *args, v_r:tuple=None, **kwargs) -> GeneralizedForces:
         """
         command: (control surface's angle)
         """
         return GeneralizedForces()
     
+    @property
+    def valid_command(self):
+        return Command
+    
 
 class AzimuthThruster(Actuator):
+    """
+    any tuple containing information regarding a command is always made of (angle, speed)
+    """
     def __init__(self,
                  xy:tuple,
                  angle:float, # Orientation when thruster is at its reference position
-                 u_min:tuple,
-                 u_max:tuple,
+                 alpha_range:tuple,
+                 v_range:tuple,
+                 dt:float,
                  *args,
-                 f_min:GeneralizedForces=None,
-                 f_max:GeneralizedForces=None,
-                 alpha_0:float=0.0, # Orientation w.r.t. initial orientation
-                 speed_0:float=0.0,
+                 f_min:float=-float('inf'),
+                 f_max:float=float('inf'),
+                 alpha_0:float=0.0, # Orientation w.r.t. initial orientation -> alpha at t=0
+                 speed_0:float=0.0, # Initial speed, i.e. speed at t=0
+                 alpha_rate_max:float=float('inf'),
+                 v_rate_max:float=float('inf'),
+                 c_t:float=2.2,
                  **kwargs):
-        super().__init__(xy, angle, u_min, u_max, f_min, f_max, *args, **kwargs)
-        self._alpha: float = alpha_0
+        super().__init__(
+            xy,
+            angle,
+            (alpha_range[0], v_range[0]),
+            (alpha_range[1], v_range[1]),
+            f_min,
+            f_max,
+            dt,
+            *args,
+            u_rate_min=(-alpha_rate_max, -v_rate_max),
+            u_rate_max=(alpha_rate_max, v_rate_max),
+            **kwargs
+        )
+        self._alpha: float = alpha_0 # We don't add it to angle here, this value must be interpreted as "angle w.r.t initial angle"
         self._speed: float = speed_0
+        self._ct: float = c_t # Force vs speed coefficient
 
-    def dynamics(self, command:tuple, vr:tuple) -> GeneralizedForces:
+    def __dynamics__(self, command:AzimuthThrusterCommand, *args, **kwargs) -> GeneralizedForces:
         """
-        command: (speed, angle in degrees)
+        command: (angle in degrees, speed) --> The input command are always assuming 0 is aligned with heading
         """
-        alpha_deg = self._alpha + command[1]
-        C_t = 2.2
-        F_thrust = C_t * (command[0] * 60.0)**2
+        assert type(command) == self.valid_command, f"Input command must be an instance of {self.valid_command} but is an {type(command)} object"
 
-        ### Integrate actuator's position
-        # u_sat = np.clip(command, u_min, u_max)
-        # self._speed = u_sat[0]
-        # self._angle = u_sat[1]
+        # Computing new angle
+        actual_angle_in_ship_frame = self._alpha + self.angle_deg
+        desired_rate_alpha = (command.angle - actual_angle_in_ship_frame)/self._dt # Compute desired angle rate
+        rate_alpha_clipped = clip(desired_rate_alpha, self._u_rate_min[0], self._u_rate_max[0]) # Clip angle rate to satisfy constraints
+        alpha_deg = self._alpha + rate_alpha_clipped * self._dt # Compute new angle
+        self._alpha = clip(alpha_deg, self._u_min[0], self._u_max[0]) # Clip angle to satisfy constraints
 
-        ### Compute the resulting force based on relative
+        # Computing new speed
+        desired_acc = (command.speed - self._speed)/self._dt # Compute desired acceleration (speed rate)
+        acc_clipped = clip(desired_acc, self._u_rate_min[1], self._u_rate_max[1]) # Clip acceleration to satisfy constraints
+        speed = self._speed + acc_clipped * self._dt # Compute new speed
+        self._speed = clip(speed, self._u_min[1], self._u_max[1]) # Clip speed to satisfy constraints
 
-        return GeneralizedForces()
+        # Compute resulting force
+        Ftot = self._ct * self._speed**2 # Compute total force
+        Ftot_clipped = clip(Ftot, self._f_min, self._f_max) # Clip force to satisfy constraints -> [f_min, f_max]
+
+        # Project force in x, y and torque
+        tot_angle = (self._alpha + self.angle_deg)*pi/180.0
+        Fx = Ftot_clipped * cos(tot_angle)
+        Fy = -Ftot_clipped * sin(tot_angle)
+        Nz = Fx * self._xy[1] - Fy * self._xy[0]
+        return GeneralizedForces(f_x=Fx, f_y=Fy, tau_z=Nz)
+    
+    @property
+    def alpha_min(self) -> float:
+        return self._u_min[0]
+    
+    @property
+    def alpha_max(self) -> float:
+        return self._u_max[0]
+    
+    @property
+    def v_min(self) -> float:
+        return self._u_min[1]
+    
+    @property
+    def v_max(self) -> float:
+        return self._u_max[1]
+    
+    @property
+    def valid_command(self):
+        return AzimuthThrusterCommand
     
 class Thruster(AzimuthThruster):
     """
@@ -216,28 +328,46 @@ class Thruster(AzimuthThruster):
     def __init__(self,
                  xy:tuple,
                  angle:float,
-                 u_min:tuple,
-                 u_max:tuple,
+                 v_min:float,
+                 v_max:float,
+                 dt:float,
                  *args,
                  f_min:GeneralizedForces=None,
                  f_max:GeneralizedForces=None,
                  speed_0:float=0.0,
+                 v_rate_max:float=float('inf'),
+                 c_t:float=2.2,
                  **kwargs):
-        super().__init__(xy, angle, u_min, u_max, f_min, f_max, *args, speed_0=speed_0, alpha_0=0, **kwargs)
+        super().__init__(xy, angle, (0, 0), (v_min, v_max), dt, *args, f_min=f_min, f_max=f_max, speed_0=speed_0, alpha_0=0, angle_rate_max=0, v_rate_max=v_rate_max, c_t=c_t, **kwargs)
 
-    def dynamics(self, command:tuple, vr:tuple) -> GeneralizedForces:
+    def __dynamics__(self, command:ThrusterCommand, *args, **kwargs) -> GeneralizedForces:
         """
         command: (propeller's speed)
         """
-        return super().dynamics((command[0], 0), vr)
+        return super().__dynamics__(command, *args, **kwargs)
     
+    @property
+    def valid_command(self):
+        return ThrusterCommand
+    
+def clip(val:float, min_val:float, max_val:float) -> float:
+    return min(max(val, min_val), max_val)
+
 def test() -> None:
-    a1 = AzimuthThruster((0, 0), 10, (-1, -30), (1, 30), GeneralizedForces(), GeneralizedForces())
-    a2 = Thruster((1., -1.), -5, (1.), (3.), GeneralizedForces(), GeneralizedForces())
-    a3 = Rudder((-3, 0.), 0, -10, 10, angle_0=-3)
-    print(a1, a2, a3)
-    print(GeneralizedForces().clip(a3.f_min, a3.f_max))
+    from nav_env.ships.ship import Ship
+    from nav_env.actuators.actuators import AzimuthThruster, Thruster, Rudder
     
+    dt = 1.0
+    a1 = AzimuthThruster((-20, 10), 0, (-360, 360), (-3,3), dt, alpha_rate_max=float('inf'), v_rate_max=float('inf'))
+    a2 = Thruster((1., -1.), -5, (1.), (3.), dt)
+    a3 = Rudder((-3, 0.), 0, -10, 10, dt, angle_0=-3)
+    print(a1, a2, a3)
+    print(a1.dynamics(AzimuthThrusterCommand(-90, 2)))
+    print(a1._alpha, a1._speed)
+    
+    ship = Ship(actuators=[a1, a2, a3])
+    print(ship)
+
 if __name__ == "__main__":
     test()
 

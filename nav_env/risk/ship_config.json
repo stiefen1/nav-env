@@ -1,0 +1,54 @@
+{
+    "ship_configuration": {
+        "ship_model": "Autonomous Vessel",
+        "length": "80",
+        "width": "16",
+        "mass": "70"
+    },
+    "grouding_cost": {
+        "ship_damage": "100000",
+        "recovery": "200000",
+        "cargo": "30000",
+        "environment": "50000",
+        "infrastructure": "150000",
+        "reputation": "10000"
+    }, 
+    "engines": [
+        {
+            "engine_name": "ME1",
+            "failure_rate": "3e-9", 
+            "start_time": "20",
+            "restart_probability": "1"
+        },
+        {
+            "engine_name": "ME2",
+            "failure_rate": "3e-9", 
+            "start_time": "40",
+            "restart_probability": "1"
+        }
+    ],
+    "modes": [
+        {
+            "mode_name": "MEC",
+            "scenarios": [
+                {
+                    "action": "Restart Engine 1",
+                    "operation": "Terminate"
+                },
+                {
+                    "action": "Start Engine 2",
+                    "operation": "Terminate"
+                },
+                {
+                    "action": "Restart Engine 2",
+                    "operation": "Terminate"
+                },
+                {
+                    "action": "Start Engine 1",
+                    "operation": "Terminate"
+                }
+
+            ]
+        }
+    ]
+}

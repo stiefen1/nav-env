@@ -18,10 +18,49 @@ class Command(BaseStateVector):
         for i, (key, val) in enumerate(zip(self.keys, self.values)):
             assert u_min[i] <= u_max[i], f"Component {i} of u_min is greater than that of u_max: {u_min[i]} > {u_max[i]}"
             new_dict.update({key: min(max(val, u_min[i]), u_max[i])})
-        return type(self).__call__(**new_dict)
+        return type(self).__call__(**new_dict)    
+    
+class AzimuthThrusterCommand(Command):
+    def __init__(self, angle:float=0.0, speed:float=0.0):
+        super().__init__(angle=angle, speed=speed)
 
-    # def __add__(self, other):
-    #     self.__add__wrapper__(other, other.keys, type(self))
+    @staticmethod
+    def inf() -> "AzimuthThrusterCommand":
+        return AzimuthThrusterCommand(
+            angle=float('inf'),
+            speed=float('inf')
+        )
+    
+    @staticmethod
+    def zero() -> "AzimuthThrusterCommand":
+        return AzimuthThrusterCommand(
+            angle=0.0,
+            speed=0.0
+        )
+    
+    @property
+    def angle(self) -> float:
+        return self['angle']
+    
+    @property
+    def speed(self) -> float:
+        return self['speed']
+    
+class ThrusterCommand(AzimuthThrusterCommand):
+    def __init__(self, speed:float=0.0):
+        super().__init__(speed=speed)
+
+    @staticmethod
+    def inf() -> "ThrusterCommand":
+        return ThrusterCommand(
+            speed=float('inf')
+        )
+    
+    @staticmethod
+    def zero() -> "ThrusterCommand":
+        return ThrusterCommand(
+            speed=0.0
+        )
 
 class GeneralizedForces(Command):
     def __init__(self, f_x:float=0., f_y:float=0., f_z:float=0., tau_x:float=0., tau_y:float=0., tau_z:float=0.):
@@ -49,6 +88,10 @@ class GeneralizedForces(Command):
             tau_y=float('inf'),
             tau_z=float('inf')
             )
+    
+    @staticmethod
+    def zero() -> "GeneralizedForces":
+        return GeneralizedForces()
 
     @property
     def f_x(self) -> float:
@@ -113,6 +156,11 @@ def test():
     ax = f1.plot((0, 0))
     f2.plot((0, 0), ax=ax)
     plt.show()
+
+    mytype = ThrusterCommand
+    thruster_command = mytype(1)
+    th2 = mytype(2)
+    print(thruster_command, th2)
 
 if __name__ == "__main__":
     test()

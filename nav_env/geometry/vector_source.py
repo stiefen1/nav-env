@@ -113,11 +113,12 @@ class VectorSource(ABC):
         
         if label is not None:
             assert label in LABEL_HASHMAP.keys(), f"label can take values {LABEL_HASHMAP.keys()} but is {label}"
-            ax.text(x-vec.vy/3.5, y+vec.vx/3.5, f'{self((x, y)).norm()*LABEL_HASHMAP[label][0]:.1f}{LABEL_HASHMAP[label][1]}', color='black', size=8, ha='center')
-            ax.text(x+vec.vy/3.5, y-vec.vx/3.5, 'Wind', color='black', size=8, ha='center')
+            dist_text_to_center = 1/3.2
+            ax.text(x-vec.vy*dist_text_to_center, y+vec.vx*dist_text_to_center, f'{self((x, y)).norm()*LABEL_HASHMAP[label][0]:.1f}{LABEL_HASHMAP[label][1]}', color='black', size=8, ha='center')
+            ax.text(x+vec.vy*dist_text_to_center, y-vec.vx*dist_text_to_center, 'Wind', color='black', size=8, ha='center')
 
         ax.add_patch(outter_circle)
-        ax.quiver(vec.x-vec.vx/2, vec.y-vec.vy/2, vec.vx, vec.vy, scale_units='xy', scale=1, facecolor='black')
+        ax.quiver(vec.x-vec.vx/2, vec.y-vec.vy/2, vec.vx, vec.vy, scale_units='xy', scale=1, facecolor='black', width=0.003)
         
 
         return ax

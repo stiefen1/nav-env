@@ -312,6 +312,10 @@ def test_parallel_ttg():
 # Heading must always be the same
 
 class TTGUnderConstantUniformPerturbations(RiskMetric):
+    """
+    Prefer this version over TTG in case of constant and uniform weather as it computes trajectory only once.
+    """
+
     def __init__(self, ship:Ship, env:NavigationEnvironment, t_max: float = 100., precision_sec: float = 1., **kwargs):
         assert t_max > 0, "t_max must be greater than 0"
         assert precision_sec > 0, "precision_sec must be greater than 0"
@@ -322,7 +326,7 @@ class TTGUnderConstantUniformPerturbations(RiskMetric):
             UserWarning(f"Water source must be of type UniformWaterSource, got {type(env.water_source).__name__}")
         super().__init__(env)
 
-        self._ship = ship
+        self._ship = deepcopy(ship)
         self._t_max = t_max
         self._precision_sec = precision_sec
         self._compute_trajectory()
@@ -332,6 +336,7 @@ class TTGUnderConstantUniformPerturbations(RiskMetric):
         t:float = 0.
         self._ship.states.x, self._ship.states.y = 0., 0.
         traj = [(*self._ship.states.xy, t)]
+        # print("Ship States before traj computing: ", self._ship.states)
         while t < self._t_max:
             # Setting update_enveloppe to False to avoid updating the enveloppe at each time step. We only want to update it when checking for collisions.
             self._ship.step(self.env.wind_source(self._ship.states.xy), self.env.water_source(self._ship.states.xy), update_enveloppe=False)
@@ -341,7 +346,7 @@ class TTGUnderConstantUniformPerturbations(RiskMetric):
 
         self._line = Line(traj)
 
-    def calculate(self, ship_x, ship_y) -> float:
+    def calculate(self, ship_x:float, ship_y:float, *args, **kwargs) -> float:
         translated_shore = self.env.shore.translate(-ship_x, -ship_y)
         
         # Check if the ship is already in collision with the shore

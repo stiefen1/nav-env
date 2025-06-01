@@ -3,12 +3,10 @@ from nav_env.control.states import States
 import casadi as cd, numpy as np
 from typing import Callable
 from nav_env.control.path import Waypoints
+from nav_env.actuators.collection import ActuatorCollection
 
 """
 Base MPC is designed according to "Risk-BasedModelPredictiveControl for Autonomous Ship Emergency Management" by Simon Blindheim et al.
-
-
-
 """
 
 class NMPC(ControllerBase):
@@ -138,7 +136,6 @@ class NMPC(ControllerBase):
         self._solve_nlp(X0, *args, **kwargs)
         return self.u0
     
-
     def reset(self) -> None:
         pass
 
@@ -166,6 +163,54 @@ class NMPC(ControllerBase):
             return None
         return tuple(self.Uopt[0:self.nu, 0].tolist())
 
+
+class NMPCPathTracking(NMPC):
+    def __init__(
+            self,
+            model:Callable,
+            actuators:ActuatorCollection,
+            weights:dict,
+            horizon:int=20
+    ) -> None:
+        self._actuators = actuators
+        lagrange, mayer, model, lbu, ubu, lbx, ubx = NMPCPathTracking.get_ready_for_nlp(model, actuators, weights, horizon)
+        super().__init__(
+            lagrange=lagrange,
+            mayer=mayer,
+            model=model,
+            lbu=lbu,
+            ubu=ubu,
+            lbx=lbx,
+            ubx=ubx,
+            horizon=horizon,
+            nx=3
+        )
+
+    @staticmethod
+    def get_ready_for_nlp() -> tuple:
+        """
+        Convert problem into standard NLP format to be understandable by parent class NMPC
+        """
+        lagrange = None
+        mayer = None
+        model = None
+        lbu = None
+        ubu = None
+        lbx = None
+        ubx = None
+        return lagrange, mayer, model, lbu, ubu, lbx, ubx
+    
+    def get(self, states:States, desired_states:States, initial_guess: Waypoints=None, *args, **kwargs) -> ActuatorCollection:
+        u0 = super().get(states, desired_states, initial_guess=initial_guess, *args, **kwargs)
+
+        # Convert u0 into commands to be distributed accross actuators
+        count = 0
+        commands = []
+        for a in self._actuators:
+            command = a.valid_command(*u0[count:count+a.nu])
+            commands.append(command)
+            count += a.nu
+        return commands
 
 def casadi_example() -> None:
     """

@@ -19,6 +19,8 @@ import matplotlib.pyplot as plt
 from copy import deepcopy
 import pygame
 from nav_env.ships.moving_ship import MovingShip
+from nav_env.actuators.collection import ActuatorCollection
+from nav_env.actuators.actuators import Actuator
 
 # TODO: Use MMSI (Maritime Mobile Service Identity) to identify ships 
 # TODO: Use SOG (Speed Over Ground) and COG (Course Over Ground) to update the ship states
@@ -38,6 +40,7 @@ class ShipWithDynamicsBase(MovingShip):
                  id:int=None,
                  length:float=None,
                  width:float=None,
+                 actuators:ActuatorCollection|list|Actuator=ActuatorCollection.empty(),
                  **kwargs
                  ):
         self._states = states
@@ -49,6 +52,15 @@ class ShipWithDynamicsBase(MovingShip):
         self._dx = None # Initialize differential to None
         self._accumulated_dx = DeltaStates(0., 0., 0., 0., 0., 0.) # Initialize accumulated differential to 0
         self._generalized_forces = GeneralizedForces() # Initialize generalized forces acting on the ship to 0
+        
+        if isinstance(actuators, Actuator):
+            self._actuators = ActuatorCollection([actuators])
+        elif isinstance(actuators, list) and isinstance(actuators[0], Actuator):
+            self._actuators = ActuatorCollection(actuators)
+        elif isinstance(actuators, ActuatorCollection):
+            self._actuators = actuators
+        else:
+            raise TypeError(f"Actuators provided has wrong type, must be list or ActuatorCollection or Actuator but is {type(actuators)}")
 
         super().__init__(
             states=states,
@@ -70,6 +82,7 @@ class ShipWithDynamicsBase(MovingShip):
         self._gnc.reset()
         super().reset()
 
+    
     def draw(self, screen:pygame.Surface, *args, scale=1, params:dict={'enveloppe':1}, **kwargs):
         """
         Draw the ship for pygame.
@@ -100,7 +113,7 @@ class ShipWithDynamicsBase(MovingShip):
         if 'frame' in keys:
             self.plot_frame(ax=ax)
         if 'acceleration' in keys:
-            self._derivatives.plot_acc(self._states.xy, ax=ax, c='purple', angles='xy', scale_units='xy', scale=5e-3)
+            self._derivatives.plot_acc(self._states.xy, ax=ax, color='purple', angles='xy', scale_units='xy', scale=5e-3)
         if 'velocity' in keys:
             self._states.plot(ax=ax, angles='xy', scale_units='xy', scale=1e-1)
         if 'forces' in keys:
@@ -146,7 +159,15 @@ class ShipWithDynamicsBase(MovingShip):
         Step the ship.
         """
         command = self._gnc.get(self) # command is currently a force but we will have to change it, in order to include control allocation
-        # controller_force = self._control_allocation(command)
+        
+        
+        ### Command can be either of type GeneralizedForces or list, in such case it is a list of ActuatorCommand.
+        ### This list of ActuatorCommand is converted into a GeneralizedForces object and then forwarded to the system
+        
+        
+        if isinstance(command, list):
+            command = self._actuators.dynamics(command)
+        # controller_force = self._control_allocation(command) --> This is happening in _gnc if needed
         self.update_derivatives(wind, water, external_forces+command)
         self.integrate()
 
@@ -205,7 +226,7 @@ class ShipWithDynamicsBase(MovingShip):
         pass
 
     def __repr__(self):
-        return f"{type(self).__name__}({self._states.__dict__})"
+        return f"{type(self).__name__} with {self._actuators} ({self._states.__dict__})"
     
     @property
     def enveloppe(self) -> ShipEnveloppe:
@@ -226,6 +247,8 @@ class ShipWithDynamicsBase(MovingShip):
     @dt.setter
     def dt(self, value:float) -> None:
         self._integrator.dt = value
+        for a in self._actuators:
+            a.dt = value
         self._dt = value
     
     @property
@@ -257,10 +280,11 @@ class SimpleShip(ShipWithDynamicsBase):
                  derivatives:TimeDerivatives3 = None, 
                  name:str="SimpleShip",
                  domain:Obstacle=None,
-                 domain_margin_wrt_enveloppe:float=0.
+                 domain_margin_wrt_enveloppe:float=0.,
+                 actuators:ActuatorCollection=None
                  ):
         states = states or States3()
-        super().__init__(states=states, physics=physics, controller=controller, integrator=integrator, derivatives=derivatives, name=name, domain=domain, domain_margin_wrt_enveloppe=domain_margin_wrt_enveloppe)
+        super().__init__(states=states, physics=physics, controller=controller, integrator=integrator, derivatives=derivatives, name=name, domain=domain, domain_margin_wrt_enveloppe=domain_margin_wrt_enveloppe, actuators=actuators)
 
     def update_derivatives(self, wind:WindVector, water:WaterVector, external_forces:GeneralizedForces):
         """
@@ -287,7 +311,8 @@ class Ship(ShipWithDynamicsBase):
                  domain:Obstacle=None,
                  domain_margin_wrt_enveloppe:float=0.,
                  length:float=None,
-                 width:float=None
+                 width:float=None,
+                 actuators:ActuatorCollection=ActuatorCollection.empty()
                  ):
         states = states or States3()
         super().__init__(
@@ -302,7 +327,8 @@ class Ship(ShipWithDynamicsBase):
             domain=domain, 
             domain_margin_wrt_enveloppe=domain_margin_wrt_enveloppe,
             length=length,
-            width=width
+            width=width,
+            actuators=actuators
         )
 
     def update_derivatives(self, wind:WindVector, water:WaterVector, external_forces:GeneralizedForces):
@@ -312,6 +338,7 @@ class Ship(ShipWithDynamicsBase):
         self._derivatives, self._generalized_forces = self._physics.get_time_derivatives_and_forces(self._states, wind, water, external_forces=external_forces)
 
 def test():
+
     from nav_env.viz.matplotlib_screen import MatplotlibScreen as Screen
     # from nav_env.viz.pygame_screen import PyGameScreen as Screen
     from nav_env.environment.environment import NavigationEnvironment as Env
@@ -327,6 +354,7 @@ def test():
     obs2 = Ellipse(-50, -50, 100, 20)
 
     ship = Ship(x0, integrator=Euler(dt), name="Ship1")
+    print(ship)
     ship2 = Ship(States3(-150., 50., -70., 10., 0., -10.), integrator=Euler(dt), name="Ship2")
     ship3 = Ship(States3(10., -100., -30., 0., 0., 0.), integrator=Euler(dt), name="Ship3")
     ship4 = Ship(States3(250., -200., 0., 0., 0., 60.), integrator=Euler(dt), name="Ship4")

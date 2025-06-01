@@ -1,8 +1,8 @@
-from nav_env.actuators.actuators import Actuator
-from nav_env.control.command import GeneralizedForces
+from nav_env.actuators.actuators import Actuator, Rudder, Thruster, AzimuthThruster
+from nav_env.control.command import GeneralizedForces, Command
 from math import pi
 
-class ActuatorCollection(Actuator):
+class ActuatorCollection:
     def __init__(self, actuators:list[Actuator], *args, **kwargs):
         self._actuators = actuators
 
@@ -13,10 +13,10 @@ class ActuatorCollection(Actuator):
     def remove(self, actuator:Actuator) -> None:
         return self._actuators.remove(actuator)
     
-    def dynamics(self, commands:list[tuple], vr:tuple) -> GeneralizedForces:
+    def dynamics(self, commands:list[Command], *args, v_r:tuple=None, **kwargs) -> GeneralizedForces:
         sum_of_forces = GeneralizedForces()
         for command, actuator in commands, self._actuators:
-            sum_of_forces += actuator.dynamics(command, vr)
+            sum_of_forces += actuator.dynamics(command, *args, v_r=v_r, **kwargs)
         return sum_of_forces
     
     def __getitem__(self, index: int) -> Actuator:
@@ -32,19 +32,46 @@ class ActuatorCollection(Actuator):
         for obs in self._actuators:
             yield obs
 
-    def __getattr__(self, name):
-        list_of_attributes = []
-        for a in self._actuators:
-            list_of_attributes.append(a.__getattribute__(name))
-        return list_of_attributes
+    # def __getattr__(self, name):
+    #     list_of_attributes = []
+    #     for a in self._actuators:
+    #         list_of_attributes.append(a.__getattribute__(name))
+    #     return list_of_attributes
+    
+    @staticmethod
+    def empty() -> "ActuatorCollection":
+        return ActuatorCollection([])
+    
+    @property
+    def rudders(self) -> "ActuatorCollection":
+        return ActuatorCollection(get_all_objects_of_type_in_iterable(self, Rudder))
+    
+    @property
+    def thrusters(self) -> "ActuatorCollection":
+        return ActuatorCollection(get_all_objects_of_type_in_iterable(self, Thruster))
+    
+    @property
+    def azimuth_thrusters(self) -> "ActuatorCollection":
+        return ActuatorCollection(get_all_objects_of_type_in_iterable(self, AzimuthThruster))
+    
+def get_all_objects_of_type_in_iterable(list_of_obj, obj_type) -> list:
+    out = []
+    for obj in list_of_obj:
+        if type(obj) == obj_type:
+            out.append(obj)
+    return out
 
 def test() -> None:
     from nav_env.actuators.actuators import AzimuthThruster, Thruster, Rudder
-    a1 = AzimuthThruster((0., 0.), 10., (0., 0.), (1., 1.), GeneralizedForces(), GeneralizedForces())
-    a2 = Thruster((0., 0.), 10., (0.), (1.), GeneralizedForces(), GeneralizedForces())
-    a3 = Rudder((0., 0.), 10., 1, 3, GeneralizedForces(), GeneralizedForces())
-    c = ActuatorCollection([a1, a2, a3])
-    print(c.u_max)
+    a1 = AzimuthThruster((0., 0.), 10., (0., 0.), (1., 1.), 1.)
+    a2 = Thruster((0., 0.), 10., (0.), (1.), 1.)
+    a3 = Rudder((0., 0.), 10., 1, 3, 1.)
+    a4 = AzimuthThruster((0., 0.), -10, (-10, 10), (-20, 20), 1.)
+    c = ActuatorCollection([a1, a2, a3, a4])
+    print(c)
+    print(c.rudders)
+    print(c.thrusters)
+    print(c.azimuth_thrusters)
 
 if __name__ == "__main__":
     test()

@@ -88,6 +88,7 @@ class ShipCollection:
 
 
 def test():
+    
     # TODO: Fix issue with __dict__when printing ships[0]
     ship1 = SimpleShip()
     ship2 = SimpleShip()

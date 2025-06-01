@@ -1,0 +1,67 @@
+{
+    "help": {
+        "Model": "xdot = Rz(psi) * v    |    M*vdot = -Crb(v)*v - Ca(vr)*vr - Dl*vr - Dnl(vr) * vr + tau_ext + tau_control",
+        "M": "Mass matrix = Mrb (rigid body mass) + Ma (added_mass)",
+        "Crb": "Coriolis and centripetal matrix",
+        "Ca": "Added mass matrix",
+        "Dl": "Linear damping matrix = diag([mass / linear_friction_surge, mass / linear_friction_sway, inertia_z / linear_friction_yaw])",
+        "Dnl": "Nonlinear damping matrix (only diagonal is non-zero)",
+        "i_z": "Moment of inertia about z-axis. Computed as mass * (xg^2 + yg^2) / 12"
+    },
+    "inertia": {
+        "x_g": 0.0,
+        "mass": 400000
+    },
+    "mass_over_linear_friction_coefficient": {
+        "help": "To be used in the linear damping matrix Dl = diag([mass / linear_friction_surge, mass / linear_friction_sway, inertia_z / linear_friction_yaw])",
+        "surge": 130,
+        "sway": 18,
+        "yaw": 0.01
+    },
+    "nonlinear_friction_coefficient": {
+        "help": "The nonlinear friction model is represented as D(v) * V, with D(v) = diag(ku * u, kv * v, kr * r). ku, kv, kr corresponds to the coefficient stored here.",
+        "surge": 2400, 
+        "sway": 4000,
+        "yaw": 1
+    },
+    "added_mass_coefficient": {
+        "help": "Allow to compute added mass in surge (mass * surge_coeff), sway (mass * sway_coeff) and yaw (i_z * yaw): ",
+        "surge": 0.4,
+        "sway": 0.4,
+        "yaw": 0.4
+    },
+    "dimensions": {
+        "help": "h_front and h_side are the height of the front and side of the ship avobe the waterline. They are used to compute the projected area facing the wind.",
+        "length": 80,
+        "width": 16,
+        "h_front": 8.0,
+        "h_side": 8.0
+    },
+    "wind": {
+        "help": "F (force in the direction of vw) = 0.5 * rho_a (air density) * vw^2 (relative wind speed) * cd (drag) * Ap (projected area facing the wind)",
+        "rho_a": 1.2,
+        "cx": 0.5,
+        "cy": 0.7,
+        "cn": 0.08
+    },
+    "water": {
+        "": ""
+    },
+    "actuators": {
+        "help": "List of actuators",
+        "thrusters": [
+            {
+                "starboard": 1
+            },
+            {
+                "port": 2
+            }
+        ],
+        "rudders": [
+
+        ],
+        "azimuth_thrusters": [
+
+        ]
+    }
+}
