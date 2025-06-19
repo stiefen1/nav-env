@@ -18,9 +18,10 @@ class GNC:
         self._controller = controller or Controller()
 
     def get(self, ship) -> Command:
-        observed_state:States3 = self._navigation.observe(ship)
-        desired_state:States3 = self._guidance.get(observed_state)
-        return self._controller.get(observed_state, desired_state)
+        observed_state:States3 = self._navigation.observe(ship) # State is in ship frame
+        desired_state, info = self._guidance.get(observed_state)
+        return self._controller.get(observed_state, desired_state, **info) # e.g. info can contain initial_guess for NMPC
+    
     
     def reset(self) -> None:
         self._guidance.reset()

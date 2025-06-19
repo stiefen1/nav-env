@@ -17,10 +17,11 @@ from nav_env.control.navigation import NavigationBase
 from nav_env.control.gnc import GNC
 import matplotlib.pyplot as plt
 from copy import deepcopy
-import pygame
+import pygame, numpy as np
 from nav_env.ships.moving_ship import MovingShip
 from nav_env.actuators.collection import ActuatorCollection
 from nav_env.actuators.actuators import Actuator
+from typing import Any
 
 # TODO: Use MMSI (Maritime Mobile Service Identity) to identify ships 
 # TODO: Use SOG (Speed Over Ground) and COG (Course Over Ground) to update the ship states
@@ -167,8 +168,10 @@ class ShipWithDynamicsBase(MovingShip):
         
         if isinstance(command, list):
             command = self._actuators.dynamics(command)
+            # print("tau_z: ", command.tau_z)
         # controller_force = self._control_allocation(command) --> This is happening in _gnc if needed
         self.update_derivatives(wind, water, external_forces+command)
+        # print("psi_dot_deg: ", self._derivatives.psi_dot_deg)
         self.integrate()
 
         # This is a trick, to control when to update the enveloppe
@@ -180,7 +183,20 @@ class ShipWithDynamicsBase(MovingShip):
             self._accumulated_dx += self._dx
 
         self._t += self._dt
-            
+
+    def model(self, x:Any, u:Any, use_casadi:bool=True) -> np.ndarray:
+        """
+        Probably not useful as casadi requires its own specific types for basic operation like matrix multiplications
+        """
+        control_forces = self._actuators.dynamics(u, use_casadi=use_casadi)
+        derivative, _ = self._physics.get_time_derivatives_and_forces(self._states, control_forces=control_forces, input_uvr_in_ship_frame=True, get_uvr_in_ship_frame=True, use_casadi=use_casadi)
+        if use_casadi:
+            new_states, _ = self._integrator(States3(*[x[i, 0] for i in range(x.size()[0])]), derivative)
+            return new_states.to_casadi()
+        else:
+            new_states, _ = self._integrator(States3(*[xi for xi in x]), derivative)
+            return new_states.to_numpy()
+        
         
     def integrate(self):
         """
@@ -270,6 +286,10 @@ class ShipWithDynamicsBase(MovingShip):
         """
         return self._generalized_forces
     
+    @property
+    def actuators(self) -> ActuatorCollection:
+        return self._actuators
+    
 
 class SimpleShip(ShipWithDynamicsBase):
     def __init__(self,
@@ -281,7 +301,7 @@ class SimpleShip(ShipWithDynamicsBase):
                  name:str="SimpleShip",
                  domain:Obstacle=None,
                  domain_margin_wrt_enveloppe:float=0.,
-                 actuators:ActuatorCollection=None
+                 actuators:ActuatorCollection=ActuatorCollection.empty()
                  ):
         states = states or States3()
         super().__init__(states=states, physics=physics, controller=controller, integrator=integrator, derivatives=derivatives, name=name, domain=domain, domain_margin_wrt_enveloppe=domain_margin_wrt_enveloppe, actuators=actuators)
@@ -312,7 +332,7 @@ class Ship(ShipWithDynamicsBase):
                  domain_margin_wrt_enveloppe:float=0.,
                  length:float=None,
                  width:float=None,
-                 actuators:ActuatorCollection=ActuatorCollection.empty()
+                 actuators:ActuatorCollection|list|Actuator=ActuatorCollection.empty()
                  ):
         states = states or States3()
         super().__init__(

@@ -2,7 +2,7 @@ from shapely import LineString
 from nav_env.geometry.wrapper import GeometryWrapper
 from nav_env.obstacles.obstacles import Obstacle
 import matplotlib.pyplot as plt, matplotlib.colors as mat_colors
-import warnings, sqlite3
+import warnings, sqlite3, casadi as cd, numpy as np
 from datetime import datetime, timedelta
 from math import atan2, pi
 from typing import Any, Callable
@@ -13,6 +13,88 @@ class Waypoints(GeometryWrapper):
     def __init__(self, waypoints: list = None):
         self._waypoints = [] if waypoints is None else waypoints
         super().__init__(xy=self._waypoints, geometry_type=LineString)
+        self._alphas = self.get_alphas()
+        self._segment_fn = self.get_segment_fn()
+        self._segments = self.get_segment()
+        # print([0] + self._alphas)
+        # print(np.array(waypoints, dtype=int).T.shape)
+        # print([[w[0] for w in waypoints], [w[1] for w in waypoints]], [0.0] + self._alphas)
+        self._interp_x = cd.interpolant('rx', 'bspline', [[0.0] + self._alphas], [w[0] for w in waypoints] )
+        self._interp_y = cd.interpolant('ry', 'bspline', [[0.0] + self._alphas], [w[1] for w in waypoints] )
+        
+    def get_alphas(self) -> tuple:
+        d = []
+        for i, wpt_i in enumerate(self._waypoints):
+            if i>0:  
+                d_i = ((wpt_i[0]-wpt_prev[0])**2 + (wpt_i[1]-wpt_prev[1])**2)**0.5
+                if i==1:
+                    d.append(d_i)
+                elif i>1:
+                    d.append(d_i + d[-1])
+            wpt_prev = wpt_i
+        alpha = []
+        for d_i in d:
+            alpha.append(d_i/d[-1])
+        self.d_tot = d[-1]
+        return alpha
+    
+    def get_segment_fn(self) -> tuple[Callable]:
+        """
+        All segment_fn returns a point that belong to the infinite line defined by previous and next waypoint
+        However the valid segment are only obtained when the value of alpha matches the right segment.        
+        """
+        func = []
+        for i, wpt_i in enumerate(self._waypoints):
+            if i > 0:
+                func_i = lambda alpha, big_alpha=self._alphas[i-1], i=i, wpt_prev=wpt_prev, wpt_i=wpt_i: cd.vertcat(
+                    wpt_prev[0] * (1-alpha/big_alpha) + alpha * wpt_i[0]/big_alpha,
+                    wpt_prev[1] * (1-alpha/big_alpha) + alpha * wpt_i[1]/big_alpha
+                )
+                func.append(func_i)
+            wpt_prev = wpt_i
+        return func
+    
+    def get_segment(self) -> list[tuple[float, float, Callable]]:
+        """
+        List of tuples containing (alpha_start, alpha_end, segment_fn) for each segment
+        """
+        new_alphas = [0.] + list(self._alphas)
+        segments = []
+        for i in range(len(new_alphas)-1):
+            alpha_start = new_alphas[i]
+            alpha_end = new_alphas[i+1]
+            segment_fn = self._segment_fn[i]
+            segments.append((alpha_start, alpha_end, segment_fn))
+        return segments
+    
+    def r_old(self, alpha:cd.SX) -> Any:
+        """
+        (x, y) = r(alpha) --> ONLY TO BE USED WITH CASADI, OTHERWISE SIMPLY USE __call__ which uses shapely's API
+        """
+        # segments: list of (alpha_start, alpha_end, segment_fn)
+        result = cd.vertcat(0,0)
+        for alpha_start, alpha_end, segment_fn in self._segments:
+            # Indicator: 1 if alpha in [alpha_start, alpha_end), else 0
+            in_segment = cd.logic_and(alpha >= alpha_start, alpha < alpha_end)
+            # Use if_else to select the segment function output or 0
+            result += cd.if_else(in_segment, segment_fn(alpha), 0)
+        return result
+    
+    def r(self, alpha:cd.SX) -> Any:
+        return cd.vertcat(self._interp_x(alpha), self._interp_y(alpha))
+    
+    def test_r(self, alpha:cd.SX) -> Any:
+        """
+        (x, y) = r(alpha) --> ONLY TO BE USED WITH CASADI, OTHERWISE SIMPLY USE __call__ which uses shapely's API
+        """
+        # segments: list of (alpha_start, alpha_end, segment_fn)
+        result = 0
+        for alpha_start, alpha_end, segment_fn in self._segments:
+            # Indicator: 1 if alpha in [alpha_start, alpha_end), else 0
+            in_segment = cd.logic_and(alpha >= alpha_start, alpha < alpha_end)
+            # Use if_else to select the segment function output or 0
+            result += cd.if_else(in_segment, segment_fn(alpha), 0)
+        return result
 
     def __iter__(self):
         return iter(self.get_xy_as_list())
@@ -23,12 +105,12 @@ class Waypoints(GeometryWrapper):
         return xy[idx]
     
     def __call__(self, value:float) -> tuple[float, float]:
-        if value > 1.:
-            warnings.warn(f"Value msut be between 0 and 1 but is {value:.3f}. Clipping value to 1..")
-            value = 1.
-        elif value < 0.:
-            warnings.warn(f"Value msut be between 0 and 1 but is {value:.3f}. Clipping value to 0..")
-            value = 0.
+        # if value > 1.:
+        #     warnings.warn(f"Value msut be between 0 and 1 but is {value:.3f}. Clipping value to 1..")
+        #     value = 1.
+        # elif value < 0.:
+        #     warnings.warn(f"Value msut be between 0 and 1 but is {value:.3f}. Clipping value to 0..")
+        #     value = 0.
         point = self.interpolate(value, normalized=True)
         return point.x, point.y
     
@@ -275,7 +357,7 @@ class TimeStampedWaypoints(Waypoints):
         Save timestamped waypoints into a SQL database. Currently, we use a trick to visualize the same ship multiple times. If we have to show one ship at N different timestamps,
         we create N different mmsi. If the input mmsi=100000000, and we have 3 timestamps to show, then we will have mmsi = [100000000, 100000001, 100000002]
         """
-        if not isinstance(timestamps, list):
+        if timestamps is not None and not isinstance(timestamps, list):
             timestamps = [timestamps]
         if isolate_timestamps:
             timestamps = [ti for ti in range(min(timestamps), max(timestamps)+1)]
@@ -338,7 +420,6 @@ class TimeStampedWaypoints(Waypoints):
     
     def get_default_headings_from_fn_deg(self, timestamps:list=None, eps:float=1e-6, seacharts_frame:bool=True) -> list[float]:
         timestamps = self._times if timestamps is None else timestamps
-
         headings = []
         for ti in timestamps:
             headings.append(self.get_single_default_heading_from_fn_deg(ti, eps=eps, seacharts_frame=seacharts_frame))

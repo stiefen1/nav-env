@@ -20,9 +20,12 @@ class ShipPhysics:
         self._linear_damping_matrix = self.__get_linear_damping_matrix()
 
     def __get_moment_of_inertia_about_z(self) -> float:
-        l = self._params.dimensions['length']
-        w = self._params.dimensions['width']
-        return  self._mass * (l**2 + w**2) / 12
+        if 'iz' in self._params.inertia.keys():
+            return self._params.inertia['iz']
+        else:
+            l = self._params.dimensions['length']
+            w = self._params.dimensions['width']
+            return  self._mass * (l**2 + w**2) / 12
     
     def __get_added_mass(self) -> tuple[float, float, float]:
         x_du = self._mass * self._params.added_mass_coefficient['surge']
@@ -32,8 +35,14 @@ class ShipPhysics:
     
     def __get_dimensions_and_projection(self) -> tuple[float, float, float, float]:
         dimensions = self._params.dimensions
-        proj_area_front = dimensions['width'] * dimensions['h_front']
-        proj_area_side = dimensions['length'] * dimensions['h_side']
+        if 'proj_area_front' in dimensions.keys():
+            proj_area_front = dimensions['proj_area_front']
+        else:
+            proj_area_front = dimensions['width'] * dimensions['h_front']
+        if 'proj_area_lateral' in dimensions.keys():
+            proj_area_side = dimensions['proj_area_lateral']
+        else:
+            proj_area_side = dimensions['length'] * dimensions['h_side']
         return dimensions['length'], dimensions['width'], proj_area_front, proj_area_side
 
     def __get_nonlinear_friction_coefficients(self) -> tuple[float, float, float]:

@@ -1503,8 +1503,8 @@ typedef struct __pyx_defaults1 __pyx_defaults1;
 struct __pyx_defaults2;
 typedef struct __pyx_defaults2 __pyx_defaults2;
 
-/* "nav_env/ships/physics.pyx":27
- *         return  self._mass * (l**2 + w**2) / 12
+/* "nav_env/ships/physics.pyx":30
+ *             return  self._mass * (l**2 + w**2) / 12
  * 
  *     def __get_added_mass(self) -> tuple[float, float, float]:             # <<<<<<<<<<<<<<
  *         x_du = self._mass * self._params.added_mass_coefficient['surge']
@@ -1516,12 +1516,12 @@ struct __pyx_ctuple_double__and_double__and_double {
   double f2;
 };
 
-/* "nav_env/ships/physics.pyx":33
+/* "nav_env/ships/physics.pyx":36
  *         return x_du, y_dv, n_dr
  * 
  *     def __get_dimensions_and_projection(self) -> tuple[float, float, float, float]:             # <<<<<<<<<<<<<<
  *         dimensions = self._params.dimensions
- *         proj_area_front = dimensions['width'] * dimensions['h_front']
+ *         if 'proj_area_front' in dimensions.keys():
  */
 struct __pyx_ctuple_double__and_double__and_double__and_double {
   double f0;
@@ -1899,6 +1899,12 @@ static CYTHON_INLINE int __Pyx_IterFinish(void);
 
 /* UnpackItemEndCheck.proto */
 static int __Pyx_IternextUnpackEndCheck(PyObject *retval, Py_ssize_t expected);
+
+/* PySequenceContains.proto */
+static CYTHON_INLINE int __Pyx_PySequence_ContainsTF(PyObject* item, PyObject* seq, int eq) {
+    int result = PySequence_Contains(seq, item);
+    return unlikely(result < 0) ? result : (result == (eq == Py_EQ));
+}
 
 /* PyIntBinop.proto */
 #if !CYTHON_COMPILING_IN_PYPY
@@ -2427,6 +2433,7 @@ static const char __pyx_k_f2[] = "f2";
 static const char __pyx_k_f3[] = "f3";
 static const char __pyx_k_f4[] = "f4";
 static const char __pyx_k_f5[] = "f5";
+static const char __pyx_k_iz[] = "iz";
 static const char __pyx_k_kr[] = "_kr";
 static const char __pyx_k_ku[] = "_ku";
 static const char __pyx_k_kv[] = "_kv";
@@ -2464,6 +2471,7 @@ static const char __pyx_k_cx_2[] = "cx";
 static const char __pyx_k_cy_2[] = "cy";
 static const char __pyx_k_dict[] = "__dict__";
 static const char __pyx_k_init[] = "__init__";
+static const char __pyx_k_keys[] = "keys";
 static const char __pyx_k_kr_2[] = "kr";
 static const char __pyx_k_ku_2[] = "ku";
 static const char __pyx_k_kv_2[] = "kv";
@@ -2586,6 +2594,7 @@ static const char __pyx_k_ShipPhysics_t_yaw[] = "ShipPhysics.t_yaw";
 static const char __pyx_k_ShipPhysics_width[] = "ShipPhysics.width";
 static const char __pyx_k_inv_mass_matrix_2[] = "inv_mass_matrix";
 static const char __pyx_k_proj_area_front_2[] = "proj_area_front";
+static const char __pyx_k_proj_area_lateral[] = "proj_area_lateral";
 static const char __pyx_k_ShipPhysicalParams[] = "ShipPhysicalParams";
 static const char __pyx_k_ShipPhysics___init[] = "ShipPhysics.__init__";
 static const char __pyx_k_ShipPhysics___repr[] = "ShipPhysics.__repr__";
@@ -2885,6 +2894,8 @@ typedef struct {
   PyObject *__pyx_n_s_inv_mass_matrix;
   PyObject *__pyx_n_s_inv_mass_matrix_2;
   PyObject *__pyx_n_s_is_coroutine;
+  PyObject *__pyx_n_s_iz;
+  PyObject *__pyx_n_s_keys;
   PyObject *__pyx_n_s_kr;
   PyObject *__pyx_n_s_kr_2;
   PyObject *__pyx_n_s_ku;
@@ -2929,6 +2940,7 @@ typedef struct {
   PyObject *__pyx_n_s_prepare;
   PyObject *__pyx_n_s_proj_area_front;
   PyObject *__pyx_n_s_proj_area_front_2;
+  PyObject *__pyx_n_s_proj_area_lateral;
   PyObject *__pyx_n_s_proj_area_side;
   PyObject *__pyx_n_s_proj_area_side_2;
   PyObject *__pyx_n_s_property;
@@ -3248,6 +3260,8 @@ static int __pyx_m_clear(PyObject *m) {
   Py_CLEAR(clear_module_state->__pyx_n_s_inv_mass_matrix);
   Py_CLEAR(clear_module_state->__pyx_n_s_inv_mass_matrix_2);
   Py_CLEAR(clear_module_state->__pyx_n_s_is_coroutine);
+  Py_CLEAR(clear_module_state->__pyx_n_s_iz);
+  Py_CLEAR(clear_module_state->__pyx_n_s_keys);
   Py_CLEAR(clear_module_state->__pyx_n_s_kr);
   Py_CLEAR(clear_module_state->__pyx_n_s_kr_2);
   Py_CLEAR(clear_module_state->__pyx_n_s_ku);
@@ -3292,6 +3306,7 @@ static int __pyx_m_clear(PyObject *m) {
   Py_CLEAR(clear_module_state->__pyx_n_s_prepare);
   Py_CLEAR(clear_module_state->__pyx_n_s_proj_area_front);
   Py_CLEAR(clear_module_state->__pyx_n_s_proj_area_front_2);
+  Py_CLEAR(clear_module_state->__pyx_n_s_proj_area_lateral);
   Py_CLEAR(clear_module_state->__pyx_n_s_proj_area_side);
   Py_CLEAR(clear_module_state->__pyx_n_s_proj_area_side_2);
   Py_CLEAR(clear_module_state->__pyx_n_s_property);
@@ -3589,6 +3604,8 @@ static int __pyx_m_traverse(PyObject *m, visitproc visit, void *arg) {
   Py_VISIT(traverse_module_state->__pyx_n_s_inv_mass_matrix);
   Py_VISIT(traverse_module_state->__pyx_n_s_inv_mass_matrix_2);
   Py_VISIT(traverse_module_state->__pyx_n_s_is_coroutine);
+  Py_VISIT(traverse_module_state->__pyx_n_s_iz);
+  Py_VISIT(traverse_module_state->__pyx_n_s_keys);
   Py_VISIT(traverse_module_state->__pyx_n_s_kr);
   Py_VISIT(traverse_module_state->__pyx_n_s_kr_2);
   Py_VISIT(traverse_module_state->__pyx_n_s_ku);
@@ -3633,6 +3650,7 @@ static int __pyx_m_traverse(PyObject *m, visitproc visit, void *arg) {
   Py_VISIT(traverse_module_state->__pyx_n_s_prepare);
   Py_VISIT(traverse_module_state->__pyx_n_s_proj_area_front);
   Py_VISIT(traverse_module_state->__pyx_n_s_proj_area_front_2);
+  Py_VISIT(traverse_module_state->__pyx_n_s_proj_area_lateral);
   Py_VISIT(traverse_module_state->__pyx_n_s_proj_area_side);
   Py_VISIT(traverse_module_state->__pyx_n_s_proj_area_side_2);
   Py_VISIT(traverse_module_state->__pyx_n_s_property);
@@ -3940,6 +3958,8 @@ static int __pyx_m_traverse(PyObject *m, visitproc visit, void *arg) {
 #define __pyx_n_s_inv_mass_matrix __pyx_mstate_global->__pyx_n_s_inv_mass_matrix
 #define __pyx_n_s_inv_mass_matrix_2 __pyx_mstate_global->__pyx_n_s_inv_mass_matrix_2
 #define __pyx_n_s_is_coroutine __pyx_mstate_global->__pyx_n_s_is_coroutine
+#define __pyx_n_s_iz __pyx_mstate_global->__pyx_n_s_iz
+#define __pyx_n_s_keys __pyx_mstate_global->__pyx_n_s_keys
 #define __pyx_n_s_kr __pyx_mstate_global->__pyx_n_s_kr
 #define __pyx_n_s_kr_2 __pyx_mstate_global->__pyx_n_s_kr_2
 #define __pyx_n_s_ku __pyx_mstate_global->__pyx_n_s_ku
@@ -3984,6 +4004,7 @@ static int __pyx_m_traverse(PyObject *m, visitproc visit, void *arg) {
 #define __pyx_n_s_prepare __pyx_mstate_global->__pyx_n_s_prepare
 #define __pyx_n_s_proj_area_front __pyx_mstate_global->__pyx_n_s_proj_area_front
 #define __pyx_n_s_proj_area_front_2 __pyx_mstate_global->__pyx_n_s_proj_area_front_2
+#define __pyx_n_s_proj_area_lateral __pyx_mstate_global->__pyx_n_s_proj_area_lateral
 #define __pyx_n_s_proj_area_side __pyx_mstate_global->__pyx_n_s_proj_area_side
 #define __pyx_n_s_proj_area_side_2 __pyx_mstate_global->__pyx_n_s_proj_area_side_2
 #define __pyx_n_s_property __pyx_mstate_global->__pyx_n_s_property
@@ -4969,8 +4990,8 @@ static PyObject *__pyx_pf_7nav_env_5ships_7physics_11ShipPhysics___init__(CYTHON
  *         self._linear_damping_matrix = self.__get_linear_damping_matrix()
  * 
  *     def __get_moment_of_inertia_about_z(self) -> float:             # <<<<<<<<<<<<<<
- *         l = self._params.dimensions['length']
- *         w = self._params.dimensions['width']
+ *         if 'iz' in self._params.inertia.keys():
+ *             return self._params.inertia['iz']
  */
 
 /* Python wrapper */
@@ -5077,7 +5098,9 @@ static PyObject *__pyx_pf_7nav_env_5ships_7physics_11ShipPhysics_2__get_moment_o
   PyObject *__pyx_t_1 = NULL;
   PyObject *__pyx_t_2 = NULL;
   PyObject *__pyx_t_3 = NULL;
-  PyObject *__pyx_t_4 = NULL;
+  unsigned int __pyx_t_4;
+  int __pyx_t_5;
+  PyObject *__pyx_t_6 = NULL;
   int __pyx_lineno = 0;
   const char *__pyx_filename = NULL;
   int __pyx_clineno = 0;
@@ -5086,74 +5109,146 @@ static PyObject *__pyx_pf_7nav_env_5ships_7physics_11ShipPhysics_2__get_moment_o
   /* "nav_env/ships/physics.pyx":23
  * 
  *     def __get_moment_of_inertia_about_z(self) -> float:
- *         l = self._params.dimensions['length']             # <<<<<<<<<<<<<<
- *         w = self._params.dimensions['width']
- *         return  self._mass * (l**2 + w**2) / 12
+ *         if 'iz' in self._params.inertia.keys():             # <<<<<<<<<<<<<<
+ *             return self._params.inertia['iz']
+ *         else:
  */
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_params); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 23, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_dimensions); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 23, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_params); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 23, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_t_1 = __Pyx_PyObject_Dict_GetItem(__pyx_t_2, __pyx_n_s_length_2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 23, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
+  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_inertia); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 23, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_3);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_v_l = __pyx_t_1;
-  __pyx_t_1 = 0;
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_keys); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 23, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_2);
+  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+  __pyx_t_3 = NULL;
+  __pyx_t_4 = 0;
+  #if CYTHON_UNPACK_METHODS
+  if (likely(PyMethod_Check(__pyx_t_2))) {
+    __pyx_t_3 = PyMethod_GET_SELF(__pyx_t_2);
+    if (likely(__pyx_t_3)) {
+      PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_2);
+      __Pyx_INCREF(__pyx_t_3);
+      __Pyx_INCREF(function);
+      __Pyx_DECREF_SET(__pyx_t_2, function);
+      __pyx_t_4 = 1;
+    }
+  }
+  #endif
+  {
+    PyObject *__pyx_callargs[2] = {__pyx_t_3, NULL};
+    __pyx_t_1 = __Pyx_PyObject_FastCall(__pyx_t_2, __pyx_callargs+1-__pyx_t_4, 0+__pyx_t_4);
+    __Pyx_XDECREF(__pyx_t_3); __pyx_t_3 = 0;
+    if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 23, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_1);
+    __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+  }
+  __pyx_t_5 = (__Pyx_PySequence_ContainsTF(__pyx_n_s_iz, __pyx_t_1, Py_EQ)); if (unlikely((__pyx_t_5 < 0))) __PYX_ERR(0, 23, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+  if (__pyx_t_5) {
 
-  /* "nav_env/ships/physics.pyx":24
+    /* "nav_env/ships/physics.pyx":24
  *     def __get_moment_of_inertia_about_z(self) -> float:
- *         l = self._params.dimensions['length']
- *         w = self._params.dimensions['width']             # <<<<<<<<<<<<<<
- *         return  self._mass * (l**2 + w**2) / 12
+ *         if 'iz' in self._params.inertia.keys():
+ *             return self._params.inertia['iz']             # <<<<<<<<<<<<<<
+ *         else:
+ *             l = self._params.dimensions['length']
+ */
+    __Pyx_XDECREF(__pyx_r);
+    __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_params); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 24, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_1);
+    __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_inertia); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 24, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_2);
+    __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+    __pyx_t_1 = __Pyx_PyObject_Dict_GetItem(__pyx_t_2, __pyx_n_s_iz); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 24, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_1);
+    __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+    __pyx_r = __pyx_t_1;
+    __pyx_t_1 = 0;
+    goto __pyx_L0;
+
+    /* "nav_env/ships/physics.pyx":23
+ * 
+ *     def __get_moment_of_inertia_about_z(self) -> float:
+ *         if 'iz' in self._params.inertia.keys():             # <<<<<<<<<<<<<<
+ *             return self._params.inertia['iz']
+ *         else:
+ */
+  }
+
+  /* "nav_env/ships/physics.pyx":26
+ *             return self._params.inertia['iz']
+ *         else:
+ *             l = self._params.dimensions['length']             # <<<<<<<<<<<<<<
+ *             w = self._params.dimensions['width']
+ *             return  self._mass * (l**2 + w**2) / 12
+ */
+  /*else*/ {
+    __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_params); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 26, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_1);
+    __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_dimensions); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 26, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_2);
+    __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+    __pyx_t_1 = __Pyx_PyObject_Dict_GetItem(__pyx_t_2, __pyx_n_s_length_2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 26, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_1);
+    __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+    __pyx_v_l = __pyx_t_1;
+    __pyx_t_1 = 0;
+
+    /* "nav_env/ships/physics.pyx":27
+ *         else:
+ *             l = self._params.dimensions['length']
+ *             w = self._params.dimensions['width']             # <<<<<<<<<<<<<<
+ *             return  self._mass * (l**2 + w**2) / 12
  * 
  */
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_params); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 24, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_dimensions); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 24, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_2);
-  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_t_1 = __Pyx_PyObject_Dict_GetItem(__pyx_t_2, __pyx_n_s_width_2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 24, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
-  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_v_w = __pyx_t_1;
-  __pyx_t_1 = 0;
+    __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_params); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 27, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_1);
+    __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_dimensions); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 27, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_2);
+    __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+    __pyx_t_1 = __Pyx_PyObject_Dict_GetItem(__pyx_t_2, __pyx_n_s_width_2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 27, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_1);
+    __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+    __pyx_v_w = __pyx_t_1;
+    __pyx_t_1 = 0;
 
-  /* "nav_env/ships/physics.pyx":25
- *         l = self._params.dimensions['length']
- *         w = self._params.dimensions['width']
- *         return  self._mass * (l**2 + w**2) / 12             # <<<<<<<<<<<<<<
+    /* "nav_env/ships/physics.pyx":28
+ *             l = self._params.dimensions['length']
+ *             w = self._params.dimensions['width']
+ *             return  self._mass * (l**2 + w**2) / 12             # <<<<<<<<<<<<<<
  * 
  *     def __get_added_mass(self) -> tuple[float, float, float]:
  */
-  __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_mass_2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 25, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = PyNumber_Power(__pyx_v_l, __pyx_int_2, Py_None); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 25, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_3 = PyNumber_Power(__pyx_v_w, __pyx_int_2, Py_None); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 25, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_4 = PyNumber_Add(__pyx_t_2, __pyx_t_3); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 25, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_4);
-  __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  __pyx_t_3 = PyNumber_Multiply(__pyx_t_1, __pyx_t_4); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 25, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_3);
-  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  __pyx_t_4 = __Pyx_PyInt_TrueDivideObjC(__pyx_t_3, __pyx_int_12, 12, 0, 0); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 25, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_4);
-  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  __pyx_r = __pyx_t_4;
-  __pyx_t_4 = 0;
-  goto __pyx_L0;
+    __Pyx_XDECREF(__pyx_r);
+    __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_mass_2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 28, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_1);
+    __pyx_t_2 = PyNumber_Power(__pyx_v_l, __pyx_int_2, Py_None); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 28, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_2);
+    __pyx_t_3 = PyNumber_Power(__pyx_v_w, __pyx_int_2, Py_None); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 28, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_3);
+    __pyx_t_6 = PyNumber_Add(__pyx_t_2, __pyx_t_3); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 28, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_6);
+    __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+    __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+    __pyx_t_3 = PyNumber_Multiply(__pyx_t_1, __pyx_t_6); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 28, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_3);
+    __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+    __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
+    __pyx_t_6 = __Pyx_PyInt_TrueDivideObjC(__pyx_t_3, __pyx_int_12, 12, 0, 0); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 28, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_6);
+    __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+    __pyx_r = __pyx_t_6;
+    __pyx_t_6 = 0;
+    goto __pyx_L0;
+  }
 
   /* "nav_env/ships/physics.pyx":22
  *         self._linear_damping_matrix = self.__get_linear_damping_matrix()
  * 
  *     def __get_moment_of_inertia_about_z(self) -> float:             # <<<<<<<<<<<<<<
- *         l = self._params.dimensions['length']
- *         w = self._params.dimensions['width']
+ *         if 'iz' in self._params.inertia.keys():
+ *             return self._params.inertia['iz']
  */
 
   /* function exit code */
@@ -5161,7 +5256,7 @@ static PyObject *__pyx_pf_7nav_env_5ships_7physics_11ShipPhysics_2__get_moment_o
   __Pyx_XDECREF(__pyx_t_1);
   __Pyx_XDECREF(__pyx_t_2);
   __Pyx_XDECREF(__pyx_t_3);
-  __Pyx_XDECREF(__pyx_t_4);
+  __Pyx_XDECREF(__pyx_t_6);
   __Pyx_AddTraceback("nav_env.ships.physics.ShipPhysics.__get_moment_of_inertia_about_z", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_r = NULL;
   __pyx_L0:;
@@ -5172,8 +5267,8 @@ static PyObject *__pyx_pf_7nav_env_5ships_7physics_11ShipPhysics_2__get_moment_o
   return __pyx_r;
 }
 
-/* "nav_env/ships/physics.pyx":27
- *         return  self._mass * (l**2 + w**2) / 12
+/* "nav_env/ships/physics.pyx":30
+ *             return  self._mass * (l**2 + w**2) / 12
  * 
  *     def __get_added_mass(self) -> tuple[float, float, float]:             # <<<<<<<<<<<<<<
  *         x_du = self._mass * self._params.added_mass_coefficient['surge']
@@ -5233,12 +5328,12 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
           (void)__Pyx_Arg_NewRef_FASTCALL(values[0]);
           kw_args--;
         }
-        else if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 27, __pyx_L3_error)
+        else if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 30, __pyx_L3_error)
         else goto __pyx_L5_argtuple_error;
       }
       if (unlikely(kw_args > 0)) {
         const Py_ssize_t kwd_pos_args = __pyx_nargs;
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_kwvalues, __pyx_pyargnames, 0, values + 0, kwd_pos_args, "__get_added_mass") < 0)) __PYX_ERR(0, 27, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_kwvalues, __pyx_pyargnames, 0, values + 0, kwd_pos_args, "__get_added_mass") < 0)) __PYX_ERR(0, 30, __pyx_L3_error)
       }
     } else if (unlikely(__pyx_nargs != 1)) {
       goto __pyx_L5_argtuple_error;
@@ -5249,7 +5344,7 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
   }
   goto __pyx_L6_skip;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("__get_added_mass", 1, 1, 1, __pyx_nargs); __PYX_ERR(0, 27, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("__get_added_mass", 1, 1, 1, __pyx_nargs); __PYX_ERR(0, 30, __pyx_L3_error)
   __pyx_L6_skip:;
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L3_error:;
@@ -5290,79 +5385,79 @@ static PyObject *__pyx_pf_7nav_env_5ships_7physics_11ShipPhysics_4__get_added_ma
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("__get_added_mass", 1);
 
-  /* "nav_env/ships/physics.pyx":28
+  /* "nav_env/ships/physics.pyx":31
  * 
  *     def __get_added_mass(self) -> tuple[float, float, float]:
  *         x_du = self._mass * self._params.added_mass_coefficient['surge']             # <<<<<<<<<<<<<<
  *         y_dv = self._mass * self._params.added_mass_coefficient['sway']
  *         n_dr = self._i_z * self._params.added_mass_coefficient['yaw']
  */
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_mass_2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 28, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_mass_2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 31, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_params); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 28, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_params); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 31, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_added_mass_coefficient); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 28, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_added_mass_coefficient); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 31, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_2 = __Pyx_PyObject_Dict_GetItem(__pyx_t_3, __pyx_n_s_surge); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 28, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_Dict_GetItem(__pyx_t_3, __pyx_n_s_surge); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 31, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  __pyx_t_3 = PyNumber_Multiply(__pyx_t_1, __pyx_t_2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 28, __pyx_L1_error)
+  __pyx_t_3 = PyNumber_Multiply(__pyx_t_1, __pyx_t_2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 31, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __pyx_v_x_du = __pyx_t_3;
   __pyx_t_3 = 0;
 
-  /* "nav_env/ships/physics.pyx":29
+  /* "nav_env/ships/physics.pyx":32
  *     def __get_added_mass(self) -> tuple[float, float, float]:
  *         x_du = self._mass * self._params.added_mass_coefficient['surge']
  *         y_dv = self._mass * self._params.added_mass_coefficient['sway']             # <<<<<<<<<<<<<<
  *         n_dr = self._i_z * self._params.added_mass_coefficient['yaw']
  *         return x_du, y_dv, n_dr
  */
-  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_mass_2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 29, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_mass_2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 32, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_params); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 29, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_params); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 32, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_added_mass_coefficient); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 29, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_added_mass_coefficient); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 32, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_2 = __Pyx_PyObject_Dict_GetItem(__pyx_t_1, __pyx_n_s_sway); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 29, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_Dict_GetItem(__pyx_t_1, __pyx_n_s_sway); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 32, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_t_1 = PyNumber_Multiply(__pyx_t_3, __pyx_t_2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 29, __pyx_L1_error)
+  __pyx_t_1 = PyNumber_Multiply(__pyx_t_3, __pyx_t_2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 32, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __pyx_v_y_dv = __pyx_t_1;
   __pyx_t_1 = 0;
 
-  /* "nav_env/ships/physics.pyx":30
+  /* "nav_env/ships/physics.pyx":33
  *         x_du = self._mass * self._params.added_mass_coefficient['surge']
  *         y_dv = self._mass * self._params.added_mass_coefficient['sway']
  *         n_dr = self._i_z * self._params.added_mass_coefficient['yaw']             # <<<<<<<<<<<<<<
  *         return x_du, y_dv, n_dr
  * 
  */
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_i_z); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 30, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_i_z); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 33, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_params); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 30, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_params); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 33, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_added_mass_coefficient); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 30, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_added_mass_coefficient); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 33, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_2 = __Pyx_PyObject_Dict_GetItem(__pyx_t_3, __pyx_n_s_yaw); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 30, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_Dict_GetItem(__pyx_t_3, __pyx_n_s_yaw); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 33, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  __pyx_t_3 = PyNumber_Multiply(__pyx_t_1, __pyx_t_2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 30, __pyx_L1_error)
+  __pyx_t_3 = PyNumber_Multiply(__pyx_t_1, __pyx_t_2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 33, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __pyx_v_n_dr = __pyx_t_3;
   __pyx_t_3 = 0;
 
-  /* "nav_env/ships/physics.pyx":31
+  /* "nav_env/ships/physics.pyx":34
  *         y_dv = self._mass * self._params.added_mass_coefficient['sway']
  *         n_dr = self._i_z * self._params.added_mass_coefficient['yaw']
  *         return x_du, y_dv, n_dr             # <<<<<<<<<<<<<<
@@ -5370,23 +5465,23 @@ static PyObject *__pyx_pf_7nav_env_5ships_7physics_11ShipPhysics_4__get_added_ma
  *     def __get_dimensions_and_projection(self) -> tuple[float, float, float, float]:
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_3 = PyTuple_New(3); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 31, __pyx_L1_error)
+  __pyx_t_3 = PyTuple_New(3); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 34, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_INCREF(__pyx_v_x_du);
   __Pyx_GIVEREF(__pyx_v_x_du);
-  if (__Pyx_PyTuple_SET_ITEM(__pyx_t_3, 0, __pyx_v_x_du)) __PYX_ERR(0, 31, __pyx_L1_error);
+  if (__Pyx_PyTuple_SET_ITEM(__pyx_t_3, 0, __pyx_v_x_du)) __PYX_ERR(0, 34, __pyx_L1_error);
   __Pyx_INCREF(__pyx_v_y_dv);
   __Pyx_GIVEREF(__pyx_v_y_dv);
-  if (__Pyx_PyTuple_SET_ITEM(__pyx_t_3, 1, __pyx_v_y_dv)) __PYX_ERR(0, 31, __pyx_L1_error);
+  if (__Pyx_PyTuple_SET_ITEM(__pyx_t_3, 1, __pyx_v_y_dv)) __PYX_ERR(0, 34, __pyx_L1_error);
   __Pyx_INCREF(__pyx_v_n_dr);
   __Pyx_GIVEREF(__pyx_v_n_dr);
-  if (__Pyx_PyTuple_SET_ITEM(__pyx_t_3, 2, __pyx_v_n_dr)) __PYX_ERR(0, 31, __pyx_L1_error);
+  if (__Pyx_PyTuple_SET_ITEM(__pyx_t_3, 2, __pyx_v_n_dr)) __PYX_ERR(0, 34, __pyx_L1_error);
   __pyx_r = __pyx_t_3;
   __pyx_t_3 = 0;
   goto __pyx_L0;
 
-  /* "nav_env/ships/physics.pyx":27
- *         return  self._mass * (l**2 + w**2) / 12
+  /* "nav_env/ships/physics.pyx":30
+ *             return  self._mass * (l**2 + w**2) / 12
  * 
  *     def __get_added_mass(self) -> tuple[float, float, float]:             # <<<<<<<<<<<<<<
  *         x_du = self._mass * self._params.added_mass_coefficient['surge']
@@ -5409,12 +5504,12 @@ static PyObject *__pyx_pf_7nav_env_5ships_7physics_11ShipPhysics_4__get_added_ma
   return __pyx_r;
 }
 
-/* "nav_env/ships/physics.pyx":33
+/* "nav_env/ships/physics.pyx":36
  *         return x_du, y_dv, n_dr
  * 
  *     def __get_dimensions_and_projection(self) -> tuple[float, float, float, float]:             # <<<<<<<<<<<<<<
  *         dimensions = self._params.dimensions
- *         proj_area_front = dimensions['width'] * dimensions['h_front']
+ *         if 'proj_area_front' in dimensions.keys():
  */
 
 /* Python wrapper */
@@ -5470,12 +5565,12 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
           (void)__Pyx_Arg_NewRef_FASTCALL(values[0]);
           kw_args--;
         }
-        else if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 33, __pyx_L3_error)
+        else if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 36, __pyx_L3_error)
         else goto __pyx_L5_argtuple_error;
       }
       if (unlikely(kw_args > 0)) {
         const Py_ssize_t kwd_pos_args = __pyx_nargs;
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_kwvalues, __pyx_pyargnames, 0, values + 0, kwd_pos_args, "__get_dimensions_and_projection") < 0)) __PYX_ERR(0, 33, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_kwvalues, __pyx_pyargnames, 0, values + 0, kwd_pos_args, "__get_dimensions_and_projection") < 0)) __PYX_ERR(0, 36, __pyx_L3_error)
       }
     } else if (unlikely(__pyx_nargs != 1)) {
       goto __pyx_L5_argtuple_error;
@@ -5486,7 +5581,7 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
   }
   goto __pyx_L6_skip;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("__get_dimensions_and_projection", 1, 1, 1, __pyx_nargs); __PYX_ERR(0, 33, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("__get_dimensions_and_projection", 1, 1, 1, __pyx_nargs); __PYX_ERR(0, 36, __pyx_L3_error)
   __pyx_L6_skip:;
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L3_error:;
@@ -5522,98 +5617,220 @@ static PyObject *__pyx_pf_7nav_env_5ships_7physics_11ShipPhysics_6__get_dimensio
   PyObject *__pyx_t_1 = NULL;
   PyObject *__pyx_t_2 = NULL;
   PyObject *__pyx_t_3 = NULL;
+  unsigned int __pyx_t_4;
+  int __pyx_t_5;
   int __pyx_lineno = 0;
   const char *__pyx_filename = NULL;
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("__get_dimensions_and_projection", 1);
 
-  /* "nav_env/ships/physics.pyx":34
+  /* "nav_env/ships/physics.pyx":37
  * 
  *     def __get_dimensions_and_projection(self) -> tuple[float, float, float, float]:
  *         dimensions = self._params.dimensions             # <<<<<<<<<<<<<<
- *         proj_area_front = dimensions['width'] * dimensions['h_front']
- *         proj_area_side = dimensions['length'] * dimensions['h_side']
+ *         if 'proj_area_front' in dimensions.keys():
+ *             proj_area_front = dimensions['proj_area_front']
  */
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_params); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 34, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_params); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 37, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_dimensions); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 34, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_dimensions); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 37, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __pyx_v_dimensions = __pyx_t_2;
   __pyx_t_2 = 0;
 
-  /* "nav_env/ships/physics.pyx":35
+  /* "nav_env/ships/physics.pyx":38
  *     def __get_dimensions_and_projection(self) -> tuple[float, float, float, float]:
  *         dimensions = self._params.dimensions
- *         proj_area_front = dimensions['width'] * dimensions['h_front']             # <<<<<<<<<<<<<<
- *         proj_area_side = dimensions['length'] * dimensions['h_side']
- *         return dimensions['length'], dimensions['width'], proj_area_front, proj_area_side
+ *         if 'proj_area_front' in dimensions.keys():             # <<<<<<<<<<<<<<
+ *             proj_area_front = dimensions['proj_area_front']
+ *         else:
  */
-  __pyx_t_2 = __Pyx_PyObject_Dict_GetItem(__pyx_v_dimensions, __pyx_n_s_width_2); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 35, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_1 = __Pyx_PyObject_Dict_GetItem(__pyx_v_dimensions, __pyx_n_s_h_front); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 35, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_dimensions, __pyx_n_s_keys); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 38, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_3 = PyNumber_Multiply(__pyx_t_2, __pyx_t_1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 35, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_3);
+  __pyx_t_3 = NULL;
+  __pyx_t_4 = 0;
+  #if CYTHON_UNPACK_METHODS
+  if (likely(PyMethod_Check(__pyx_t_1))) {
+    __pyx_t_3 = PyMethod_GET_SELF(__pyx_t_1);
+    if (likely(__pyx_t_3)) {
+      PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_1);
+      __Pyx_INCREF(__pyx_t_3);
+      __Pyx_INCREF(function);
+      __Pyx_DECREF_SET(__pyx_t_1, function);
+      __pyx_t_4 = 1;
+    }
+  }
+  #endif
+  {
+    PyObject *__pyx_callargs[2] = {__pyx_t_3, NULL};
+    __pyx_t_2 = __Pyx_PyObject_FastCall(__pyx_t_1, __pyx_callargs+1-__pyx_t_4, 0+__pyx_t_4);
+    __Pyx_XDECREF(__pyx_t_3); __pyx_t_3 = 0;
+    if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 38, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_2);
+    __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+  }
+  __pyx_t_5 = (__Pyx_PySequence_ContainsTF(__pyx_n_s_proj_area_front_2, __pyx_t_2, Py_EQ)); if (unlikely((__pyx_t_5 < 0))) __PYX_ERR(0, 38, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_v_proj_area_front = __pyx_t_3;
-  __pyx_t_3 = 0;
+  if (__pyx_t_5) {
 
-  /* "nav_env/ships/physics.pyx":36
+    /* "nav_env/ships/physics.pyx":39
  *         dimensions = self._params.dimensions
- *         proj_area_front = dimensions['width'] * dimensions['h_front']
- *         proj_area_side = dimensions['length'] * dimensions['h_side']             # <<<<<<<<<<<<<<
+ *         if 'proj_area_front' in dimensions.keys():
+ *             proj_area_front = dimensions['proj_area_front']             # <<<<<<<<<<<<<<
+ *         else:
+ *             proj_area_front = dimensions['width'] * dimensions['h_front']
+ */
+    __pyx_t_2 = __Pyx_PyObject_Dict_GetItem(__pyx_v_dimensions, __pyx_n_s_proj_area_front_2); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 39, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_2);
+    __pyx_v_proj_area_front = __pyx_t_2;
+    __pyx_t_2 = 0;
+
+    /* "nav_env/ships/physics.pyx":38
+ *     def __get_dimensions_and_projection(self) -> tuple[float, float, float, float]:
+ *         dimensions = self._params.dimensions
+ *         if 'proj_area_front' in dimensions.keys():             # <<<<<<<<<<<<<<
+ *             proj_area_front = dimensions['proj_area_front']
+ *         else:
+ */
+    goto __pyx_L3;
+  }
+
+  /* "nav_env/ships/physics.pyx":41
+ *             proj_area_front = dimensions['proj_area_front']
+ *         else:
+ *             proj_area_front = dimensions['width'] * dimensions['h_front']             # <<<<<<<<<<<<<<
+ *         if 'proj_area_lateral' in dimensions.keys():
+ *             proj_area_side = dimensions['proj_area_lateral']
+ */
+  /*else*/ {
+    __pyx_t_2 = __Pyx_PyObject_Dict_GetItem(__pyx_v_dimensions, __pyx_n_s_width_2); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 41, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_2);
+    __pyx_t_1 = __Pyx_PyObject_Dict_GetItem(__pyx_v_dimensions, __pyx_n_s_h_front); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 41, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_1);
+    __pyx_t_3 = PyNumber_Multiply(__pyx_t_2, __pyx_t_1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 41, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_3);
+    __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+    __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+    __pyx_v_proj_area_front = __pyx_t_3;
+    __pyx_t_3 = 0;
+  }
+  __pyx_L3:;
+
+  /* "nav_env/ships/physics.pyx":42
+ *         else:
+ *             proj_area_front = dimensions['width'] * dimensions['h_front']
+ *         if 'proj_area_lateral' in dimensions.keys():             # <<<<<<<<<<<<<<
+ *             proj_area_side = dimensions['proj_area_lateral']
+ *         else:
+ */
+  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_dimensions, __pyx_n_s_keys); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 42, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_t_1);
+  __pyx_t_2 = NULL;
+  __pyx_t_4 = 0;
+  #if CYTHON_UNPACK_METHODS
+  if (likely(PyMethod_Check(__pyx_t_1))) {
+    __pyx_t_2 = PyMethod_GET_SELF(__pyx_t_1);
+    if (likely(__pyx_t_2)) {
+      PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_1);
+      __Pyx_INCREF(__pyx_t_2);
+      __Pyx_INCREF(function);
+      __Pyx_DECREF_SET(__pyx_t_1, function);
+      __pyx_t_4 = 1;
+    }
+  }
+  #endif
+  {
+    PyObject *__pyx_callargs[2] = {__pyx_t_2, NULL};
+    __pyx_t_3 = __Pyx_PyObject_FastCall(__pyx_t_1, __pyx_callargs+1-__pyx_t_4, 0+__pyx_t_4);
+    __Pyx_XDECREF(__pyx_t_2); __pyx_t_2 = 0;
+    if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 42, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_3);
+    __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+  }
+  __pyx_t_5 = (__Pyx_PySequence_ContainsTF(__pyx_n_s_proj_area_lateral, __pyx_t_3, Py_EQ)); if (unlikely((__pyx_t_5 < 0))) __PYX_ERR(0, 42, __pyx_L1_error)
+  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+  if (__pyx_t_5) {
+
+    /* "nav_env/ships/physics.pyx":43
+ *             proj_area_front = dimensions['width'] * dimensions['h_front']
+ *         if 'proj_area_lateral' in dimensions.keys():
+ *             proj_area_side = dimensions['proj_area_lateral']             # <<<<<<<<<<<<<<
+ *         else:
+ *             proj_area_side = dimensions['length'] * dimensions['h_side']
+ */
+    __pyx_t_3 = __Pyx_PyObject_Dict_GetItem(__pyx_v_dimensions, __pyx_n_s_proj_area_lateral); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 43, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_3);
+    __pyx_v_proj_area_side = __pyx_t_3;
+    __pyx_t_3 = 0;
+
+    /* "nav_env/ships/physics.pyx":42
+ *         else:
+ *             proj_area_front = dimensions['width'] * dimensions['h_front']
+ *         if 'proj_area_lateral' in dimensions.keys():             # <<<<<<<<<<<<<<
+ *             proj_area_side = dimensions['proj_area_lateral']
+ *         else:
+ */
+    goto __pyx_L4;
+  }
+
+  /* "nav_env/ships/physics.pyx":45
+ *             proj_area_side = dimensions['proj_area_lateral']
+ *         else:
+ *             proj_area_side = dimensions['length'] * dimensions['h_side']             # <<<<<<<<<<<<<<
  *         return dimensions['length'], dimensions['width'], proj_area_front, proj_area_side
  * 
  */
-  __pyx_t_3 = __Pyx_PyObject_Dict_GetItem(__pyx_v_dimensions, __pyx_n_s_length_2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 36, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_1 = __Pyx_PyObject_Dict_GetItem(__pyx_v_dimensions, __pyx_n_s_h_side); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 36, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = PyNumber_Multiply(__pyx_t_3, __pyx_t_1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 36, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_2);
-  __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_v_proj_area_side = __pyx_t_2;
-  __pyx_t_2 = 0;
+  /*else*/ {
+    __pyx_t_3 = __Pyx_PyObject_Dict_GetItem(__pyx_v_dimensions, __pyx_n_s_length_2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 45, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_3);
+    __pyx_t_1 = __Pyx_PyObject_Dict_GetItem(__pyx_v_dimensions, __pyx_n_s_h_side); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 45, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_1);
+    __pyx_t_2 = PyNumber_Multiply(__pyx_t_3, __pyx_t_1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 45, __pyx_L1_error)
+    __Pyx_GOTREF(__pyx_t_2);
+    __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+    __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+    __pyx_v_proj_area_side = __pyx_t_2;
+    __pyx_t_2 = 0;
+  }
+  __pyx_L4:;
 
-  /* "nav_env/ships/physics.pyx":37
- *         proj_area_front = dimensions['width'] * dimensions['h_front']
- *         proj_area_side = dimensions['length'] * dimensions['h_side']
+  /* "nav_env/ships/physics.pyx":46
+ *         else:
+ *             proj_area_side = dimensions['length'] * dimensions['h_side']
  *         return dimensions['length'], dimensions['width'], proj_area_front, proj_area_side             # <<<<<<<<<<<<<<
  * 
  *     def __get_nonlinear_friction_coefficients(self) -> tuple[float, float, float]:
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_2 = __Pyx_PyObject_Dict_GetItem(__pyx_v_dimensions, __pyx_n_s_length_2); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 37, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_Dict_GetItem(__pyx_v_dimensions, __pyx_n_s_length_2); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 46, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_1 = __Pyx_PyObject_Dict_GetItem(__pyx_v_dimensions, __pyx_n_s_width_2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 37, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_Dict_GetItem(__pyx_v_dimensions, __pyx_n_s_width_2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 46, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_3 = PyTuple_New(4); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 37, __pyx_L1_error)
+  __pyx_t_3 = PyTuple_New(4); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 46, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_GIVEREF(__pyx_t_2);
-  if (__Pyx_PyTuple_SET_ITEM(__pyx_t_3, 0, __pyx_t_2)) __PYX_ERR(0, 37, __pyx_L1_error);
+  if (__Pyx_PyTuple_SET_ITEM(__pyx_t_3, 0, __pyx_t_2)) __PYX_ERR(0, 46, __pyx_L1_error);
   __Pyx_GIVEREF(__pyx_t_1);
-  if (__Pyx_PyTuple_SET_ITEM(__pyx_t_3, 1, __pyx_t_1)) __PYX_ERR(0, 37, __pyx_L1_error);
+  if (__Pyx_PyTuple_SET_ITEM(__pyx_t_3, 1, __pyx_t_1)) __PYX_ERR(0, 46, __pyx_L1_error);
   __Pyx_INCREF(__pyx_v_proj_area_front);
   __Pyx_GIVEREF(__pyx_v_proj_area_front);
-  if (__Pyx_PyTuple_SET_ITEM(__pyx_t_3, 2, __pyx_v_proj_area_front)) __PYX_ERR(0, 37, __pyx_L1_error);
+  if (__Pyx_PyTuple_SET_ITEM(__pyx_t_3, 2, __pyx_v_proj_area_front)) __PYX_ERR(0, 46, __pyx_L1_error);
   __Pyx_INCREF(__pyx_v_proj_area_side);
   __Pyx_GIVEREF(__pyx_v_proj_area_side);
-  if (__Pyx_PyTuple_SET_ITEM(__pyx_t_3, 3, __pyx_v_proj_area_side)) __PYX_ERR(0, 37, __pyx_L1_error);
+  if (__Pyx_PyTuple_SET_ITEM(__pyx_t_3, 3, __pyx_v_proj_area_side)) __PYX_ERR(0, 46, __pyx_L1_error);
   __pyx_t_2 = 0;
   __pyx_t_1 = 0;
   __pyx_r = __pyx_t_3;
   __pyx_t_3 = 0;
   goto __pyx_L0;
 
-  /* "nav_env/ships/physics.pyx":33
+  /* "nav_env/ships/physics.pyx":36
  *         return x_du, y_dv, n_dr
  * 
  *     def __get_dimensions_and_projection(self) -> tuple[float, float, float, float]:             # <<<<<<<<<<<<<<
  *         dimensions = self._params.dimensions
- *         proj_area_front = dimensions['width'] * dimensions['h_front']
+ *         if 'proj_area_front' in dimensions.keys():
  */
 
   /* function exit code */
@@ -5632,7 +5849,7 @@ static PyObject *__pyx_pf_7nav_env_5ships_7physics_11ShipPhysics_6__get_dimensio
   return __pyx_r;
 }
 
-/* "nav_env/ships/physics.pyx":39
+/* "nav_env/ships/physics.pyx":48
  *         return dimensions['length'], dimensions['width'], proj_area_front, proj_area_side
  * 
  *     def __get_nonlinear_friction_coefficients(self) -> tuple[float, float, float]:             # <<<<<<<<<<<<<<
@@ -5693,12 +5910,12 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
           (void)__Pyx_Arg_NewRef_FASTCALL(values[0]);
           kw_args--;
         }
-        else if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 39, __pyx_L3_error)
+        else if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 48, __pyx_L3_error)
         else goto __pyx_L5_argtuple_error;
       }
       if (unlikely(kw_args > 0)) {
         const Py_ssize_t kwd_pos_args = __pyx_nargs;
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_kwvalues, __pyx_pyargnames, 0, values + 0, kwd_pos_args, "__get_nonlinear_friction_coefficients") < 0)) __PYX_ERR(0, 39, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_kwvalues, __pyx_pyargnames, 0, values + 0, kwd_pos_args, "__get_nonlinear_friction_coefficients") < 0)) __PYX_ERR(0, 48, __pyx_L3_error)
       }
     } else if (unlikely(__pyx_nargs != 1)) {
       goto __pyx_L5_argtuple_error;
@@ -5709,7 +5926,7 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
   }
   goto __pyx_L6_skip;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("__get_nonlinear_friction_coefficients", 1, 1, 1, __pyx_nargs); __PYX_ERR(0, 39, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("__get_nonlinear_friction_coefficients", 1, 1, 1, __pyx_nargs); __PYX_ERR(0, 48, __pyx_L3_error)
   __pyx_L6_skip:;
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L3_error:;
@@ -5749,22 +5966,22 @@ static PyObject *__pyx_pf_7nav_env_5ships_7physics_11ShipPhysics_8__get_nonlinea
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("__get_nonlinear_friction_coefficients", 1);
 
-  /* "nav_env/ships/physics.pyx":40
+  /* "nav_env/ships/physics.pyx":49
  * 
  *     def __get_nonlinear_friction_coefficients(self) -> tuple[float, float, float]:
  *         nonlinear_friction = self._params.nonlinear_friction_coefficient             # <<<<<<<<<<<<<<
  *         return nonlinear_friction['surge'], nonlinear_friction['sway'], nonlinear_friction['yaw']
  * 
  */
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_params); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 40, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_params); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 49, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_nonlinear_friction_coefficient); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 40, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_nonlinear_friction_coefficient); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 49, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __pyx_v_nonlinear_friction = __pyx_t_2;
   __pyx_t_2 = 0;
 
-  /* "nav_env/ships/physics.pyx":41
+  /* "nav_env/ships/physics.pyx":50
  *     def __get_nonlinear_friction_coefficients(self) -> tuple[float, float, float]:
  *         nonlinear_friction = self._params.nonlinear_friction_coefficient
  *         return nonlinear_friction['surge'], nonlinear_friction['sway'], nonlinear_friction['yaw']             # <<<<<<<<<<<<<<
@@ -5772,20 +5989,20 @@ static PyObject *__pyx_pf_7nav_env_5ships_7physics_11ShipPhysics_8__get_nonlinea
  *     def __get_wind_coefficients(self) -> tuple[float, float, float, float]:
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_2 = __Pyx_PyObject_Dict_GetItem(__pyx_v_nonlinear_friction, __pyx_n_s_surge); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 41, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_Dict_GetItem(__pyx_v_nonlinear_friction, __pyx_n_s_surge); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 50, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_1 = __Pyx_PyObject_Dict_GetItem(__pyx_v_nonlinear_friction, __pyx_n_s_sway); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 41, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_Dict_GetItem(__pyx_v_nonlinear_friction, __pyx_n_s_sway); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 50, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_3 = __Pyx_PyObject_Dict_GetItem(__pyx_v_nonlinear_friction, __pyx_n_s_yaw); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 41, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyObject_Dict_GetItem(__pyx_v_nonlinear_friction, __pyx_n_s_yaw); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 50, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_4 = PyTuple_New(3); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 41, __pyx_L1_error)
+  __pyx_t_4 = PyTuple_New(3); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 50, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_GIVEREF(__pyx_t_2);
-  if (__Pyx_PyTuple_SET_ITEM(__pyx_t_4, 0, __pyx_t_2)) __PYX_ERR(0, 41, __pyx_L1_error);
+  if (__Pyx_PyTuple_SET_ITEM(__pyx_t_4, 0, __pyx_t_2)) __PYX_ERR(0, 50, __pyx_L1_error);
   __Pyx_GIVEREF(__pyx_t_1);
-  if (__Pyx_PyTuple_SET_ITEM(__pyx_t_4, 1, __pyx_t_1)) __PYX_ERR(0, 41, __pyx_L1_error);
+  if (__Pyx_PyTuple_SET_ITEM(__pyx_t_4, 1, __pyx_t_1)) __PYX_ERR(0, 50, __pyx_L1_error);
   __Pyx_GIVEREF(__pyx_t_3);
-  if (__Pyx_PyTuple_SET_ITEM(__pyx_t_4, 2, __pyx_t_3)) __PYX_ERR(0, 41, __pyx_L1_error);
+  if (__Pyx_PyTuple_SET_ITEM(__pyx_t_4, 2, __pyx_t_3)) __PYX_ERR(0, 50, __pyx_L1_error);
   __pyx_t_2 = 0;
   __pyx_t_1 = 0;
   __pyx_t_3 = 0;
@@ -5793,7 +6010,7 @@ static PyObject *__pyx_pf_7nav_env_5ships_7physics_11ShipPhysics_8__get_nonlinea
   __pyx_t_4 = 0;
   goto __pyx_L0;
 
-  /* "nav_env/ships/physics.pyx":39
+  /* "nav_env/ships/physics.pyx":48
  *         return dimensions['length'], dimensions['width'], proj_area_front, proj_area_side
  * 
  *     def __get_nonlinear_friction_coefficients(self) -> tuple[float, float, float]:             # <<<<<<<<<<<<<<
@@ -5816,7 +6033,7 @@ static PyObject *__pyx_pf_7nav_env_5ships_7physics_11ShipPhysics_8__get_nonlinea
   return __pyx_r;
 }
 
-/* "nav_env/ships/physics.pyx":43
+/* "nav_env/ships/physics.pyx":52
  *         return nonlinear_friction['surge'], nonlinear_friction['sway'], nonlinear_friction['yaw']
  * 
  *     def __get_wind_coefficients(self) -> tuple[float, float, float, float]:             # <<<<<<<<<<<<<<
@@ -5877,12 +6094,12 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
           (void)__Pyx_Arg_NewRef_FASTCALL(values[0]);
           kw_args--;
         }
-        else if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 43, __pyx_L3_error)
+        else if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 52, __pyx_L3_error)
         else goto __pyx_L5_argtuple_error;
       }
       if (unlikely(kw_args > 0)) {
         const Py_ssize_t kwd_pos_args = __pyx_nargs;
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_kwvalues, __pyx_pyargnames, 0, values + 0, kwd_pos_args, "__get_wind_coefficients") < 0)) __PYX_ERR(0, 43, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_kwvalues, __pyx_pyargnames, 0, values + 0, kwd_pos_args, "__get_wind_coefficients") < 0)) __PYX_ERR(0, 52, __pyx_L3_error)
       }
     } else if (unlikely(__pyx_nargs != 1)) {
       goto __pyx_L5_argtuple_error;
@@ -5893,7 +6110,7 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
   }
   goto __pyx_L6_skip;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("__get_wind_coefficients", 1, 1, 1, __pyx_nargs); __PYX_ERR(0, 43, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("__get_wind_coefficients", 1, 1, 1, __pyx_nargs); __PYX_ERR(0, 52, __pyx_L3_error)
   __pyx_L6_skip:;
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L3_error:;
@@ -5934,22 +6151,22 @@ static PyObject *__pyx_pf_7nav_env_5ships_7physics_11ShipPhysics_10__get_wind_co
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("__get_wind_coefficients", 1);
 
-  /* "nav_env/ships/physics.pyx":44
+  /* "nav_env/ships/physics.pyx":53
  * 
  *     def __get_wind_coefficients(self) -> tuple[float, float, float, float]:
  *         wind = self._params.wind             # <<<<<<<<<<<<<<
  *         return wind['rho_a'], wind['cx'], wind['cy'], wind['cn']
  * 
  */
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_params); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 44, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_params); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 53, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_wind); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 44, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_wind); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 53, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __pyx_v_wind = __pyx_t_2;
   __pyx_t_2 = 0;
 
-  /* "nav_env/ships/physics.pyx":45
+  /* "nav_env/ships/physics.pyx":54
  *     def __get_wind_coefficients(self) -> tuple[float, float, float, float]:
  *         wind = self._params.wind
  *         return wind['rho_a'], wind['cx'], wind['cy'], wind['cn']             # <<<<<<<<<<<<<<
@@ -5957,24 +6174,24 @@ static PyObject *__pyx_pf_7nav_env_5ships_7physics_11ShipPhysics_10__get_wind_co
  *     def __get_mass_over_linear_friction_coefficients(self) -> tuple[float, float, float]:
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_2 = __Pyx_PyObject_Dict_GetItem(__pyx_v_wind, __pyx_n_s_rho_a_2); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 45, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_Dict_GetItem(__pyx_v_wind, __pyx_n_s_rho_a_2); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 54, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_1 = __Pyx_PyObject_Dict_GetItem(__pyx_v_wind, __pyx_n_s_cx_2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 45, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_Dict_GetItem(__pyx_v_wind, __pyx_n_s_cx_2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 54, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_3 = __Pyx_PyObject_Dict_GetItem(__pyx_v_wind, __pyx_n_s_cy_2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 45, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyObject_Dict_GetItem(__pyx_v_wind, __pyx_n_s_cy_2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 54, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_4 = __Pyx_PyObject_Dict_GetItem(__pyx_v_wind, __pyx_n_s_cn_2); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 45, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyObject_Dict_GetItem(__pyx_v_wind, __pyx_n_s_cn_2); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 54, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
-  __pyx_t_5 = PyTuple_New(4); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 45, __pyx_L1_error)
+  __pyx_t_5 = PyTuple_New(4); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 54, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
   __Pyx_GIVEREF(__pyx_t_2);
-  if (__Pyx_PyTuple_SET_ITEM(__pyx_t_5, 0, __pyx_t_2)) __PYX_ERR(0, 45, __pyx_L1_error);
+  if (__Pyx_PyTuple_SET_ITEM(__pyx_t_5, 0, __pyx_t_2)) __PYX_ERR(0, 54, __pyx_L1_error);
   __Pyx_GIVEREF(__pyx_t_1);
-  if (__Pyx_PyTuple_SET_ITEM(__pyx_t_5, 1, __pyx_t_1)) __PYX_ERR(0, 45, __pyx_L1_error);
+  if (__Pyx_PyTuple_SET_ITEM(__pyx_t_5, 1, __pyx_t_1)) __PYX_ERR(0, 54, __pyx_L1_error);
   __Pyx_GIVEREF(__pyx_t_3);
-  if (__Pyx_PyTuple_SET_ITEM(__pyx_t_5, 2, __pyx_t_3)) __PYX_ERR(0, 45, __pyx_L1_error);
+  if (__Pyx_PyTuple_SET_ITEM(__pyx_t_5, 2, __pyx_t_3)) __PYX_ERR(0, 54, __pyx_L1_error);
   __Pyx_GIVEREF(__pyx_t_4);
-  if (__Pyx_PyTuple_SET_ITEM(__pyx_t_5, 3, __pyx_t_4)) __PYX_ERR(0, 45, __pyx_L1_error);
+  if (__Pyx_PyTuple_SET_ITEM(__pyx_t_5, 3, __pyx_t_4)) __PYX_ERR(0, 54, __pyx_L1_error);
   __pyx_t_2 = 0;
   __pyx_t_1 = 0;
   __pyx_t_3 = 0;
@@ -5983,7 +6200,7 @@ static PyObject *__pyx_pf_7nav_env_5ships_7physics_11ShipPhysics_10__get_wind_co
   __pyx_t_5 = 0;
   goto __pyx_L0;
 
-  /* "nav_env/ships/physics.pyx":43
+  /* "nav_env/ships/physics.pyx":52
  *         return nonlinear_friction['surge'], nonlinear_friction['sway'], nonlinear_friction['yaw']
  * 
  *     def __get_wind_coefficients(self) -> tuple[float, float, float, float]:             # <<<<<<<<<<<<<<
@@ -6007,7 +6224,7 @@ static PyObject *__pyx_pf_7nav_env_5ships_7physics_11ShipPhysics_10__get_wind_co
   return __pyx_r;
 }
 
-/* "nav_env/ships/physics.pyx":47
+/* "nav_env/ships/physics.pyx":56
  *         return wind['rho_a'], wind['cx'], wind['cy'], wind['cn']
  * 
  *     def __get_mass_over_linear_friction_coefficients(self) -> tuple[float, float, float]:             # <<<<<<<<<<<<<<
@@ -6068,12 +6285,12 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
           (void)__Pyx_Arg_NewRef_FASTCALL(values[0]);
           kw_args--;
         }
-        else if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 47, __pyx_L3_error)
+        else if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 56, __pyx_L3_error)
         else goto __pyx_L5_argtuple_error;
       }
       if (unlikely(kw_args > 0)) {
         const Py_ssize_t kwd_pos_args = __pyx_nargs;
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_kwvalues, __pyx_pyargnames, 0, values + 0, kwd_pos_args, "__get_mass_over_linear_friction_coefficients") < 0)) __PYX_ERR(0, 47, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_kwvalues, __pyx_pyargnames, 0, values + 0, kwd_pos_args, "__get_mass_over_linear_friction_coefficients") < 0)) __PYX_ERR(0, 56, __pyx_L3_error)
       }
     } else if (unlikely(__pyx_nargs != 1)) {
       goto __pyx_L5_argtuple_error;
@@ -6084,7 +6301,7 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
   }
   goto __pyx_L6_skip;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("__get_mass_over_linear_friction_coefficients", 1, 1, 1, __pyx_nargs); __PYX_ERR(0, 47, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("__get_mass_over_linear_friction_coefficients", 1, 1, 1, __pyx_nargs); __PYX_ERR(0, 56, __pyx_L3_error)
   __pyx_L6_skip:;
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L3_error:;
@@ -6124,22 +6341,22 @@ static PyObject *__pyx_pf_7nav_env_5ships_7physics_11ShipPhysics_12__get_mass_ov
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("__get_mass_over_linear_friction_coefficients", 1);
 
-  /* "nav_env/ships/physics.pyx":48
+  /* "nav_env/ships/physics.pyx":57
  * 
  *     def __get_mass_over_linear_friction_coefficients(self) -> tuple[float, float, float]:
  *         mass_over_linear_friction_coefficient = self._params.mass_over_linear_friction_coefficient             # <<<<<<<<<<<<<<
  *         return mass_over_linear_friction_coefficient['surge'], mass_over_linear_friction_coefficient['sway'], mass_over_linear_friction_coefficient['yaw']
  * 
  */
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_params); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 48, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_params); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 57, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_mass_over_linear_friction_coeffi); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 48, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_mass_over_linear_friction_coeffi); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 57, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __pyx_v_mass_over_linear_friction_coefficient = __pyx_t_2;
   __pyx_t_2 = 0;
 
-  /* "nav_env/ships/physics.pyx":49
+  /* "nav_env/ships/physics.pyx":58
  *     def __get_mass_over_linear_friction_coefficients(self) -> tuple[float, float, float]:
  *         mass_over_linear_friction_coefficient = self._params.mass_over_linear_friction_coefficient
  *         return mass_over_linear_friction_coefficient['surge'], mass_over_linear_friction_coefficient['sway'], mass_over_linear_friction_coefficient['yaw']             # <<<<<<<<<<<<<<
@@ -6147,20 +6364,20 @@ static PyObject *__pyx_pf_7nav_env_5ships_7physics_11ShipPhysics_12__get_mass_ov
  *     def __get_inv_mass_matrix(self) -> np.ndarray:
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_2 = __Pyx_PyObject_Dict_GetItem(__pyx_v_mass_over_linear_friction_coefficient, __pyx_n_s_surge); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 49, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_Dict_GetItem(__pyx_v_mass_over_linear_friction_coefficient, __pyx_n_s_surge); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 58, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_1 = __Pyx_PyObject_Dict_GetItem(__pyx_v_mass_over_linear_friction_coefficient, __pyx_n_s_sway); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 49, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_Dict_GetItem(__pyx_v_mass_over_linear_friction_coefficient, __pyx_n_s_sway); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 58, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_3 = __Pyx_PyObject_Dict_GetItem(__pyx_v_mass_over_linear_friction_coefficient, __pyx_n_s_yaw); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 49, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyObject_Dict_GetItem(__pyx_v_mass_over_linear_friction_coefficient, __pyx_n_s_yaw); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 58, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_4 = PyTuple_New(3); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 49, __pyx_L1_error)
+  __pyx_t_4 = PyTuple_New(3); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 58, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_GIVEREF(__pyx_t_2);
-  if (__Pyx_PyTuple_SET_ITEM(__pyx_t_4, 0, __pyx_t_2)) __PYX_ERR(0, 49, __pyx_L1_error);
+  if (__Pyx_PyTuple_SET_ITEM(__pyx_t_4, 0, __pyx_t_2)) __PYX_ERR(0, 58, __pyx_L1_error);
   __Pyx_GIVEREF(__pyx_t_1);
-  if (__Pyx_PyTuple_SET_ITEM(__pyx_t_4, 1, __pyx_t_1)) __PYX_ERR(0, 49, __pyx_L1_error);
+  if (__Pyx_PyTuple_SET_ITEM(__pyx_t_4, 1, __pyx_t_1)) __PYX_ERR(0, 58, __pyx_L1_error);
   __Pyx_GIVEREF(__pyx_t_3);
-  if (__Pyx_PyTuple_SET_ITEM(__pyx_t_4, 2, __pyx_t_3)) __PYX_ERR(0, 49, __pyx_L1_error);
+  if (__Pyx_PyTuple_SET_ITEM(__pyx_t_4, 2, __pyx_t_3)) __PYX_ERR(0, 58, __pyx_L1_error);
   __pyx_t_2 = 0;
   __pyx_t_1 = 0;
   __pyx_t_3 = 0;
@@ -6168,7 +6385,7 @@ static PyObject *__pyx_pf_7nav_env_5ships_7physics_11ShipPhysics_12__get_mass_ov
   __pyx_t_4 = 0;
   goto __pyx_L0;
 
-  /* "nav_env/ships/physics.pyx":47
+  /* "nav_env/ships/physics.pyx":56
  *         return wind['rho_a'], wind['cx'], wind['cy'], wind['cn']
  * 
  *     def __get_mass_over_linear_friction_coefficients(self) -> tuple[float, float, float]:             # <<<<<<<<<<<<<<
@@ -6191,7 +6408,7 @@ static PyObject *__pyx_pf_7nav_env_5ships_7physics_11ShipPhysics_12__get_mass_ov
   return __pyx_r;
 }
 
-/* "nav_env/ships/physics.pyx":51
+/* "nav_env/ships/physics.pyx":60
  *         return mass_over_linear_friction_coefficient['surge'], mass_over_linear_friction_coefficient['sway'], mass_over_linear_friction_coefficient['yaw']
  * 
  *     def __get_inv_mass_matrix(self) -> np.ndarray:             # <<<<<<<<<<<<<<
@@ -6252,12 +6469,12 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
           (void)__Pyx_Arg_NewRef_FASTCALL(values[0]);
           kw_args--;
         }
-        else if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 51, __pyx_L3_error)
+        else if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 60, __pyx_L3_error)
         else goto __pyx_L5_argtuple_error;
       }
       if (unlikely(kw_args > 0)) {
         const Py_ssize_t kwd_pos_args = __pyx_nargs;
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_kwvalues, __pyx_pyargnames, 0, values + 0, kwd_pos_args, "__get_inv_mass_matrix") < 0)) __PYX_ERR(0, 51, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_kwvalues, __pyx_pyargnames, 0, values + 0, kwd_pos_args, "__get_inv_mass_matrix") < 0)) __PYX_ERR(0, 60, __pyx_L3_error)
       }
     } else if (unlikely(__pyx_nargs != 1)) {
       goto __pyx_L5_argtuple_error;
@@ -6268,7 +6485,7 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
   }
   goto __pyx_L6_skip;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("__get_inv_mass_matrix", 1, 1, 1, __pyx_nargs); __PYX_ERR(0, 51, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("__get_inv_mass_matrix", 1, 1, 1, __pyx_nargs); __PYX_ERR(0, 60, __pyx_L3_error)
   __pyx_L6_skip:;
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L3_error:;
@@ -6314,7 +6531,7 @@ static PyObject *__pyx_pf_7nav_env_5ships_7physics_11ShipPhysics_14__get_inv_mas
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("__get_inv_mass_matrix", 1);
 
-  /* "nav_env/ships/physics.pyx":52
+  /* "nav_env/ships/physics.pyx":61
  * 
  *     def __get_inv_mass_matrix(self) -> np.ndarray:
  *         return np.linalg.inv(np.array([             # <<<<<<<<<<<<<<
@@ -6322,132 +6539,132 @@ static PyObject *__pyx_pf_7nav_env_5ships_7physics_11ShipPhysics_14__get_inv_mas
  *                 [0., self._mass + self._y_dv, self._mass * self._x_g],
  */
   __Pyx_XDECREF(__pyx_r);
-  __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_np); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 52, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_np); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 61, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_linalg); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 52, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_linalg); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 61, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_inv); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 52, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_inv); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 61, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  __Pyx_GetModuleGlobalName(__pyx_t_4, __pyx_n_s_np); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 52, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_4, __pyx_n_s_np); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 61, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
-  __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_t_4, __pyx_n_s_array); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 52, __pyx_L1_error)
+  __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_t_4, __pyx_n_s_array); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 61, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
 
-  /* "nav_env/ships/physics.pyx":53
+  /* "nav_env/ships/physics.pyx":62
  *     def __get_inv_mass_matrix(self) -> np.ndarray:
  *         return np.linalg.inv(np.array([
  *                 [self._mass + self._x_du, 0., 0.],             # <<<<<<<<<<<<<<
  *                 [0., self._mass + self._y_dv, self._mass * self._x_g],
  *                 [0., self._mass * self._x_g, self._i_z + self._n_dr]
  */
-  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_mass_2); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 53, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_mass_2); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 62, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
-  __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_x_du); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 53, __pyx_L1_error)
+  __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_x_du); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 62, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_6);
-  __pyx_t_7 = PyNumber_Add(__pyx_t_4, __pyx_t_6); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 53, __pyx_L1_error)
+  __pyx_t_7 = PyNumber_Add(__pyx_t_4, __pyx_t_6); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 62, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_7);
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
   __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-  __pyx_t_6 = PyList_New(3); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 53, __pyx_L1_error)
+  __pyx_t_6 = PyList_New(3); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 62, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_6);
   __Pyx_GIVEREF(__pyx_t_7);
-  if (__Pyx_PyList_SET_ITEM(__pyx_t_6, 0, __pyx_t_7)) __PYX_ERR(0, 53, __pyx_L1_error);
+  if (__Pyx_PyList_SET_ITEM(__pyx_t_6, 0, __pyx_t_7)) __PYX_ERR(0, 62, __pyx_L1_error);
   __Pyx_INCREF(__pyx_float_0_);
   __Pyx_GIVEREF(__pyx_float_0_);
-  if (__Pyx_PyList_SET_ITEM(__pyx_t_6, 1, __pyx_float_0_)) __PYX_ERR(0, 53, __pyx_L1_error);
+  if (__Pyx_PyList_SET_ITEM(__pyx_t_6, 1, __pyx_float_0_)) __PYX_ERR(0, 62, __pyx_L1_error);
   __Pyx_INCREF(__pyx_float_0_);
   __Pyx_GIVEREF(__pyx_float_0_);
-  if (__Pyx_PyList_SET_ITEM(__pyx_t_6, 2, __pyx_float_0_)) __PYX_ERR(0, 53, __pyx_L1_error);
+  if (__Pyx_PyList_SET_ITEM(__pyx_t_6, 2, __pyx_float_0_)) __PYX_ERR(0, 62, __pyx_L1_error);
   __pyx_t_7 = 0;
 
-  /* "nav_env/ships/physics.pyx":54
+  /* "nav_env/ships/physics.pyx":63
  *         return np.linalg.inv(np.array([
  *                 [self._mass + self._x_du, 0., 0.],
  *                 [0., self._mass + self._y_dv, self._mass * self._x_g],             # <<<<<<<<<<<<<<
  *                 [0., self._mass * self._x_g, self._i_z + self._n_dr]
  *             ]))
  */
-  __pyx_t_7 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_mass_2); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 54, __pyx_L1_error)
+  __pyx_t_7 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_mass_2); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 63, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_7);
-  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_y_dv); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 54, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_y_dv); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 63, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
-  __pyx_t_8 = PyNumber_Add(__pyx_t_7, __pyx_t_4); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 54, __pyx_L1_error)
+  __pyx_t_8 = PyNumber_Add(__pyx_t_7, __pyx_t_4); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 63, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_8);
   __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_mass_2); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 54, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_mass_2); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 63, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
-  __pyx_t_7 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_x_g_2); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 54, __pyx_L1_error)
+  __pyx_t_7 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_x_g_2); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 63, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_7);
-  __pyx_t_9 = PyNumber_Multiply(__pyx_t_4, __pyx_t_7); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 54, __pyx_L1_error)
+  __pyx_t_9 = PyNumber_Multiply(__pyx_t_4, __pyx_t_7); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 63, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_9);
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
   __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
-  __pyx_t_7 = PyList_New(3); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 54, __pyx_L1_error)
+  __pyx_t_7 = PyList_New(3); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 63, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_7);
   __Pyx_INCREF(__pyx_float_0_);
   __Pyx_GIVEREF(__pyx_float_0_);
-  if (__Pyx_PyList_SET_ITEM(__pyx_t_7, 0, __pyx_float_0_)) __PYX_ERR(0, 54, __pyx_L1_error);
+  if (__Pyx_PyList_SET_ITEM(__pyx_t_7, 0, __pyx_float_0_)) __PYX_ERR(0, 63, __pyx_L1_error);
   __Pyx_GIVEREF(__pyx_t_8);
-  if (__Pyx_PyList_SET_ITEM(__pyx_t_7, 1, __pyx_t_8)) __PYX_ERR(0, 54, __pyx_L1_error);
+  if (__Pyx_PyList_SET_ITEM(__pyx_t_7, 1, __pyx_t_8)) __PYX_ERR(0, 63, __pyx_L1_error);
   __Pyx_GIVEREF(__pyx_t_9);
-  if (__Pyx_PyList_SET_ITEM(__pyx_t_7, 2, __pyx_t_9)) __PYX_ERR(0, 54, __pyx_L1_error);
+  if (__Pyx_PyList_SET_ITEM(__pyx_t_7, 2, __pyx_t_9)) __PYX_ERR(0, 63, __pyx_L1_error);
   __pyx_t_8 = 0;
   __pyx_t_9 = 0;
 
-  /* "nav_env/ships/physics.pyx":55
+  /* "nav_env/ships/physics.pyx":64
  *                 [self._mass + self._x_du, 0., 0.],
  *                 [0., self._mass + self._y_dv, self._mass * self._x_g],
  *                 [0., self._mass * self._x_g, self._i_z + self._n_dr]             # <<<<<<<<<<<<<<
  *             ]))
  * 
  */
-  __pyx_t_9 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_mass_2); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 55, __pyx_L1_error)
+  __pyx_t_9 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_mass_2); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 64, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_9);
-  __pyx_t_8 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_x_g_2); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 55, __pyx_L1_error)
+  __pyx_t_8 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_x_g_2); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 64, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_8);
-  __pyx_t_4 = PyNumber_Multiply(__pyx_t_9, __pyx_t_8); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 55, __pyx_L1_error)
+  __pyx_t_4 = PyNumber_Multiply(__pyx_t_9, __pyx_t_8); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 64, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
   __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
-  __pyx_t_8 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_i_z); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 55, __pyx_L1_error)
+  __pyx_t_8 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_i_z); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 64, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_8);
-  __pyx_t_9 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_n_dr); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 55, __pyx_L1_error)
+  __pyx_t_9 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_n_dr); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 64, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_9);
-  __pyx_t_10 = PyNumber_Add(__pyx_t_8, __pyx_t_9); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 55, __pyx_L1_error)
+  __pyx_t_10 = PyNumber_Add(__pyx_t_8, __pyx_t_9); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 64, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_10);
   __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
   __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
-  __pyx_t_9 = PyList_New(3); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 55, __pyx_L1_error)
+  __pyx_t_9 = PyList_New(3); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 64, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_9);
   __Pyx_INCREF(__pyx_float_0_);
   __Pyx_GIVEREF(__pyx_float_0_);
-  if (__Pyx_PyList_SET_ITEM(__pyx_t_9, 0, __pyx_float_0_)) __PYX_ERR(0, 55, __pyx_L1_error);
+  if (__Pyx_PyList_SET_ITEM(__pyx_t_9, 0, __pyx_float_0_)) __PYX_ERR(0, 64, __pyx_L1_error);
   __Pyx_GIVEREF(__pyx_t_4);
-  if (__Pyx_PyList_SET_ITEM(__pyx_t_9, 1, __pyx_t_4)) __PYX_ERR(0, 55, __pyx_L1_error);
+  if (__Pyx_PyList_SET_ITEM(__pyx_t_9, 1, __pyx_t_4)) __PYX_ERR(0, 64, __pyx_L1_error);
   __Pyx_GIVEREF(__pyx_t_10);
-  if (__Pyx_PyList_SET_ITEM(__pyx_t_9, 2, __pyx_t_10)) __PYX_ERR(0, 55, __pyx_L1_error);
+  if (__Pyx_PyList_SET_ITEM(__pyx_t_9, 2, __pyx_t_10)) __PYX_ERR(0, 64, __pyx_L1_error);
   __pyx_t_4 = 0;
   __pyx_t_10 = 0;
 
-  /* "nav_env/ships/physics.pyx":52
+  /* "nav_env/ships/physics.pyx":61
  * 
  *     def __get_inv_mass_matrix(self) -> np.ndarray:
  *         return np.linalg.inv(np.array([             # <<<<<<<<<<<<<<
  *                 [self._mass + self._x_du, 0., 0.],
  *                 [0., self._mass + self._y_dv, self._mass * self._x_g],
  */
-  __pyx_t_10 = PyList_New(3); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 52, __pyx_L1_error)
+  __pyx_t_10 = PyList_New(3); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 61, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_10);
   __Pyx_GIVEREF(__pyx_t_6);
-  if (__Pyx_PyList_SET_ITEM(__pyx_t_10, 0, __pyx_t_6)) __PYX_ERR(0, 52, __pyx_L1_error);
+  if (__Pyx_PyList_SET_ITEM(__pyx_t_10, 0, __pyx_t_6)) __PYX_ERR(0, 61, __pyx_L1_error);
   __Pyx_GIVEREF(__pyx_t_7);
-  if (__Pyx_PyList_SET_ITEM(__pyx_t_10, 1, __pyx_t_7)) __PYX_ERR(0, 52, __pyx_L1_error);
+  if (__Pyx_PyList_SET_ITEM(__pyx_t_10, 1, __pyx_t_7)) __PYX_ERR(0, 61, __pyx_L1_error);
   __Pyx_GIVEREF(__pyx_t_9);
-  if (__Pyx_PyList_SET_ITEM(__pyx_t_10, 2, __pyx_t_9)) __PYX_ERR(0, 52, __pyx_L1_error);
+  if (__Pyx_PyList_SET_ITEM(__pyx_t_10, 2, __pyx_t_9)) __PYX_ERR(0, 61, __pyx_L1_error);
   __pyx_t_6 = 0;
   __pyx_t_7 = 0;
   __pyx_t_9 = 0;
@@ -6470,7 +6687,7 @@ static PyObject *__pyx_pf_7nav_env_5ships_7physics_11ShipPhysics_14__get_inv_mas
     __pyx_t_3 = __Pyx_PyObject_FastCall(__pyx_t_5, __pyx_callargs+1-__pyx_t_11, 1+__pyx_t_11);
     __Pyx_XDECREF(__pyx_t_9); __pyx_t_9 = 0;
     __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
-    if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 52, __pyx_L1_error)
+    if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 61, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
     __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
   }
@@ -6493,7 +6710,7 @@ static PyObject *__pyx_pf_7nav_env_5ships_7physics_11ShipPhysics_14__get_inv_mas
     __pyx_t_1 = __Pyx_PyObject_FastCall(__pyx_t_2, __pyx_callargs+1-__pyx_t_11, 1+__pyx_t_11);
     __Pyx_XDECREF(__pyx_t_5); __pyx_t_5 = 0;
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-    if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 52, __pyx_L1_error)
+    if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 61, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   }
@@ -6501,7 +6718,7 @@ static PyObject *__pyx_pf_7nav_env_5ships_7physics_11ShipPhysics_14__get_inv_mas
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "nav_env/ships/physics.pyx":51
+  /* "nav_env/ships/physics.pyx":60
  *         return mass_over_linear_friction_coefficient['surge'], mass_over_linear_friction_coefficient['sway'], mass_over_linear_friction_coefficient['yaw']
  * 
  *     def __get_inv_mass_matrix(self) -> np.ndarray:             # <<<<<<<<<<<<<<
@@ -6529,7 +6746,7 @@ static PyObject *__pyx_pf_7nav_env_5ships_7physics_11ShipPhysics_14__get_inv_mas
   return __pyx_r;
 }
 
-/* "nav_env/ships/physics.pyx":58
+/* "nav_env/ships/physics.pyx":67
  *             ]))
  * 
  *     def __get_coriolis_matrix(self, x_dot, y_dot, psi_dot_rad) -> np.ndarray:             # <<<<<<<<<<<<<<
@@ -6599,7 +6816,7 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
           (void)__Pyx_Arg_NewRef_FASTCALL(values[0]);
           kw_args--;
         }
-        else if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 58, __pyx_L3_error)
+        else if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 67, __pyx_L3_error)
         else goto __pyx_L5_argtuple_error;
         CYTHON_FALLTHROUGH;
         case  1:
@@ -6607,9 +6824,9 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
           (void)__Pyx_Arg_NewRef_FASTCALL(values[1]);
           kw_args--;
         }
-        else if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 58, __pyx_L3_error)
+        else if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 67, __pyx_L3_error)
         else {
-          __Pyx_RaiseArgtupleInvalid("__get_coriolis_matrix", 1, 4, 4, 1); __PYX_ERR(0, 58, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("__get_coriolis_matrix", 1, 4, 4, 1); __PYX_ERR(0, 67, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  2:
@@ -6617,9 +6834,9 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
           (void)__Pyx_Arg_NewRef_FASTCALL(values[2]);
           kw_args--;
         }
-        else if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 58, __pyx_L3_error)
+        else if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 67, __pyx_L3_error)
         else {
-          __Pyx_RaiseArgtupleInvalid("__get_coriolis_matrix", 1, 4, 4, 2); __PYX_ERR(0, 58, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("__get_coriolis_matrix", 1, 4, 4, 2); __PYX_ERR(0, 67, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  3:
@@ -6627,14 +6844,14 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
           (void)__Pyx_Arg_NewRef_FASTCALL(values[3]);
           kw_args--;
         }
-        else if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 58, __pyx_L3_error)
+        else if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 67, __pyx_L3_error)
         else {
-          __Pyx_RaiseArgtupleInvalid("__get_coriolis_matrix", 1, 4, 4, 3); __PYX_ERR(0, 58, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("__get_coriolis_matrix", 1, 4, 4, 3); __PYX_ERR(0, 67, __pyx_L3_error)
         }
       }
       if (unlikely(kw_args > 0)) {
         const Py_ssize_t kwd_pos_args = __pyx_nargs;
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_kwvalues, __pyx_pyargnames, 0, values + 0, kwd_pos_args, "__get_coriolis_matrix") < 0)) __PYX_ERR(0, 58, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_kwvalues, __pyx_pyargnames, 0, values + 0, kwd_pos_args, "__get_coriolis_matrix") < 0)) __PYX_ERR(0, 67, __pyx_L3_error)
       }
     } else if (unlikely(__pyx_nargs != 4)) {
       goto __pyx_L5_argtuple_error;
@@ -6651,7 +6868,7 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
   }
   goto __pyx_L6_skip;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("__get_coriolis_matrix", 1, 4, 4, __pyx_nargs); __PYX_ERR(0, 58, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("__get_coriolis_matrix", 1, 4, 4, __pyx_nargs); __PYX_ERR(0, 67, __pyx_L3_error)
   __pyx_L6_skip:;
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L3_error:;
@@ -6694,7 +6911,7 @@ static PyObject *__pyx_pf_7nav_env_5ships_7physics_11ShipPhysics_16__get_corioli
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("__get_coriolis_matrix", 1);
 
-  /* "nav_env/ships/physics.pyx":59
+  /* "nav_env/ships/physics.pyx":68
  * 
  *     def __get_coriolis_matrix(self, x_dot, y_dot, psi_dot_rad) -> np.ndarray:
  *         return np.array([             # <<<<<<<<<<<<<<
@@ -6702,128 +6919,128 @@ static PyObject *__pyx_pf_7nav_env_5ships_7physics_11ShipPhysics_16__get_corioli
  *                 [0., 0., self._mass * x_dot],
  */
   __Pyx_XDECREF(__pyx_r);
-  __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_np); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 59, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_np); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 68, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_array); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 59, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_array); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 68, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-  /* "nav_env/ships/physics.pyx":60
+  /* "nav_env/ships/physics.pyx":69
  *     def __get_coriolis_matrix(self, x_dot, y_dot, psi_dot_rad) -> np.ndarray:
  *         return np.array([
  *                 [0., 0., -self._mass * (self._x_g * psi_dot_rad + y_dot)],             # <<<<<<<<<<<<<<
  *                 [0., 0., self._mass * x_dot],
  *                 [self._mass * (self._x_g * psi_dot_rad + y_dot), -self._mass * x_dot, 0.]
  */
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_mass_2); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 60, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_mass_2); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 69, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_4 = PyNumber_Negative(__pyx_t_2); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 60, __pyx_L1_error)
+  __pyx_t_4 = PyNumber_Negative(__pyx_t_2); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 69, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_x_g_2); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 60, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_x_g_2); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 69, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_5 = PyNumber_Multiply(__pyx_t_2, __pyx_v_psi_dot_rad); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 60, __pyx_L1_error)
+  __pyx_t_5 = PyNumber_Multiply(__pyx_t_2, __pyx_v_psi_dot_rad); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 69, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_2 = PyNumber_Add(__pyx_t_5, __pyx_v_y_dot); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 60, __pyx_L1_error)
+  __pyx_t_2 = PyNumber_Add(__pyx_t_5, __pyx_v_y_dot); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 69, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-  __pyx_t_5 = PyNumber_Multiply(__pyx_t_4, __pyx_t_2); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 60, __pyx_L1_error)
+  __pyx_t_5 = PyNumber_Multiply(__pyx_t_4, __pyx_t_2); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 69, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_2 = PyList_New(3); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 60, __pyx_L1_error)
+  __pyx_t_2 = PyList_New(3); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 69, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_INCREF(__pyx_float_0_);
   __Pyx_GIVEREF(__pyx_float_0_);
-  if (__Pyx_PyList_SET_ITEM(__pyx_t_2, 0, __pyx_float_0_)) __PYX_ERR(0, 60, __pyx_L1_error);
+  if (__Pyx_PyList_SET_ITEM(__pyx_t_2, 0, __pyx_float_0_)) __PYX_ERR(0, 69, __pyx_L1_error);
   __Pyx_INCREF(__pyx_float_0_);
   __Pyx_GIVEREF(__pyx_float_0_);
-  if (__Pyx_PyList_SET_ITEM(__pyx_t_2, 1, __pyx_float_0_)) __PYX_ERR(0, 60, __pyx_L1_error);
+  if (__Pyx_PyList_SET_ITEM(__pyx_t_2, 1, __pyx_float_0_)) __PYX_ERR(0, 69, __pyx_L1_error);
   __Pyx_GIVEREF(__pyx_t_5);
-  if (__Pyx_PyList_SET_ITEM(__pyx_t_2, 2, __pyx_t_5)) __PYX_ERR(0, 60, __pyx_L1_error);
+  if (__Pyx_PyList_SET_ITEM(__pyx_t_2, 2, __pyx_t_5)) __PYX_ERR(0, 69, __pyx_L1_error);
   __pyx_t_5 = 0;
 
-  /* "nav_env/ships/physics.pyx":61
+  /* "nav_env/ships/physics.pyx":70
  *         return np.array([
  *                 [0., 0., -self._mass * (self._x_g * psi_dot_rad + y_dot)],
  *                 [0., 0., self._mass * x_dot],             # <<<<<<<<<<<<<<
  *                 [self._mass * (self._x_g * psi_dot_rad + y_dot), -self._mass * x_dot, 0.]
  *                 ])
  */
-  __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_mass_2); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 61, __pyx_L1_error)
+  __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_mass_2); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 70, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
-  __pyx_t_4 = PyNumber_Multiply(__pyx_t_5, __pyx_v_x_dot); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 61, __pyx_L1_error)
+  __pyx_t_4 = PyNumber_Multiply(__pyx_t_5, __pyx_v_x_dot); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 70, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-  __pyx_t_5 = PyList_New(3); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 61, __pyx_L1_error)
+  __pyx_t_5 = PyList_New(3); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 70, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
   __Pyx_INCREF(__pyx_float_0_);
   __Pyx_GIVEREF(__pyx_float_0_);
-  if (__Pyx_PyList_SET_ITEM(__pyx_t_5, 0, __pyx_float_0_)) __PYX_ERR(0, 61, __pyx_L1_error);
+  if (__Pyx_PyList_SET_ITEM(__pyx_t_5, 0, __pyx_float_0_)) __PYX_ERR(0, 70, __pyx_L1_error);
   __Pyx_INCREF(__pyx_float_0_);
   __Pyx_GIVEREF(__pyx_float_0_);
-  if (__Pyx_PyList_SET_ITEM(__pyx_t_5, 1, __pyx_float_0_)) __PYX_ERR(0, 61, __pyx_L1_error);
+  if (__Pyx_PyList_SET_ITEM(__pyx_t_5, 1, __pyx_float_0_)) __PYX_ERR(0, 70, __pyx_L1_error);
   __Pyx_GIVEREF(__pyx_t_4);
-  if (__Pyx_PyList_SET_ITEM(__pyx_t_5, 2, __pyx_t_4)) __PYX_ERR(0, 61, __pyx_L1_error);
+  if (__Pyx_PyList_SET_ITEM(__pyx_t_5, 2, __pyx_t_4)) __PYX_ERR(0, 70, __pyx_L1_error);
   __pyx_t_4 = 0;
 
-  /* "nav_env/ships/physics.pyx":62
+  /* "nav_env/ships/physics.pyx":71
  *                 [0., 0., -self._mass * (self._x_g * psi_dot_rad + y_dot)],
  *                 [0., 0., self._mass * x_dot],
  *                 [self._mass * (self._x_g * psi_dot_rad + y_dot), -self._mass * x_dot, 0.]             # <<<<<<<<<<<<<<
  *                 ])
  * 
  */
-  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_mass_2); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 62, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_mass_2); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 71, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
-  __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_x_g_2); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 62, __pyx_L1_error)
+  __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_x_g_2); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 71, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_6);
-  __pyx_t_7 = PyNumber_Multiply(__pyx_t_6, __pyx_v_psi_dot_rad); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 62, __pyx_L1_error)
+  __pyx_t_7 = PyNumber_Multiply(__pyx_t_6, __pyx_v_psi_dot_rad); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 71, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_7);
   __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-  __pyx_t_6 = PyNumber_Add(__pyx_t_7, __pyx_v_y_dot); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 62, __pyx_L1_error)
+  __pyx_t_6 = PyNumber_Add(__pyx_t_7, __pyx_v_y_dot); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 71, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_6);
   __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
-  __pyx_t_7 = PyNumber_Multiply(__pyx_t_4, __pyx_t_6); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 62, __pyx_L1_error)
+  __pyx_t_7 = PyNumber_Multiply(__pyx_t_4, __pyx_t_6); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 71, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_7);
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
   __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-  __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_mass_2); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 62, __pyx_L1_error)
+  __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_mass_2); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 71, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_6);
-  __pyx_t_4 = PyNumber_Negative(__pyx_t_6); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 62, __pyx_L1_error)
+  __pyx_t_4 = PyNumber_Negative(__pyx_t_6); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 71, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-  __pyx_t_6 = PyNumber_Multiply(__pyx_t_4, __pyx_v_x_dot); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 62, __pyx_L1_error)
+  __pyx_t_6 = PyNumber_Multiply(__pyx_t_4, __pyx_v_x_dot); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 71, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_6);
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  __pyx_t_4 = PyList_New(3); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 62, __pyx_L1_error)
+  __pyx_t_4 = PyList_New(3); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 71, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_GIVEREF(__pyx_t_7);
-  if (__Pyx_PyList_SET_ITEM(__pyx_t_4, 0, __pyx_t_7)) __PYX_ERR(0, 62, __pyx_L1_error);
+  if (__Pyx_PyList_SET_ITEM(__pyx_t_4, 0, __pyx_t_7)) __PYX_ERR(0, 71, __pyx_L1_error);
   __Pyx_GIVEREF(__pyx_t_6);
-  if (__Pyx_PyList_SET_ITEM(__pyx_t_4, 1, __pyx_t_6)) __PYX_ERR(0, 62, __pyx_L1_error);
+  if (__Pyx_PyList_SET_ITEM(__pyx_t_4, 1, __pyx_t_6)) __PYX_ERR(0, 71, __pyx_L1_error);
   __Pyx_INCREF(__pyx_float_0_);
   __Pyx_GIVEREF(__pyx_float_0_);
-  if (__Pyx_PyList_SET_ITEM(__pyx_t_4, 2, __pyx_float_0_)) __PYX_ERR(0, 62, __pyx_L1_error);
+  if (__Pyx_PyList_SET_ITEM(__pyx_t_4, 2, __pyx_float_0_)) __PYX_ERR(0, 71, __pyx_L1_error);
   __pyx_t_7 = 0;
   __pyx_t_6 = 0;
 
-  /* "nav_env/ships/physics.pyx":59
+  /* "nav_env/ships/physics.pyx":68
  * 
  *     def __get_coriolis_matrix(self, x_dot, y_dot, psi_dot_rad) -> np.ndarray:
  *         return np.array([             # <<<<<<<<<<<<<<
  *                 [0., 0., -self._mass * (self._x_g * psi_dot_rad + y_dot)],
  *                 [0., 0., self._mass * x_dot],
  */
-  __pyx_t_6 = PyList_New(3); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 59, __pyx_L1_error)
+  __pyx_t_6 = PyList_New(3); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 68, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_6);
   __Pyx_GIVEREF(__pyx_t_2);
-  if (__Pyx_PyList_SET_ITEM(__pyx_t_6, 0, __pyx_t_2)) __PYX_ERR(0, 59, __pyx_L1_error);
+  if (__Pyx_PyList_SET_ITEM(__pyx_t_6, 0, __pyx_t_2)) __PYX_ERR(0, 68, __pyx_L1_error);
   __Pyx_GIVEREF(__pyx_t_5);
-  if (__Pyx_PyList_SET_ITEM(__pyx_t_6, 1, __pyx_t_5)) __PYX_ERR(0, 59, __pyx_L1_error);
+  if (__Pyx_PyList_SET_ITEM(__pyx_t_6, 1, __pyx_t_5)) __PYX_ERR(0, 68, __pyx_L1_error);
   __Pyx_GIVEREF(__pyx_t_4);
-  if (__Pyx_PyList_SET_ITEM(__pyx_t_6, 2, __pyx_t_4)) __PYX_ERR(0, 59, __pyx_L1_error);
+  if (__Pyx_PyList_SET_ITEM(__pyx_t_6, 2, __pyx_t_4)) __PYX_ERR(0, 68, __pyx_L1_error);
   __pyx_t_2 = 0;
   __pyx_t_5 = 0;
   __pyx_t_4 = 0;
@@ -6846,7 +7063,7 @@ static PyObject *__pyx_pf_7nav_env_5ships_7physics_11ShipPhysics_16__get_corioli
     __pyx_t_1 = __Pyx_PyObject_FastCall(__pyx_t_3, __pyx_callargs+1-__pyx_t_8, 1+__pyx_t_8);
     __Pyx_XDECREF(__pyx_t_4); __pyx_t_4 = 0;
     __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-    if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 59, __pyx_L1_error)
+    if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 68, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   }
@@ -6854,7 +7071,7 @@ static PyObject *__pyx_pf_7nav_env_5ships_7physics_11ShipPhysics_16__get_corioli
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "nav_env/ships/physics.pyx":58
+  /* "nav_env/ships/physics.pyx":67
  *             ]))
  * 
  *     def __get_coriolis_matrix(self, x_dot, y_dot, psi_dot_rad) -> np.ndarray:             # <<<<<<<<<<<<<<
@@ -6879,7 +7096,7 @@ static PyObject *__pyx_pf_7nav_env_5ships_7physics_11ShipPhysics_16__get_corioli
   return __pyx_r;
 }
 
-/* "nav_env/ships/physics.pyx":65
+/* "nav_env/ships/physics.pyx":74
  *                 ])
  * 
  *     def __get_coriolis_added_matrix(self, u_r, v_r) -> np.ndarray:             # <<<<<<<<<<<<<<
@@ -6946,7 +7163,7 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
           (void)__Pyx_Arg_NewRef_FASTCALL(values[0]);
           kw_args--;
         }
-        else if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 65, __pyx_L3_error)
+        else if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 74, __pyx_L3_error)
         else goto __pyx_L5_argtuple_error;
         CYTHON_FALLTHROUGH;
         case  1:
@@ -6954,9 +7171,9 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
           (void)__Pyx_Arg_NewRef_FASTCALL(values[1]);
           kw_args--;
         }
-        else if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 65, __pyx_L3_error)
+        else if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 74, __pyx_L3_error)
         else {
-          __Pyx_RaiseArgtupleInvalid("__get_coriolis_added_matrix", 1, 3, 3, 1); __PYX_ERR(0, 65, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("__get_coriolis_added_matrix", 1, 3, 3, 1); __PYX_ERR(0, 74, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  2:
@@ -6964,14 +7181,14 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
           (void)__Pyx_Arg_NewRef_FASTCALL(values[2]);
           kw_args--;
         }
-        else if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 65, __pyx_L3_error)
+        else if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 74, __pyx_L3_error)
         else {
-          __Pyx_RaiseArgtupleInvalid("__get_coriolis_added_matrix", 1, 3, 3, 2); __PYX_ERR(0, 65, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("__get_coriolis_added_matrix", 1, 3, 3, 2); __PYX_ERR(0, 74, __pyx_L3_error)
         }
       }
       if (unlikely(kw_args > 0)) {
         const Py_ssize_t kwd_pos_args = __pyx_nargs;
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_kwvalues, __pyx_pyargnames, 0, values + 0, kwd_pos_args, "__get_coriolis_added_matrix") < 0)) __PYX_ERR(0, 65, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_kwvalues, __pyx_pyargnames, 0, values + 0, kwd_pos_args, "__get_coriolis_added_matrix") < 0)) __PYX_ERR(0, 74, __pyx_L3_error)
       }
     } else if (unlikely(__pyx_nargs != 3)) {
       goto __pyx_L5_argtuple_error;
@@ -6986,7 +7203,7 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
   }
   goto __pyx_L6_skip;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("__get_coriolis_added_matrix", 1, 3, 3, __pyx_nargs); __PYX_ERR(0, 65, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("__get_coriolis_added_matrix", 1, 3, 3, __pyx_nargs); __PYX_ERR(0, 74, __pyx_L3_error)
   __pyx_L6_skip:;
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L3_error:;
@@ -7029,7 +7246,7 @@ static PyObject *__pyx_pf_7nav_env_5ships_7physics_11ShipPhysics_18__get_corioli
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("__get_coriolis_added_matrix", 1);
 
-  /* "nav_env/ships/physics.pyx":66
+  /* "nav_env/ships/physics.pyx":75
  * 
  *     def __get_coriolis_added_matrix(self, u_r, v_r) -> np.ndarray:
  *         return np.array([             # <<<<<<<<<<<<<<
@@ -7037,110 +7254,110 @@ static PyObject *__pyx_pf_7nav_env_5ships_7physics_11ShipPhysics_18__get_corioli
  *             [0., 0., -self._x_du * u_r],
  */
   __Pyx_XDECREF(__pyx_r);
-  __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_np); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 66, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_np); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 75, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_array); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 66, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_array); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 75, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-  /* "nav_env/ships/physics.pyx":67
+  /* "nav_env/ships/physics.pyx":76
  *     def __get_coriolis_added_matrix(self, u_r, v_r) -> np.ndarray:
  *         return np.array([
  *             [0., 0., self._y_dv * v_r],             # <<<<<<<<<<<<<<
  *             [0., 0., -self._x_du * u_r],
  *             [-self._y_dv * v_r, self._x_du * u_r, 0.]
  */
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_y_dv); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 67, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_y_dv); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 76, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_4 = PyNumber_Multiply(__pyx_t_2, __pyx_v_v_r); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 67, __pyx_L1_error)
+  __pyx_t_4 = PyNumber_Multiply(__pyx_t_2, __pyx_v_v_r); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 76, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_2 = PyList_New(3); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 67, __pyx_L1_error)
+  __pyx_t_2 = PyList_New(3); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 76, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_INCREF(__pyx_float_0_);
   __Pyx_GIVEREF(__pyx_float_0_);
-  if (__Pyx_PyList_SET_ITEM(__pyx_t_2, 0, __pyx_float_0_)) __PYX_ERR(0, 67, __pyx_L1_error);
+  if (__Pyx_PyList_SET_ITEM(__pyx_t_2, 0, __pyx_float_0_)) __PYX_ERR(0, 76, __pyx_L1_error);
   __Pyx_INCREF(__pyx_float_0_);
   __Pyx_GIVEREF(__pyx_float_0_);
-  if (__Pyx_PyList_SET_ITEM(__pyx_t_2, 1, __pyx_float_0_)) __PYX_ERR(0, 67, __pyx_L1_error);
+  if (__Pyx_PyList_SET_ITEM(__pyx_t_2, 1, __pyx_float_0_)) __PYX_ERR(0, 76, __pyx_L1_error);
   __Pyx_GIVEREF(__pyx_t_4);
-  if (__Pyx_PyList_SET_ITEM(__pyx_t_2, 2, __pyx_t_4)) __PYX_ERR(0, 67, __pyx_L1_error);
+  if (__Pyx_PyList_SET_ITEM(__pyx_t_2, 2, __pyx_t_4)) __PYX_ERR(0, 76, __pyx_L1_error);
   __pyx_t_4 = 0;
 
-  /* "nav_env/ships/physics.pyx":68
+  /* "nav_env/ships/physics.pyx":77
  *         return np.array([
  *             [0., 0., self._y_dv * v_r],
  *             [0., 0., -self._x_du * u_r],             # <<<<<<<<<<<<<<
  *             [-self._y_dv * v_r, self._x_du * u_r, 0.]
  *         ])
  */
-  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_x_du); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 68, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_x_du); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 77, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
-  __pyx_t_5 = PyNumber_Negative(__pyx_t_4); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 68, __pyx_L1_error)
+  __pyx_t_5 = PyNumber_Negative(__pyx_t_4); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 77, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  __pyx_t_4 = PyNumber_Multiply(__pyx_t_5, __pyx_v_u_r); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 68, __pyx_L1_error)
+  __pyx_t_4 = PyNumber_Multiply(__pyx_t_5, __pyx_v_u_r); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 77, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-  __pyx_t_5 = PyList_New(3); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 68, __pyx_L1_error)
+  __pyx_t_5 = PyList_New(3); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 77, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
   __Pyx_INCREF(__pyx_float_0_);
   __Pyx_GIVEREF(__pyx_float_0_);
-  if (__Pyx_PyList_SET_ITEM(__pyx_t_5, 0, __pyx_float_0_)) __PYX_ERR(0, 68, __pyx_L1_error);
+  if (__Pyx_PyList_SET_ITEM(__pyx_t_5, 0, __pyx_float_0_)) __PYX_ERR(0, 77, __pyx_L1_error);
   __Pyx_INCREF(__pyx_float_0_);
   __Pyx_GIVEREF(__pyx_float_0_);
-  if (__Pyx_PyList_SET_ITEM(__pyx_t_5, 1, __pyx_float_0_)) __PYX_ERR(0, 68, __pyx_L1_error);
+  if (__Pyx_PyList_SET_ITEM(__pyx_t_5, 1, __pyx_float_0_)) __PYX_ERR(0, 77, __pyx_L1_error);
   __Pyx_GIVEREF(__pyx_t_4);
-  if (__Pyx_PyList_SET_ITEM(__pyx_t_5, 2, __pyx_t_4)) __PYX_ERR(0, 68, __pyx_L1_error);
+  if (__Pyx_PyList_SET_ITEM(__pyx_t_5, 2, __pyx_t_4)) __PYX_ERR(0, 77, __pyx_L1_error);
   __pyx_t_4 = 0;
 
-  /* "nav_env/ships/physics.pyx":69
+  /* "nav_env/ships/physics.pyx":78
  *             [0., 0., self._y_dv * v_r],
  *             [0., 0., -self._x_du * u_r],
  *             [-self._y_dv * v_r, self._x_du * u_r, 0.]             # <<<<<<<<<<<<<<
  *         ])
  * 
  */
-  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_y_dv); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 69, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_y_dv); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 78, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
-  __pyx_t_6 = PyNumber_Negative(__pyx_t_4); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 69, __pyx_L1_error)
+  __pyx_t_6 = PyNumber_Negative(__pyx_t_4); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 78, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_6);
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  __pyx_t_4 = PyNumber_Multiply(__pyx_t_6, __pyx_v_v_r); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 69, __pyx_L1_error)
+  __pyx_t_4 = PyNumber_Multiply(__pyx_t_6, __pyx_v_v_r); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 78, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-  __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_x_du); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 69, __pyx_L1_error)
+  __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_x_du); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 78, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_6);
-  __pyx_t_7 = PyNumber_Multiply(__pyx_t_6, __pyx_v_u_r); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 69, __pyx_L1_error)
+  __pyx_t_7 = PyNumber_Multiply(__pyx_t_6, __pyx_v_u_r); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 78, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_7);
   __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-  __pyx_t_6 = PyList_New(3); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 69, __pyx_L1_error)
+  __pyx_t_6 = PyList_New(3); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 78, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_6);
   __Pyx_GIVEREF(__pyx_t_4);
-  if (__Pyx_PyList_SET_ITEM(__pyx_t_6, 0, __pyx_t_4)) __PYX_ERR(0, 69, __pyx_L1_error);
+  if (__Pyx_PyList_SET_ITEM(__pyx_t_6, 0, __pyx_t_4)) __PYX_ERR(0, 78, __pyx_L1_error);
   __Pyx_GIVEREF(__pyx_t_7);
-  if (__Pyx_PyList_SET_ITEM(__pyx_t_6, 1, __pyx_t_7)) __PYX_ERR(0, 69, __pyx_L1_error);
+  if (__Pyx_PyList_SET_ITEM(__pyx_t_6, 1, __pyx_t_7)) __PYX_ERR(0, 78, __pyx_L1_error);
   __Pyx_INCREF(__pyx_float_0_);
   __Pyx_GIVEREF(__pyx_float_0_);
-  if (__Pyx_PyList_SET_ITEM(__pyx_t_6, 2, __pyx_float_0_)) __PYX_ERR(0, 69, __pyx_L1_error);
+  if (__Pyx_PyList_SET_ITEM(__pyx_t_6, 2, __pyx_float_0_)) __PYX_ERR(0, 78, __pyx_L1_error);
   __pyx_t_4 = 0;
   __pyx_t_7 = 0;
 
-  /* "nav_env/ships/physics.pyx":66
+  /* "nav_env/ships/physics.pyx":75
  * 
  *     def __get_coriolis_added_matrix(self, u_r, v_r) -> np.ndarray:
  *         return np.array([             # <<<<<<<<<<<<<<
  *             [0., 0., self._y_dv * v_r],
  *             [0., 0., -self._x_du * u_r],
  */
-  __pyx_t_7 = PyList_New(3); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 66, __pyx_L1_error)
+  __pyx_t_7 = PyList_New(3); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 75, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_7);
   __Pyx_GIVEREF(__pyx_t_2);
-  if (__Pyx_PyList_SET_ITEM(__pyx_t_7, 0, __pyx_t_2)) __PYX_ERR(0, 66, __pyx_L1_error);
+  if (__Pyx_PyList_SET_ITEM(__pyx_t_7, 0, __pyx_t_2)) __PYX_ERR(0, 75, __pyx_L1_error);
   __Pyx_GIVEREF(__pyx_t_5);
-  if (__Pyx_PyList_SET_ITEM(__pyx_t_7, 1, __pyx_t_5)) __PYX_ERR(0, 66, __pyx_L1_error);
+  if (__Pyx_PyList_SET_ITEM(__pyx_t_7, 1, __pyx_t_5)) __PYX_ERR(0, 75, __pyx_L1_error);
   __Pyx_GIVEREF(__pyx_t_6);
-  if (__Pyx_PyList_SET_ITEM(__pyx_t_7, 2, __pyx_t_6)) __PYX_ERR(0, 66, __pyx_L1_error);
+  if (__Pyx_PyList_SET_ITEM(__pyx_t_7, 2, __pyx_t_6)) __PYX_ERR(0, 75, __pyx_L1_error);
   __pyx_t_2 = 0;
   __pyx_t_5 = 0;
   __pyx_t_6 = 0;
@@ -7163,7 +7380,7 @@ static PyObject *__pyx_pf_7nav_env_5ships_7physics_11ShipPhysics_18__get_corioli
     __pyx_t_1 = __Pyx_PyObject_FastCall(__pyx_t_3, __pyx_callargs+1-__pyx_t_8, 1+__pyx_t_8);
     __Pyx_XDECREF(__pyx_t_6); __pyx_t_6 = 0;
     __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
-    if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 66, __pyx_L1_error)
+    if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 75, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   }
@@ -7171,7 +7388,7 @@ static PyObject *__pyx_pf_7nav_env_5ships_7physics_11ShipPhysics_18__get_corioli
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "nav_env/ships/physics.pyx":65
+  /* "nav_env/ships/physics.pyx":74
  *                 ])
  * 
  *     def __get_coriolis_added_matrix(self, u_r, v_r) -> np.ndarray:             # <<<<<<<<<<<<<<
@@ -7196,7 +7413,7 @@ static PyObject *__pyx_pf_7nav_env_5ships_7physics_11ShipPhysics_18__get_corioli
   return __pyx_r;
 }
 
-/* "nav_env/ships/physics.pyx":72
+/* "nav_env/ships/physics.pyx":81
  *         ])
  * 
  *     def __get_linear_damping_matrix(self) -> np.ndarray:             # <<<<<<<<<<<<<<
@@ -7257,12 +7474,12 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
           (void)__Pyx_Arg_NewRef_FASTCALL(values[0]);
           kw_args--;
         }
-        else if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 72, __pyx_L3_error)
+        else if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 81, __pyx_L3_error)
         else goto __pyx_L5_argtuple_error;
       }
       if (unlikely(kw_args > 0)) {
         const Py_ssize_t kwd_pos_args = __pyx_nargs;
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_kwvalues, __pyx_pyargnames, 0, values + 0, kwd_pos_args, "__get_linear_damping_matrix") < 0)) __PYX_ERR(0, 72, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_kwvalues, __pyx_pyargnames, 0, values + 0, kwd_pos_args, "__get_linear_damping_matrix") < 0)) __PYX_ERR(0, 81, __pyx_L3_error)
       }
     } else if (unlikely(__pyx_nargs != 1)) {
       goto __pyx_L5_argtuple_error;
@@ -7273,7 +7490,7 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
   }
   goto __pyx_L6_skip;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("__get_linear_damping_matrix", 1, 1, 1, __pyx_nargs); __PYX_ERR(0, 72, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("__get_linear_damping_matrix", 1, 1, 1, __pyx_nargs); __PYX_ERR(0, 81, __pyx_L3_error)
   __pyx_L6_skip:;
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L3_error:;
@@ -7316,7 +7533,7 @@ static PyObject *__pyx_pf_7nav_env_5ships_7physics_11ShipPhysics_20__get_linear_
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("__get_linear_damping_matrix", 1);
 
-  /* "nav_env/ships/physics.pyx":73
+  /* "nav_env/ships/physics.pyx":82
  * 
  *     def __get_linear_damping_matrix(self) -> np.ndarray:
  *         return np.array([             # <<<<<<<<<<<<<<
@@ -7324,108 +7541,108 @@ static PyObject *__pyx_pf_7nav_env_5ships_7physics_11ShipPhysics_20__get_linear_
  *             [0., self._mass / self._t_sway, 0.],
  */
   __Pyx_XDECREF(__pyx_r);
-  __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_np); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 73, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_np); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 82, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_array); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 73, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_array); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 82, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-  /* "nav_env/ships/physics.pyx":74
+  /* "nav_env/ships/physics.pyx":83
  *     def __get_linear_damping_matrix(self) -> np.ndarray:
  *         return np.array([
  *             [self._mass / self._t_surge, 0., 0.],             # <<<<<<<<<<<<<<
  *             [0., self._mass / self._t_sway, 0.],
  *             [0., 0., self._i_z / self._t_yaw]
  */
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_mass_2); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 74, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_mass_2); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 83, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_t_surge); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 74, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_t_surge); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 83, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
-  __pyx_t_5 = __Pyx_PyNumber_Divide(__pyx_t_2, __pyx_t_4); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 74, __pyx_L1_error)
+  __pyx_t_5 = __Pyx_PyNumber_Divide(__pyx_t_2, __pyx_t_4); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 83, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  __pyx_t_4 = PyList_New(3); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 74, __pyx_L1_error)
+  __pyx_t_4 = PyList_New(3); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 83, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_GIVEREF(__pyx_t_5);
-  if (__Pyx_PyList_SET_ITEM(__pyx_t_4, 0, __pyx_t_5)) __PYX_ERR(0, 74, __pyx_L1_error);
+  if (__Pyx_PyList_SET_ITEM(__pyx_t_4, 0, __pyx_t_5)) __PYX_ERR(0, 83, __pyx_L1_error);
   __Pyx_INCREF(__pyx_float_0_);
   __Pyx_GIVEREF(__pyx_float_0_);
-  if (__Pyx_PyList_SET_ITEM(__pyx_t_4, 1, __pyx_float_0_)) __PYX_ERR(0, 74, __pyx_L1_error);
+  if (__Pyx_PyList_SET_ITEM(__pyx_t_4, 1, __pyx_float_0_)) __PYX_ERR(0, 83, __pyx_L1_error);
   __Pyx_INCREF(__pyx_float_0_);
   __Pyx_GIVEREF(__pyx_float_0_);
-  if (__Pyx_PyList_SET_ITEM(__pyx_t_4, 2, __pyx_float_0_)) __PYX_ERR(0, 74, __pyx_L1_error);
+  if (__Pyx_PyList_SET_ITEM(__pyx_t_4, 2, __pyx_float_0_)) __PYX_ERR(0, 83, __pyx_L1_error);
   __pyx_t_5 = 0;
 
-  /* "nav_env/ships/physics.pyx":75
+  /* "nav_env/ships/physics.pyx":84
  *         return np.array([
  *             [self._mass / self._t_surge, 0., 0.],
  *             [0., self._mass / self._t_sway, 0.],             # <<<<<<<<<<<<<<
  *             [0., 0., self._i_z / self._t_yaw]
  *         ])
  */
-  __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_mass_2); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 75, __pyx_L1_error)
+  __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_mass_2); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 84, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_t_sway); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 75, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_t_sway); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 84, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_6 = __Pyx_PyNumber_Divide(__pyx_t_5, __pyx_t_2); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 75, __pyx_L1_error)
+  __pyx_t_6 = __Pyx_PyNumber_Divide(__pyx_t_5, __pyx_t_2); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 84, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_6);
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_2 = PyList_New(3); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 75, __pyx_L1_error)
+  __pyx_t_2 = PyList_New(3); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 84, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_INCREF(__pyx_float_0_);
   __Pyx_GIVEREF(__pyx_float_0_);
-  if (__Pyx_PyList_SET_ITEM(__pyx_t_2, 0, __pyx_float_0_)) __PYX_ERR(0, 75, __pyx_L1_error);
+  if (__Pyx_PyList_SET_ITEM(__pyx_t_2, 0, __pyx_float_0_)) __PYX_ERR(0, 84, __pyx_L1_error);
   __Pyx_GIVEREF(__pyx_t_6);
-  if (__Pyx_PyList_SET_ITEM(__pyx_t_2, 1, __pyx_t_6)) __PYX_ERR(0, 75, __pyx_L1_error);
+  if (__Pyx_PyList_SET_ITEM(__pyx_t_2, 1, __pyx_t_6)) __PYX_ERR(0, 84, __pyx_L1_error);
   __Pyx_INCREF(__pyx_float_0_);
   __Pyx_GIVEREF(__pyx_float_0_);
-  if (__Pyx_PyList_SET_ITEM(__pyx_t_2, 2, __pyx_float_0_)) __PYX_ERR(0, 75, __pyx_L1_error);
+  if (__Pyx_PyList_SET_ITEM(__pyx_t_2, 2, __pyx_float_0_)) __PYX_ERR(0, 84, __pyx_L1_error);
   __pyx_t_6 = 0;
 
-  /* "nav_env/ships/physics.pyx":76
+  /* "nav_env/ships/physics.pyx":85
  *             [self._mass / self._t_surge, 0., 0.],
  *             [0., self._mass / self._t_sway, 0.],
  *             [0., 0., self._i_z / self._t_yaw]             # <<<<<<<<<<<<<<
  *         ])
  * 
  */
-  __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_i_z); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 76, __pyx_L1_error)
+  __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_i_z); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 85, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_6);
-  __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_t_yaw); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 76, __pyx_L1_error)
+  __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_t_yaw); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 85, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
-  __pyx_t_7 = __Pyx_PyNumber_Divide(__pyx_t_6, __pyx_t_5); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 76, __pyx_L1_error)
+  __pyx_t_7 = __Pyx_PyNumber_Divide(__pyx_t_6, __pyx_t_5); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 85, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_7);
   __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-  __pyx_t_5 = PyList_New(3); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 76, __pyx_L1_error)
+  __pyx_t_5 = PyList_New(3); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 85, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
   __Pyx_INCREF(__pyx_float_0_);
   __Pyx_GIVEREF(__pyx_float_0_);
-  if (__Pyx_PyList_SET_ITEM(__pyx_t_5, 0, __pyx_float_0_)) __PYX_ERR(0, 76, __pyx_L1_error);
+  if (__Pyx_PyList_SET_ITEM(__pyx_t_5, 0, __pyx_float_0_)) __PYX_ERR(0, 85, __pyx_L1_error);
   __Pyx_INCREF(__pyx_float_0_);
   __Pyx_GIVEREF(__pyx_float_0_);
-  if (__Pyx_PyList_SET_ITEM(__pyx_t_5, 1, __pyx_float_0_)) __PYX_ERR(0, 76, __pyx_L1_error);
+  if (__Pyx_PyList_SET_ITEM(__pyx_t_5, 1, __pyx_float_0_)) __PYX_ERR(0, 85, __pyx_L1_error);
   __Pyx_GIVEREF(__pyx_t_7);
-  if (__Pyx_PyList_SET_ITEM(__pyx_t_5, 2, __pyx_t_7)) __PYX_ERR(0, 76, __pyx_L1_error);
+  if (__Pyx_PyList_SET_ITEM(__pyx_t_5, 2, __pyx_t_7)) __PYX_ERR(0, 85, __pyx_L1_error);
   __pyx_t_7 = 0;
 
-  /* "nav_env/ships/physics.pyx":73
+  /* "nav_env/ships/physics.pyx":82
  * 
  *     def __get_linear_damping_matrix(self) -> np.ndarray:
  *         return np.array([             # <<<<<<<<<<<<<<
  *             [self._mass / self._t_surge, 0., 0.],
  *             [0., self._mass / self._t_sway, 0.],
  */
-  __pyx_t_7 = PyList_New(3); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 73, __pyx_L1_error)
+  __pyx_t_7 = PyList_New(3); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 82, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_7);
   __Pyx_GIVEREF(__pyx_t_4);
-  if (__Pyx_PyList_SET_ITEM(__pyx_t_7, 0, __pyx_t_4)) __PYX_ERR(0, 73, __pyx_L1_error);
+  if (__Pyx_PyList_SET_ITEM(__pyx_t_7, 0, __pyx_t_4)) __PYX_ERR(0, 82, __pyx_L1_error);
   __Pyx_GIVEREF(__pyx_t_2);
-  if (__Pyx_PyList_SET_ITEM(__pyx_t_7, 1, __pyx_t_2)) __PYX_ERR(0, 73, __pyx_L1_error);
+  if (__Pyx_PyList_SET_ITEM(__pyx_t_7, 1, __pyx_t_2)) __PYX_ERR(0, 82, __pyx_L1_error);
   __Pyx_GIVEREF(__pyx_t_5);
-  if (__Pyx_PyList_SET_ITEM(__pyx_t_7, 2, __pyx_t_5)) __PYX_ERR(0, 73, __pyx_L1_error);
+  if (__Pyx_PyList_SET_ITEM(__pyx_t_7, 2, __pyx_t_5)) __PYX_ERR(0, 82, __pyx_L1_error);
   __pyx_t_4 = 0;
   __pyx_t_2 = 0;
   __pyx_t_5 = 0;
@@ -7448,7 +7665,7 @@ static PyObject *__pyx_pf_7nav_env_5ships_7physics_11ShipPhysics_20__get_linear_
     __pyx_t_1 = __Pyx_PyObject_FastCall(__pyx_t_3, __pyx_callargs+1-__pyx_t_8, 1+__pyx_t_8);
     __Pyx_XDECREF(__pyx_t_5); __pyx_t_5 = 0;
     __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
-    if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 73, __pyx_L1_error)
+    if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 82, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   }
@@ -7456,7 +7673,7 @@ static PyObject *__pyx_pf_7nav_env_5ships_7physics_11ShipPhysics_20__get_linear_
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "nav_env/ships/physics.pyx":72
+  /* "nav_env/ships/physics.pyx":81
  *         ])
  * 
  *     def __get_linear_damping_matrix(self) -> np.ndarray:             # <<<<<<<<<<<<<<
@@ -7481,7 +7698,7 @@ static PyObject *__pyx_pf_7nav_env_5ships_7physics_11ShipPhysics_20__get_linear_
   return __pyx_r;
 }
 
-/* "nav_env/ships/physics.pyx":79
+/* "nav_env/ships/physics.pyx":88
  *         ])
  * 
  *     def __get_nonlinear_damping_matrix(self, x_dot, y_dot, psi_dot_rad) -> np.ndarray:             # <<<<<<<<<<<<<<
@@ -7551,7 +7768,7 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
           (void)__Pyx_Arg_NewRef_FASTCALL(values[0]);
           kw_args--;
         }
-        else if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 79, __pyx_L3_error)
+        else if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 88, __pyx_L3_error)
         else goto __pyx_L5_argtuple_error;
         CYTHON_FALLTHROUGH;
         case  1:
@@ -7559,9 +7776,9 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
           (void)__Pyx_Arg_NewRef_FASTCALL(values[1]);
           kw_args--;
         }
-        else if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 79, __pyx_L3_error)
+        else if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 88, __pyx_L3_error)
         else {
-          __Pyx_RaiseArgtupleInvalid("__get_nonlinear_damping_matrix", 1, 4, 4, 1); __PYX_ERR(0, 79, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("__get_nonlinear_damping_matrix", 1, 4, 4, 1); __PYX_ERR(0, 88, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  2:
@@ -7569,9 +7786,9 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
           (void)__Pyx_Arg_NewRef_FASTCALL(values[2]);
           kw_args--;
         }
-        else if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 79, __pyx_L3_error)
+        else if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 88, __pyx_L3_error)
         else {
-          __Pyx_RaiseArgtupleInvalid("__get_nonlinear_damping_matrix", 1, 4, 4, 2); __PYX_ERR(0, 79, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("__get_nonlinear_damping_matrix", 1, 4, 4, 2); __PYX_ERR(0, 88, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  3:
@@ -7579,14 +7796,14 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
           (void)__Pyx_Arg_NewRef_FASTCALL(values[3]);
           kw_args--;
         }
-        else if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 79, __pyx_L3_error)
+        else if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 88, __pyx_L3_error)
         else {
-          __Pyx_RaiseArgtupleInvalid("__get_nonlinear_damping_matrix", 1, 4, 4, 3); __PYX_ERR(0, 79, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("__get_nonlinear_damping_matrix", 1, 4, 4, 3); __PYX_ERR(0, 88, __pyx_L3_error)
         }
       }
       if (unlikely(kw_args > 0)) {
         const Py_ssize_t kwd_pos_args = __pyx_nargs;
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_kwvalues, __pyx_pyargnames, 0, values + 0, kwd_pos_args, "__get_nonlinear_damping_matrix") < 0)) __PYX_ERR(0, 79, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_kwvalues, __pyx_pyargnames, 0, values + 0, kwd_pos_args, "__get_nonlinear_damping_matrix") < 0)) __PYX_ERR(0, 88, __pyx_L3_error)
       }
     } else if (unlikely(__pyx_nargs != 4)) {
       goto __pyx_L5_argtuple_error;
@@ -7603,7 +7820,7 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
   }
   goto __pyx_L6_skip;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("__get_nonlinear_damping_matrix", 1, 4, 4, __pyx_nargs); __PYX_ERR(0, 79, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("__get_nonlinear_damping_matrix", 1, 4, 4, __pyx_nargs); __PYX_ERR(0, 88, __pyx_L3_error)
   __pyx_L6_skip:;
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L3_error:;
@@ -7647,7 +7864,7 @@ static PyObject *__pyx_pf_7nav_env_5ships_7physics_11ShipPhysics_22__get_nonline
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("__get_nonlinear_damping_matrix", 1);
 
-  /* "nav_env/ships/physics.pyx":80
+  /* "nav_env/ships/physics.pyx":89
  * 
  *     def __get_nonlinear_damping_matrix(self, x_dot, y_dot, psi_dot_rad) -> np.ndarray:
  *         return np.array([             # <<<<<<<<<<<<<<
@@ -7655,24 +7872,24 @@ static PyObject *__pyx_pf_7nav_env_5ships_7physics_11ShipPhysics_22__get_nonline
  *             [0., self._kv * np.abs(y_dot), 0.],
  */
   __Pyx_XDECREF(__pyx_r);
-  __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_np); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 80, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_np); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 89, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_array); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 80, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_array); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 89, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-  /* "nav_env/ships/physics.pyx":81
+  /* "nav_env/ships/physics.pyx":90
  *     def __get_nonlinear_damping_matrix(self, x_dot, y_dot, psi_dot_rad) -> np.ndarray:
  *         return np.array([
  *             [self._ku * np.abs(x_dot), 0., 0.],             # <<<<<<<<<<<<<<
  *             [0., self._kv * np.abs(y_dot), 0.],
  *             [0., 0., self._kr * np.abs(psi_dot_rad)]
  */
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_ku); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 81, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_ku); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 90, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __Pyx_GetModuleGlobalName(__pyx_t_5, __pyx_n_s_np); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 81, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_5, __pyx_n_s_np); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 90, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
-  __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_t_5, __pyx_n_s_abs); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 81, __pyx_L1_error)
+  __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_t_5, __pyx_n_s_abs); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 90, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_6);
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
   __pyx_t_5 = NULL;
@@ -7693,38 +7910,38 @@ static PyObject *__pyx_pf_7nav_env_5ships_7physics_11ShipPhysics_22__get_nonline
     PyObject *__pyx_callargs[2] = {__pyx_t_5, __pyx_v_x_dot};
     __pyx_t_4 = __Pyx_PyObject_FastCall(__pyx_t_6, __pyx_callargs+1-__pyx_t_7, 1+__pyx_t_7);
     __Pyx_XDECREF(__pyx_t_5); __pyx_t_5 = 0;
-    if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 81, __pyx_L1_error)
+    if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 90, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_4);
     __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
   }
-  __pyx_t_6 = PyNumber_Multiply(__pyx_t_2, __pyx_t_4); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 81, __pyx_L1_error)
+  __pyx_t_6 = PyNumber_Multiply(__pyx_t_2, __pyx_t_4); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 90, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_6);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  __pyx_t_4 = PyList_New(3); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 81, __pyx_L1_error)
+  __pyx_t_4 = PyList_New(3); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 90, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_GIVEREF(__pyx_t_6);
-  if (__Pyx_PyList_SET_ITEM(__pyx_t_4, 0, __pyx_t_6)) __PYX_ERR(0, 81, __pyx_L1_error);
+  if (__Pyx_PyList_SET_ITEM(__pyx_t_4, 0, __pyx_t_6)) __PYX_ERR(0, 90, __pyx_L1_error);
   __Pyx_INCREF(__pyx_float_0_);
   __Pyx_GIVEREF(__pyx_float_0_);
-  if (__Pyx_PyList_SET_ITEM(__pyx_t_4, 1, __pyx_float_0_)) __PYX_ERR(0, 81, __pyx_L1_error);
+  if (__Pyx_PyList_SET_ITEM(__pyx_t_4, 1, __pyx_float_0_)) __PYX_ERR(0, 90, __pyx_L1_error);
   __Pyx_INCREF(__pyx_float_0_);
   __Pyx_GIVEREF(__pyx_float_0_);
-  if (__Pyx_PyList_SET_ITEM(__pyx_t_4, 2, __pyx_float_0_)) __PYX_ERR(0, 81, __pyx_L1_error);
+  if (__Pyx_PyList_SET_ITEM(__pyx_t_4, 2, __pyx_float_0_)) __PYX_ERR(0, 90, __pyx_L1_error);
   __pyx_t_6 = 0;
 
-  /* "nav_env/ships/physics.pyx":82
+  /* "nav_env/ships/physics.pyx":91
  *         return np.array([
  *             [self._ku * np.abs(x_dot), 0., 0.],
  *             [0., self._kv * np.abs(y_dot), 0.],             # <<<<<<<<<<<<<<
  *             [0., 0., self._kr * np.abs(psi_dot_rad)]
  *         ])
  */
-  __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_kv); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 82, __pyx_L1_error)
+  __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_kv); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 91, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_6);
-  __Pyx_GetModuleGlobalName(__pyx_t_5, __pyx_n_s_np); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 82, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_5, __pyx_n_s_np); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 91, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
-  __pyx_t_8 = __Pyx_PyObject_GetAttrStr(__pyx_t_5, __pyx_n_s_abs); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 82, __pyx_L1_error)
+  __pyx_t_8 = __Pyx_PyObject_GetAttrStr(__pyx_t_5, __pyx_n_s_abs); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 91, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_8);
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
   __pyx_t_5 = NULL;
@@ -7745,38 +7962,38 @@ static PyObject *__pyx_pf_7nav_env_5ships_7physics_11ShipPhysics_22__get_nonline
     PyObject *__pyx_callargs[2] = {__pyx_t_5, __pyx_v_y_dot};
     __pyx_t_2 = __Pyx_PyObject_FastCall(__pyx_t_8, __pyx_callargs+1-__pyx_t_7, 1+__pyx_t_7);
     __Pyx_XDECREF(__pyx_t_5); __pyx_t_5 = 0;
-    if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 82, __pyx_L1_error)
+    if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 91, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
     __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
   }
-  __pyx_t_8 = PyNumber_Multiply(__pyx_t_6, __pyx_t_2); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 82, __pyx_L1_error)
+  __pyx_t_8 = PyNumber_Multiply(__pyx_t_6, __pyx_t_2); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 91, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_8);
   __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_2 = PyList_New(3); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 82, __pyx_L1_error)
+  __pyx_t_2 = PyList_New(3); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 91, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_INCREF(__pyx_float_0_);
   __Pyx_GIVEREF(__pyx_float_0_);
-  if (__Pyx_PyList_SET_ITEM(__pyx_t_2, 0, __pyx_float_0_)) __PYX_ERR(0, 82, __pyx_L1_error);
+  if (__Pyx_PyList_SET_ITEM(__pyx_t_2, 0, __pyx_float_0_)) __PYX_ERR(0, 91, __pyx_L1_error);
   __Pyx_GIVEREF(__pyx_t_8);
-  if (__Pyx_PyList_SET_ITEM(__pyx_t_2, 1, __pyx_t_8)) __PYX_ERR(0, 82, __pyx_L1_error);
+  if (__Pyx_PyList_SET_ITEM(__pyx_t_2, 1, __pyx_t_8)) __PYX_ERR(0, 91, __pyx_L1_error);
   __Pyx_INCREF(__pyx_float_0_);
   __Pyx_GIVEREF(__pyx_float_0_);
-  if (__Pyx_PyList_SET_ITEM(__pyx_t_2, 2, __pyx_float_0_)) __PYX_ERR(0, 82, __pyx_L1_error);
+  if (__Pyx_PyList_SET_ITEM(__pyx_t_2, 2, __pyx_float_0_)) __PYX_ERR(0, 91, __pyx_L1_error);
   __pyx_t_8 = 0;
 
-  /* "nav_env/ships/physics.pyx":83
+  /* "nav_env/ships/physics.pyx":92
  *             [self._ku * np.abs(x_dot), 0., 0.],
  *             [0., self._kv * np.abs(y_dot), 0.],
  *             [0., 0., self._kr * np.abs(psi_dot_rad)]             # <<<<<<<<<<<<<<
  *         ])
  * 
  */
-  __pyx_t_8 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_kr); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 83, __pyx_L1_error)
+  __pyx_t_8 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_kr); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 92, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_8);
-  __Pyx_GetModuleGlobalName(__pyx_t_5, __pyx_n_s_np); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 83, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_5, __pyx_n_s_np); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 92, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
-  __pyx_t_9 = __Pyx_PyObject_GetAttrStr(__pyx_t_5, __pyx_n_s_abs); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 83, __pyx_L1_error)
+  __pyx_t_9 = __Pyx_PyObject_GetAttrStr(__pyx_t_5, __pyx_n_s_abs); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 92, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_9);
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
   __pyx_t_5 = NULL;
@@ -7797,41 +8014,41 @@ static PyObject *__pyx_pf_7nav_env_5ships_7physics_11ShipPhysics_22__get_nonline
     PyObject *__pyx_callargs[2] = {__pyx_t_5, __pyx_v_psi_dot_rad};
     __pyx_t_6 = __Pyx_PyObject_FastCall(__pyx_t_9, __pyx_callargs+1-__pyx_t_7, 1+__pyx_t_7);
     __Pyx_XDECREF(__pyx_t_5); __pyx_t_5 = 0;
-    if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 83, __pyx_L1_error)
+    if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 92, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_6);
     __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
   }
-  __pyx_t_9 = PyNumber_Multiply(__pyx_t_8, __pyx_t_6); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 83, __pyx_L1_error)
+  __pyx_t_9 = PyNumber_Multiply(__pyx_t_8, __pyx_t_6); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 92, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_9);
   __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
   __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-  __pyx_t_6 = PyList_New(3); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 83, __pyx_L1_error)
+  __pyx_t_6 = PyList_New(3); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 92, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_6);
   __Pyx_INCREF(__pyx_float_0_);
   __Pyx_GIVEREF(__pyx_float_0_);
-  if (__Pyx_PyList_SET_ITEM(__pyx_t_6, 0, __pyx_float_0_)) __PYX_ERR(0, 83, __pyx_L1_error);
+  if (__Pyx_PyList_SET_ITEM(__pyx_t_6, 0, __pyx_float_0_)) __PYX_ERR(0, 92, __pyx_L1_error);
   __Pyx_INCREF(__pyx_float_0_);
   __Pyx_GIVEREF(__pyx_float_0_);
-  if (__Pyx_PyList_SET_ITEM(__pyx_t_6, 1, __pyx_float_0_)) __PYX_ERR(0, 83, __pyx_L1_error);
+  if (__Pyx_PyList_SET_ITEM(__pyx_t_6, 1, __pyx_float_0_)) __PYX_ERR(0, 92, __pyx_L1_error);
   __Pyx_GIVEREF(__pyx_t_9);
-  if (__Pyx_PyList_SET_ITEM(__pyx_t_6, 2, __pyx_t_9)) __PYX_ERR(0, 83, __pyx_L1_error);
+  if (__Pyx_PyList_SET_ITEM(__pyx_t_6, 2, __pyx_t_9)) __PYX_ERR(0, 92, __pyx_L1_error);
   __pyx_t_9 = 0;
 
-  /* "nav_env/ships/physics.pyx":80
+  /* "nav_env/ships/physics.pyx":89
  * 
  *     def __get_nonlinear_damping_matrix(self, x_dot, y_dot, psi_dot_rad) -> np.ndarray:
  *         return np.array([             # <<<<<<<<<<<<<<
  *             [self._ku * np.abs(x_dot), 0., 0.],
  *             [0., self._kv * np.abs(y_dot), 0.],
  */
-  __pyx_t_9 = PyList_New(3); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 80, __pyx_L1_error)
+  __pyx_t_9 = PyList_New(3); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 89, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_9);
   __Pyx_GIVEREF(__pyx_t_4);
-  if (__Pyx_PyList_SET_ITEM(__pyx_t_9, 0, __pyx_t_4)) __PYX_ERR(0, 80, __pyx_L1_error);
+  if (__Pyx_PyList_SET_ITEM(__pyx_t_9, 0, __pyx_t_4)) __PYX_ERR(0, 89, __pyx_L1_error);
   __Pyx_GIVEREF(__pyx_t_2);
-  if (__Pyx_PyList_SET_ITEM(__pyx_t_9, 1, __pyx_t_2)) __PYX_ERR(0, 80, __pyx_L1_error);
+  if (__Pyx_PyList_SET_ITEM(__pyx_t_9, 1, __pyx_t_2)) __PYX_ERR(0, 89, __pyx_L1_error);
   __Pyx_GIVEREF(__pyx_t_6);
-  if (__Pyx_PyList_SET_ITEM(__pyx_t_9, 2, __pyx_t_6)) __PYX_ERR(0, 80, __pyx_L1_error);
+  if (__Pyx_PyList_SET_ITEM(__pyx_t_9, 2, __pyx_t_6)) __PYX_ERR(0, 89, __pyx_L1_error);
   __pyx_t_4 = 0;
   __pyx_t_2 = 0;
   __pyx_t_6 = 0;
@@ -7854,7 +8071,7 @@ static PyObject *__pyx_pf_7nav_env_5ships_7physics_11ShipPhysics_22__get_nonline
     __pyx_t_1 = __Pyx_PyObject_FastCall(__pyx_t_3, __pyx_callargs+1-__pyx_t_7, 1+__pyx_t_7);
     __Pyx_XDECREF(__pyx_t_6); __pyx_t_6 = 0;
     __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
-    if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 80, __pyx_L1_error)
+    if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 89, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   }
@@ -7862,7 +8079,7 @@ static PyObject *__pyx_pf_7nav_env_5ships_7physics_11ShipPhysics_22__get_nonline
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "nav_env/ships/physics.pyx":79
+  /* "nav_env/ships/physics.pyx":88
  *         ])
  * 
  *     def __get_nonlinear_damping_matrix(self, x_dot, y_dot, psi_dot_rad) -> np.ndarray:             # <<<<<<<<<<<<<<
@@ -7888,7 +8105,7 @@ static PyObject *__pyx_pf_7nav_env_5ships_7physics_11ShipPhysics_22__get_nonline
   return __pyx_r;
 }
 
-/* "nav_env/ships/physics.pyx":86
+/* "nav_env/ships/physics.pyx":95
  *         ])
  * 
  *     def __get_rotation_matrix(self, psi_rad, dim:int=3) -> np.ndarray:             # <<<<<<<<<<<<<<
@@ -7906,18 +8123,18 @@ static PyObject *__pyx_pf_7nav_env_5ships_7physics_2__defaults__(CYTHON_UNUSED P
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("__defaults__", 1);
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = PyTuple_New(1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 86, __pyx_L1_error)
+  __pyx_t_1 = PyTuple_New(1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 95, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_INCREF(__Pyx_CyFunction_Defaults(__pyx_defaults1, __pyx_self)->__pyx_arg_dim);
   __Pyx_GIVEREF(__Pyx_CyFunction_Defaults(__pyx_defaults1, __pyx_self)->__pyx_arg_dim);
-  if (__Pyx_PyTuple_SET_ITEM(__pyx_t_1, 0, __Pyx_CyFunction_Defaults(__pyx_defaults1, __pyx_self)->__pyx_arg_dim)) __PYX_ERR(0, 86, __pyx_L1_error);
-  __pyx_t_2 = PyTuple_New(2); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 86, __pyx_L1_error)
+  if (__Pyx_PyTuple_SET_ITEM(__pyx_t_1, 0, __Pyx_CyFunction_Defaults(__pyx_defaults1, __pyx_self)->__pyx_arg_dim)) __PYX_ERR(0, 95, __pyx_L1_error);
+  __pyx_t_2 = PyTuple_New(2); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 95, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_GIVEREF(__pyx_t_1);
-  if (__Pyx_PyTuple_SET_ITEM(__pyx_t_2, 0, __pyx_t_1)) __PYX_ERR(0, 86, __pyx_L1_error);
+  if (__Pyx_PyTuple_SET_ITEM(__pyx_t_2, 0, __pyx_t_1)) __PYX_ERR(0, 95, __pyx_L1_error);
   __Pyx_INCREF(Py_None);
   __Pyx_GIVEREF(Py_None);
-  if (__Pyx_PyTuple_SET_ITEM(__pyx_t_2, 1, Py_None)) __PYX_ERR(0, 86, __pyx_L1_error);
+  if (__Pyx_PyTuple_SET_ITEM(__pyx_t_2, 1, Py_None)) __PYX_ERR(0, 95, __pyx_L1_error);
   __pyx_t_1 = 0;
   __pyx_r = __pyx_t_2;
   __pyx_t_2 = 0;
@@ -7996,7 +8213,7 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
           (void)__Pyx_Arg_NewRef_FASTCALL(values[0]);
           kw_args--;
         }
-        else if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 86, __pyx_L3_error)
+        else if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 95, __pyx_L3_error)
         else goto __pyx_L5_argtuple_error;
         CYTHON_FALLTHROUGH;
         case  1:
@@ -8004,21 +8221,21 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
           (void)__Pyx_Arg_NewRef_FASTCALL(values[1]);
           kw_args--;
         }
-        else if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 86, __pyx_L3_error)
+        else if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 95, __pyx_L3_error)
         else {
-          __Pyx_RaiseArgtupleInvalid("__get_rotation_matrix", 0, 2, 3, 1); __PYX_ERR(0, 86, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("__get_rotation_matrix", 0, 2, 3, 1); __PYX_ERR(0, 95, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  2:
         if (kw_args > 0) {
           PyObject* value = __Pyx_GetKwValue_FASTCALL(__pyx_kwds, __pyx_kwvalues, __pyx_n_s_dim);
           if (value) { values[2] = __Pyx_Arg_NewRef_FASTCALL(value); kw_args--; }
-          else if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 86, __pyx_L3_error)
+          else if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 95, __pyx_L3_error)
         }
       }
       if (unlikely(kw_args > 0)) {
         const Py_ssize_t kwd_pos_args = __pyx_nargs;
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_kwvalues, __pyx_pyargnames, 0, values + 0, kwd_pos_args, "__get_rotation_matrix") < 0)) __PYX_ERR(0, 86, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_kwvalues, __pyx_pyargnames, 0, values + 0, kwd_pos_args, "__get_rotation_matrix") < 0)) __PYX_ERR(0, 95, __pyx_L3_error)
       }
     } else {
       switch (__pyx_nargs) {
@@ -8036,7 +8253,7 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
   }
   goto __pyx_L6_skip;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("__get_rotation_matrix", 0, 2, 3, __pyx_nargs); __PYX_ERR(0, 86, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("__get_rotation_matrix", 0, 2, 3, __pyx_nargs); __PYX_ERR(0, 95, __pyx_L3_error)
   __pyx_L6_skip:;
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L3_error:;
@@ -8050,7 +8267,7 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_dim), (&PyInt_Type), 0, "dim", 1))) __PYX_ERR(0, 86, __pyx_L1_error)
+  if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_dim), (&PyInt_Type), 0, "dim", 1))) __PYX_ERR(0, 95, __pyx_L1_error)
   __pyx_r = __pyx_pf_7nav_env_5ships_7physics_11ShipPhysics_24__get_rotation_matrix(__pyx_self, __pyx_v_self, __pyx_v_psi_rad, __pyx_v_dim);
 
   /* function exit code */
@@ -8084,7 +8301,7 @@ static PyObject *__pyx_pf_7nav_env_5ships_7physics_11ShipPhysics_24__get_rotatio
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("__get_rotation_matrix", 1);
 
-  /* "nav_env/ships/physics.pyx":87
+  /* "nav_env/ships/physics.pyx":96
  * 
  *     def __get_rotation_matrix(self, psi_rad, dim:int=3) -> np.ndarray:
  *         return np.array([             # <<<<<<<<<<<<<<
@@ -8092,22 +8309,22 @@ static PyObject *__pyx_pf_7nav_env_5ships_7physics_11ShipPhysics_24__get_rotatio
  *             [np.cos(psi_rad), np.sin(psi_rad), 0.],
  */
   __Pyx_XDECREF(__pyx_r);
-  __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_np); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 87, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_np); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 96, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_array); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 87, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_array); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 96, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-  /* "nav_env/ships/physics.pyx":88
+  /* "nav_env/ships/physics.pyx":97
  *     def __get_rotation_matrix(self, psi_rad, dim:int=3) -> np.ndarray:
  *         return np.array([
  *             [-np.sin(psi_rad), np.cos(psi_rad), 0.],             # <<<<<<<<<<<<<<
  *             [np.cos(psi_rad), np.sin(psi_rad), 0.],
  *             [0., 0., -1.]
  */
-  __Pyx_GetModuleGlobalName(__pyx_t_4, __pyx_n_s_np); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 88, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_4, __pyx_n_s_np); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 97, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
-  __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_t_4, __pyx_n_s_sin); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 88, __pyx_L1_error)
+  __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_t_4, __pyx_n_s_sin); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 97, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
   __pyx_t_4 = NULL;
@@ -8128,16 +8345,16 @@ static PyObject *__pyx_pf_7nav_env_5ships_7physics_11ShipPhysics_24__get_rotatio
     PyObject *__pyx_callargs[2] = {__pyx_t_4, __pyx_v_psi_rad};
     __pyx_t_2 = __Pyx_PyObject_FastCall(__pyx_t_5, __pyx_callargs+1-__pyx_t_6, 1+__pyx_t_6);
     __Pyx_XDECREF(__pyx_t_4); __pyx_t_4 = 0;
-    if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 88, __pyx_L1_error)
+    if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 97, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
     __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
   }
-  __pyx_t_5 = PyNumber_Negative(__pyx_t_2); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 88, __pyx_L1_error)
+  __pyx_t_5 = PyNumber_Negative(__pyx_t_2); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 97, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __Pyx_GetModuleGlobalName(__pyx_t_4, __pyx_n_s_np); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 88, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_4, __pyx_n_s_np); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 97, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
-  __pyx_t_7 = __Pyx_PyObject_GetAttrStr(__pyx_t_4, __pyx_n_s_cos); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 88, __pyx_L1_error)
+  __pyx_t_7 = __Pyx_PyObject_GetAttrStr(__pyx_t_4, __pyx_n_s_cos); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 97, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_7);
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
   __pyx_t_4 = NULL;
@@ -8158,32 +8375,32 @@ static PyObject *__pyx_pf_7nav_env_5ships_7physics_11ShipPhysics_24__get_rotatio
     PyObject *__pyx_callargs[2] = {__pyx_t_4, __pyx_v_psi_rad};
     __pyx_t_2 = __Pyx_PyObject_FastCall(__pyx_t_7, __pyx_callargs+1-__pyx_t_6, 1+__pyx_t_6);
     __Pyx_XDECREF(__pyx_t_4); __pyx_t_4 = 0;
-    if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 88, __pyx_L1_error)
+    if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 97, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
     __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
   }
-  __pyx_t_7 = PyList_New(3); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 88, __pyx_L1_error)
+  __pyx_t_7 = PyList_New(3); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 97, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_7);
   __Pyx_GIVEREF(__pyx_t_5);
-  if (__Pyx_PyList_SET_ITEM(__pyx_t_7, 0, __pyx_t_5)) __PYX_ERR(0, 88, __pyx_L1_error);
+  if (__Pyx_PyList_SET_ITEM(__pyx_t_7, 0, __pyx_t_5)) __PYX_ERR(0, 97, __pyx_L1_error);
   __Pyx_GIVEREF(__pyx_t_2);
-  if (__Pyx_PyList_SET_ITEM(__pyx_t_7, 1, __pyx_t_2)) __PYX_ERR(0, 88, __pyx_L1_error);
+  if (__Pyx_PyList_SET_ITEM(__pyx_t_7, 1, __pyx_t_2)) __PYX_ERR(0, 97, __pyx_L1_error);
   __Pyx_INCREF(__pyx_float_0_);
   __Pyx_GIVEREF(__pyx_float_0_);
-  if (__Pyx_PyList_SET_ITEM(__pyx_t_7, 2, __pyx_float_0_)) __PYX_ERR(0, 88, __pyx_L1_error);
+  if (__Pyx_PyList_SET_ITEM(__pyx_t_7, 2, __pyx_float_0_)) __PYX_ERR(0, 97, __pyx_L1_error);
   __pyx_t_5 = 0;
   __pyx_t_2 = 0;
 
-  /* "nav_env/ships/physics.pyx":89
+  /* "nav_env/ships/physics.pyx":98
  *         return np.array([
  *             [-np.sin(psi_rad), np.cos(psi_rad), 0.],
  *             [np.cos(psi_rad), np.sin(psi_rad), 0.],             # <<<<<<<<<<<<<<
  *             [0., 0., -1.]
  *         ])[0:dim, 0:dim] # Transpose or not, it doesn't change anything!!! This transformation is correct!
  */
-  __Pyx_GetModuleGlobalName(__pyx_t_5, __pyx_n_s_np); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 89, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_5, __pyx_n_s_np); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 98, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
-  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_5, __pyx_n_s_cos); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 89, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_5, __pyx_n_s_cos); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 98, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
   __pyx_t_5 = NULL;
@@ -8204,13 +8421,13 @@ static PyObject *__pyx_pf_7nav_env_5ships_7physics_11ShipPhysics_24__get_rotatio
     PyObject *__pyx_callargs[2] = {__pyx_t_5, __pyx_v_psi_rad};
     __pyx_t_2 = __Pyx_PyObject_FastCall(__pyx_t_4, __pyx_callargs+1-__pyx_t_6, 1+__pyx_t_6);
     __Pyx_XDECREF(__pyx_t_5); __pyx_t_5 = 0;
-    if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 89, __pyx_L1_error)
+    if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 98, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
   }
-  __Pyx_GetModuleGlobalName(__pyx_t_5, __pyx_n_s_np); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 89, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_5, __pyx_n_s_np); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 98, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
-  __pyx_t_8 = __Pyx_PyObject_GetAttrStr(__pyx_t_5, __pyx_n_s_sin); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 89, __pyx_L1_error)
+  __pyx_t_8 = __Pyx_PyObject_GetAttrStr(__pyx_t_5, __pyx_n_s_sin); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 98, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_8);
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
   __pyx_t_5 = NULL;
@@ -8231,56 +8448,56 @@ static PyObject *__pyx_pf_7nav_env_5ships_7physics_11ShipPhysics_24__get_rotatio
     PyObject *__pyx_callargs[2] = {__pyx_t_5, __pyx_v_psi_rad};
     __pyx_t_4 = __Pyx_PyObject_FastCall(__pyx_t_8, __pyx_callargs+1-__pyx_t_6, 1+__pyx_t_6);
     __Pyx_XDECREF(__pyx_t_5); __pyx_t_5 = 0;
-    if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 89, __pyx_L1_error)
+    if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 98, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_4);
     __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
   }
-  __pyx_t_8 = PyList_New(3); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 89, __pyx_L1_error)
+  __pyx_t_8 = PyList_New(3); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 98, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_8);
   __Pyx_GIVEREF(__pyx_t_2);
-  if (__Pyx_PyList_SET_ITEM(__pyx_t_8, 0, __pyx_t_2)) __PYX_ERR(0, 89, __pyx_L1_error);
+  if (__Pyx_PyList_SET_ITEM(__pyx_t_8, 0, __pyx_t_2)) __PYX_ERR(0, 98, __pyx_L1_error);
   __Pyx_GIVEREF(__pyx_t_4);
-  if (__Pyx_PyList_SET_ITEM(__pyx_t_8, 1, __pyx_t_4)) __PYX_ERR(0, 89, __pyx_L1_error);
+  if (__Pyx_PyList_SET_ITEM(__pyx_t_8, 1, __pyx_t_4)) __PYX_ERR(0, 98, __pyx_L1_error);
   __Pyx_INCREF(__pyx_float_0_);
   __Pyx_GIVEREF(__pyx_float_0_);
-  if (__Pyx_PyList_SET_ITEM(__pyx_t_8, 2, __pyx_float_0_)) __PYX_ERR(0, 89, __pyx_L1_error);
+  if (__Pyx_PyList_SET_ITEM(__pyx_t_8, 2, __pyx_float_0_)) __PYX_ERR(0, 98, __pyx_L1_error);
   __pyx_t_2 = 0;
   __pyx_t_4 = 0;
 
-  /* "nav_env/ships/physics.pyx":90
+  /* "nav_env/ships/physics.pyx":99
  *             [-np.sin(psi_rad), np.cos(psi_rad), 0.],
  *             [np.cos(psi_rad), np.sin(psi_rad), 0.],
  *             [0., 0., -1.]             # <<<<<<<<<<<<<<
  *         ])[0:dim, 0:dim] # Transpose or not, it doesn't change anything!!! This transformation is correct!
  * 
  */
-  __pyx_t_4 = PyList_New(3); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 90, __pyx_L1_error)
+  __pyx_t_4 = PyList_New(3); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 99, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_INCREF(__pyx_float_0_);
   __Pyx_GIVEREF(__pyx_float_0_);
-  if (__Pyx_PyList_SET_ITEM(__pyx_t_4, 0, __pyx_float_0_)) __PYX_ERR(0, 90, __pyx_L1_error);
+  if (__Pyx_PyList_SET_ITEM(__pyx_t_4, 0, __pyx_float_0_)) __PYX_ERR(0, 99, __pyx_L1_error);
   __Pyx_INCREF(__pyx_float_0_);
   __Pyx_GIVEREF(__pyx_float_0_);
-  if (__Pyx_PyList_SET_ITEM(__pyx_t_4, 1, __pyx_float_0_)) __PYX_ERR(0, 90, __pyx_L1_error);
+  if (__Pyx_PyList_SET_ITEM(__pyx_t_4, 1, __pyx_float_0_)) __PYX_ERR(0, 99, __pyx_L1_error);
   __Pyx_INCREF(__pyx_float_neg_1_);
   __Pyx_GIVEREF(__pyx_float_neg_1_);
-  if (__Pyx_PyList_SET_ITEM(__pyx_t_4, 2, __pyx_float_neg_1_)) __PYX_ERR(0, 90, __pyx_L1_error);
+  if (__Pyx_PyList_SET_ITEM(__pyx_t_4, 2, __pyx_float_neg_1_)) __PYX_ERR(0, 99, __pyx_L1_error);
 
-  /* "nav_env/ships/physics.pyx":87
+  /* "nav_env/ships/physics.pyx":96
  * 
  *     def __get_rotation_matrix(self, psi_rad, dim:int=3) -> np.ndarray:
  *         return np.array([             # <<<<<<<<<<<<<<
  *             [-np.sin(psi_rad), np.cos(psi_rad), 0.],
  *             [np.cos(psi_rad), np.sin(psi_rad), 0.],
  */
-  __pyx_t_2 = PyList_New(3); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 87, __pyx_L1_error)
+  __pyx_t_2 = PyList_New(3); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 96, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_GIVEREF(__pyx_t_7);
-  if (__Pyx_PyList_SET_ITEM(__pyx_t_2, 0, __pyx_t_7)) __PYX_ERR(0, 87, __pyx_L1_error);
+  if (__Pyx_PyList_SET_ITEM(__pyx_t_2, 0, __pyx_t_7)) __PYX_ERR(0, 96, __pyx_L1_error);
   __Pyx_GIVEREF(__pyx_t_8);
-  if (__Pyx_PyList_SET_ITEM(__pyx_t_2, 1, __pyx_t_8)) __PYX_ERR(0, 87, __pyx_L1_error);
+  if (__Pyx_PyList_SET_ITEM(__pyx_t_2, 1, __pyx_t_8)) __PYX_ERR(0, 96, __pyx_L1_error);
   __Pyx_GIVEREF(__pyx_t_4);
-  if (__Pyx_PyList_SET_ITEM(__pyx_t_2, 2, __pyx_t_4)) __PYX_ERR(0, 87, __pyx_L1_error);
+  if (__Pyx_PyList_SET_ITEM(__pyx_t_2, 2, __pyx_t_4)) __PYX_ERR(0, 96, __pyx_L1_error);
   __pyx_t_7 = 0;
   __pyx_t_8 = 0;
   __pyx_t_4 = 0;
@@ -8303,31 +8520,31 @@ static PyObject *__pyx_pf_7nav_env_5ships_7physics_11ShipPhysics_24__get_rotatio
     __pyx_t_1 = __Pyx_PyObject_FastCall(__pyx_t_3, __pyx_callargs+1-__pyx_t_6, 1+__pyx_t_6);
     __Pyx_XDECREF(__pyx_t_4); __pyx_t_4 = 0;
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-    if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 87, __pyx_L1_error)
+    if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 96, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   }
 
-  /* "nav_env/ships/physics.pyx":91
+  /* "nav_env/ships/physics.pyx":100
  *             [np.cos(psi_rad), np.sin(psi_rad), 0.],
  *             [0., 0., -1.]
  *         ])[0:dim, 0:dim] # Transpose or not, it doesn't change anything!!! This transformation is correct!             # <<<<<<<<<<<<<<
  * 
  *     def get_wind_force(self, wind:WindVector, x_dot:float, y_dot:float, yaw:float) -> GeneralizedForces:
  */
-  __pyx_t_3 = PySlice_New(__pyx_int_0, __pyx_v_dim, Py_None); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 91, __pyx_L1_error)
+  __pyx_t_3 = PySlice_New(__pyx_int_0, __pyx_v_dim, Py_None); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 100, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_2 = PySlice_New(__pyx_int_0, __pyx_v_dim, Py_None); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 91, __pyx_L1_error)
+  __pyx_t_2 = PySlice_New(__pyx_int_0, __pyx_v_dim, Py_None); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 100, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_4 = PyTuple_New(2); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 91, __pyx_L1_error)
+  __pyx_t_4 = PyTuple_New(2); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 100, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_GIVEREF(__pyx_t_3);
-  if (__Pyx_PyTuple_SET_ITEM(__pyx_t_4, 0, __pyx_t_3)) __PYX_ERR(0, 91, __pyx_L1_error);
+  if (__Pyx_PyTuple_SET_ITEM(__pyx_t_4, 0, __pyx_t_3)) __PYX_ERR(0, 100, __pyx_L1_error);
   __Pyx_GIVEREF(__pyx_t_2);
-  if (__Pyx_PyTuple_SET_ITEM(__pyx_t_4, 1, __pyx_t_2)) __PYX_ERR(0, 91, __pyx_L1_error);
+  if (__Pyx_PyTuple_SET_ITEM(__pyx_t_4, 1, __pyx_t_2)) __PYX_ERR(0, 100, __pyx_L1_error);
   __pyx_t_3 = 0;
   __pyx_t_2 = 0;
-  __pyx_t_2 = __Pyx_PyObject_GetItem(__pyx_t_1, __pyx_t_4); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 91, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_GetItem(__pyx_t_1, __pyx_t_4); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 100, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
@@ -8335,7 +8552,7 @@ static PyObject *__pyx_pf_7nav_env_5ships_7physics_11ShipPhysics_24__get_rotatio
   __pyx_t_2 = 0;
   goto __pyx_L0;
 
-  /* "nav_env/ships/physics.pyx":86
+  /* "nav_env/ships/physics.pyx":95
  *         ])
  * 
  *     def __get_rotation_matrix(self, psi_rad, dim:int=3) -> np.ndarray:             # <<<<<<<<<<<<<<
@@ -8360,7 +8577,7 @@ static PyObject *__pyx_pf_7nav_env_5ships_7physics_11ShipPhysics_24__get_rotatio
   return __pyx_r;
 }
 
-/* "nav_env/ships/physics.pyx":93
+/* "nav_env/ships/physics.pyx":102
  *         ])[0:dim, 0:dim] # Transpose or not, it doesn't change anything!!! This transformation is correct!
  * 
  *     def get_wind_force(self, wind:WindVector, x_dot:float, y_dot:float, yaw:float) -> GeneralizedForces:             # <<<<<<<<<<<<<<
@@ -8434,7 +8651,7 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
           (void)__Pyx_Arg_NewRef_FASTCALL(values[0]);
           kw_args--;
         }
-        else if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 93, __pyx_L3_error)
+        else if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 102, __pyx_L3_error)
         else goto __pyx_L5_argtuple_error;
         CYTHON_FALLTHROUGH;
         case  1:
@@ -8442,9 +8659,9 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
           (void)__Pyx_Arg_NewRef_FASTCALL(values[1]);
           kw_args--;
         }
-        else if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 93, __pyx_L3_error)
+        else if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 102, __pyx_L3_error)
         else {
-          __Pyx_RaiseArgtupleInvalid("get_wind_force", 1, 5, 5, 1); __PYX_ERR(0, 93, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("get_wind_force", 1, 5, 5, 1); __PYX_ERR(0, 102, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  2:
@@ -8452,9 +8669,9 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
           (void)__Pyx_Arg_NewRef_FASTCALL(values[2]);
           kw_args--;
         }
-        else if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 93, __pyx_L3_error)
+        else if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 102, __pyx_L3_error)
         else {
-          __Pyx_RaiseArgtupleInvalid("get_wind_force", 1, 5, 5, 2); __PYX_ERR(0, 93, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("get_wind_force", 1, 5, 5, 2); __PYX_ERR(0, 102, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  3:
@@ -8462,9 +8679,9 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
           (void)__Pyx_Arg_NewRef_FASTCALL(values[3]);
           kw_args--;
         }
-        else if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 93, __pyx_L3_error)
+        else if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 102, __pyx_L3_error)
         else {
-          __Pyx_RaiseArgtupleInvalid("get_wind_force", 1, 5, 5, 3); __PYX_ERR(0, 93, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("get_wind_force", 1, 5, 5, 3); __PYX_ERR(0, 102, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  4:
@@ -8472,14 +8689,14 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
           (void)__Pyx_Arg_NewRef_FASTCALL(values[4]);
           kw_args--;
         }
-        else if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 93, __pyx_L3_error)
+        else if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 102, __pyx_L3_error)
         else {
-          __Pyx_RaiseArgtupleInvalid("get_wind_force", 1, 5, 5, 4); __PYX_ERR(0, 93, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("get_wind_force", 1, 5, 5, 4); __PYX_ERR(0, 102, __pyx_L3_error)
         }
       }
       if (unlikely(kw_args > 0)) {
         const Py_ssize_t kwd_pos_args = __pyx_nargs;
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_kwvalues, __pyx_pyargnames, 0, values + 0, kwd_pos_args, "get_wind_force") < 0)) __PYX_ERR(0, 93, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_kwvalues, __pyx_pyargnames, 0, values + 0, kwd_pos_args, "get_wind_force") < 0)) __PYX_ERR(0, 102, __pyx_L3_error)
       }
     } else if (unlikely(__pyx_nargs != 5)) {
       goto __pyx_L5_argtuple_error;
@@ -8492,13 +8709,13 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
     }
     __pyx_v_self = values[0];
     __pyx_v_wind = values[1];
-    __pyx_v_x_dot = __pyx_PyFloat_AsDouble(values[2]); if (unlikely((__pyx_v_x_dot == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 93, __pyx_L3_error)
-    __pyx_v_y_dot = __pyx_PyFloat_AsDouble(values[3]); if (unlikely((__pyx_v_y_dot == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 93, __pyx_L3_error)
-    __pyx_v_yaw = __pyx_PyFloat_AsDouble(values[4]); if (unlikely((__pyx_v_yaw == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 93, __pyx_L3_error)
+    __pyx_v_x_dot = __pyx_PyFloat_AsDouble(values[2]); if (unlikely((__pyx_v_x_dot == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 102, __pyx_L3_error)
+    __pyx_v_y_dot = __pyx_PyFloat_AsDouble(values[3]); if (unlikely((__pyx_v_y_dot == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 102, __pyx_L3_error)
+    __pyx_v_yaw = __pyx_PyFloat_AsDouble(values[4]); if (unlikely((__pyx_v_yaw == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 102, __pyx_L3_error)
   }
   goto __pyx_L6_skip;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("get_wind_force", 1, 5, 5, __pyx_nargs); __PYX_ERR(0, 93, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("get_wind_force", 1, 5, 5, __pyx_nargs); __PYX_ERR(0, 102, __pyx_L3_error)
   __pyx_L6_skip:;
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L3_error:;
@@ -8555,22 +8772,22 @@ static PyObject *__pyx_pf_7nav_env_5ships_7physics_11ShipPhysics_26get_wind_forc
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("get_wind_force", 1);
 
-  /* "nav_env/ships/physics.pyx":97
+  /* "nav_env/ships/physics.pyx":106
  *         Get the wind force acting on the ship, in the ship frame.
  *         """
  *         beta_w = -wind.direction # Wind direction is given in the world frame             # <<<<<<<<<<<<<<
  *         psi = -yaw # Yaw angle is given in the world frame
  * 
  */
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_wind, __pyx_n_s_direction); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 97, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_wind, __pyx_n_s_direction); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 106, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = PyNumber_Negative(__pyx_t_1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 97, __pyx_L1_error)
+  __pyx_t_2 = PyNumber_Negative(__pyx_t_1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 106, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __pyx_v_beta_w = __pyx_t_2;
   __pyx_t_2 = 0;
 
-  /* "nav_env/ships/physics.pyx":98
+  /* "nav_env/ships/physics.pyx":107
  *         """
  *         beta_w = -wind.direction # Wind direction is given in the world frame
  *         psi = -yaw # Yaw angle is given in the world frame             # <<<<<<<<<<<<<<
@@ -8579,23 +8796,23 @@ static PyObject *__pyx_pf_7nav_env_5ships_7physics_11ShipPhysics_26get_wind_forc
  */
   __pyx_v_psi = (-__pyx_v_yaw);
 
-  /* "nav_env/ships/physics.pyx":101
+  /* "nav_env/ships/physics.pyx":110
  * 
  *         # Compute wind speed in ship frame
  *         vx_in_ship = wind.speed * np.cos(psi-beta_w)             # <<<<<<<<<<<<<<
  *         vy_in_ship = -wind.speed * np.sin(psi-beta_w)
  * 
  */
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_wind, __pyx_n_s_speed); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 101, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_wind, __pyx_n_s_speed); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 110, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __Pyx_GetModuleGlobalName(__pyx_t_3, __pyx_n_s_np); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 101, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_3, __pyx_n_s_np); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 110, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_cos); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 101, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_cos); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 110, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  __pyx_t_3 = PyFloat_FromDouble(__pyx_v_psi); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 101, __pyx_L1_error)
+  __pyx_t_3 = PyFloat_FromDouble(__pyx_v_psi); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 110, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_5 = PyNumber_Subtract(__pyx_t_3, __pyx_v_beta_w); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 101, __pyx_L1_error)
+  __pyx_t_5 = PyNumber_Subtract(__pyx_t_3, __pyx_v_beta_w); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 110, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   __pyx_t_3 = NULL;
@@ -8617,37 +8834,37 @@ static PyObject *__pyx_pf_7nav_env_5ships_7physics_11ShipPhysics_26get_wind_forc
     __pyx_t_1 = __Pyx_PyObject_FastCall(__pyx_t_4, __pyx_callargs+1-__pyx_t_6, 1+__pyx_t_6);
     __Pyx_XDECREF(__pyx_t_3); __pyx_t_3 = 0;
     __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-    if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 101, __pyx_L1_error)
+    if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 110, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
   }
-  __pyx_t_4 = PyNumber_Multiply(__pyx_t_2, __pyx_t_1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 101, __pyx_L1_error)
+  __pyx_t_4 = PyNumber_Multiply(__pyx_t_2, __pyx_t_1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 110, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __pyx_v_vx_in_ship = __pyx_t_4;
   __pyx_t_4 = 0;
 
-  /* "nav_env/ships/physics.pyx":102
+  /* "nav_env/ships/physics.pyx":111
  *         # Compute wind speed in ship frame
  *         vx_in_ship = wind.speed * np.cos(psi-beta_w)
  *         vy_in_ship = -wind.speed * np.sin(psi-beta_w)             # <<<<<<<<<<<<<<
  * 
  *         # Compute relative speed in ship frame
  */
-  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_v_wind, __pyx_n_s_speed); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 102, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_v_wind, __pyx_n_s_speed); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 111, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
-  __pyx_t_1 = PyNumber_Negative(__pyx_t_4); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 102, __pyx_L1_error)
+  __pyx_t_1 = PyNumber_Negative(__pyx_t_4); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 111, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_np); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 102, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_np); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 111, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_sin); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 102, __pyx_L1_error)
+  __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_sin); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 111, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_2 = PyFloat_FromDouble(__pyx_v_psi); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 102, __pyx_L1_error)
+  __pyx_t_2 = PyFloat_FromDouble(__pyx_v_psi); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 111, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_3 = PyNumber_Subtract(__pyx_t_2, __pyx_v_beta_w); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 102, __pyx_L1_error)
+  __pyx_t_3 = PyNumber_Subtract(__pyx_t_2, __pyx_v_beta_w); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 111, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __pyx_t_2 = NULL;
@@ -8669,104 +8886,104 @@ static PyObject *__pyx_pf_7nav_env_5ships_7physics_11ShipPhysics_26get_wind_forc
     __pyx_t_4 = __Pyx_PyObject_FastCall(__pyx_t_5, __pyx_callargs+1-__pyx_t_6, 1+__pyx_t_6);
     __Pyx_XDECREF(__pyx_t_2); __pyx_t_2 = 0;
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-    if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 102, __pyx_L1_error)
+    if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 111, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_4);
     __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
   }
-  __pyx_t_5 = PyNumber_Multiply(__pyx_t_1, __pyx_t_4); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 102, __pyx_L1_error)
+  __pyx_t_5 = PyNumber_Multiply(__pyx_t_1, __pyx_t_4); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 111, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
   __pyx_v_vy_in_ship = __pyx_t_5;
   __pyx_t_5 = 0;
 
-  /* "nav_env/ships/physics.pyx":105
+  /* "nav_env/ships/physics.pyx":114
  * 
  *         # Compute relative speed in ship frame
  *         u_rw = vx_in_ship - x_dot             # <<<<<<<<<<<<<<
  *         v_rw = vy_in_ship - y_dot
  * 
  */
-  __pyx_t_5 = PyFloat_FromDouble(__pyx_v_x_dot); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 105, __pyx_L1_error)
+  __pyx_t_5 = PyFloat_FromDouble(__pyx_v_x_dot); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 114, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
-  __pyx_t_4 = PyNumber_Subtract(__pyx_v_vx_in_ship, __pyx_t_5); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 105, __pyx_L1_error)
+  __pyx_t_4 = PyNumber_Subtract(__pyx_v_vx_in_ship, __pyx_t_5); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 114, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
   __pyx_v_u_rw = __pyx_t_4;
   __pyx_t_4 = 0;
 
-  /* "nav_env/ships/physics.pyx":106
+  /* "nav_env/ships/physics.pyx":115
  *         # Compute relative speed in ship frame
  *         u_rw = vx_in_ship - x_dot
  *         v_rw = vy_in_ship - y_dot             # <<<<<<<<<<<<<<
  * 
  *         # gamma_rw = -np.arctan2(v_rw, u_rw) # Wind direction w.r.t yaw angle in ship frame
  */
-  __pyx_t_4 = PyFloat_FromDouble(__pyx_v_y_dot); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 106, __pyx_L1_error)
+  __pyx_t_4 = PyFloat_FromDouble(__pyx_v_y_dot); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 115, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
-  __pyx_t_5 = PyNumber_Subtract(__pyx_v_vy_in_ship, __pyx_t_4); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 106, __pyx_L1_error)
+  __pyx_t_5 = PyNumber_Subtract(__pyx_v_vy_in_ship, __pyx_t_4); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 115, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
   __pyx_v_v_rw = __pyx_t_5;
   __pyx_t_5 = 0;
 
-  /* "nav_env/ships/physics.pyx":109
+  /* "nav_env/ships/physics.pyx":118
  * 
  *         # gamma_rw = -np.arctan2(v_rw, u_rw) # Wind direction w.r.t yaw angle in ship frame
  *         gamma_rw = psi - beta_w - np.pi             # <<<<<<<<<<<<<<
  *         wind_rw2 = u_rw ** 2 + v_rw ** 2
  *         c_x = -self._cx * np.cos(gamma_rw) # TODO: Check if this is correct, originally it was c_x = -self._cx * np.cos(gamma_rw)
  */
-  __pyx_t_5 = PyFloat_FromDouble(__pyx_v_psi); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 109, __pyx_L1_error)
+  __pyx_t_5 = PyFloat_FromDouble(__pyx_v_psi); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 118, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
-  __pyx_t_4 = PyNumber_Subtract(__pyx_t_5, __pyx_v_beta_w); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 109, __pyx_L1_error)
+  __pyx_t_4 = PyNumber_Subtract(__pyx_t_5, __pyx_v_beta_w); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 118, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-  __Pyx_GetModuleGlobalName(__pyx_t_5, __pyx_n_s_np); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 109, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_5, __pyx_n_s_np); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 118, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_t_5, __pyx_n_s_pi); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 109, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_t_5, __pyx_n_s_pi); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 118, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-  __pyx_t_5 = PyNumber_Subtract(__pyx_t_4, __pyx_t_1); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 109, __pyx_L1_error)
+  __pyx_t_5 = PyNumber_Subtract(__pyx_t_4, __pyx_t_1); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 118, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __pyx_v_gamma_rw = __pyx_t_5;
   __pyx_t_5 = 0;
 
-  /* "nav_env/ships/physics.pyx":110
+  /* "nav_env/ships/physics.pyx":119
  *         # gamma_rw = -np.arctan2(v_rw, u_rw) # Wind direction w.r.t yaw angle in ship frame
  *         gamma_rw = psi - beta_w - np.pi
  *         wind_rw2 = u_rw ** 2 + v_rw ** 2             # <<<<<<<<<<<<<<
  *         c_x = -self._cx * np.cos(gamma_rw) # TODO: Check if this is correct, originally it was c_x = -self._cx * np.cos(gamma_rw)
  *         c_y = self._cy * np.sin(gamma_rw)
  */
-  __pyx_t_5 = PyNumber_Power(__pyx_v_u_rw, __pyx_int_2, Py_None); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 110, __pyx_L1_error)
+  __pyx_t_5 = PyNumber_Power(__pyx_v_u_rw, __pyx_int_2, Py_None); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 119, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
-  __pyx_t_1 = PyNumber_Power(__pyx_v_v_rw, __pyx_int_2, Py_None); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 110, __pyx_L1_error)
+  __pyx_t_1 = PyNumber_Power(__pyx_v_v_rw, __pyx_int_2, Py_None); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 119, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_4 = PyNumber_Add(__pyx_t_5, __pyx_t_1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 110, __pyx_L1_error)
+  __pyx_t_4 = PyNumber_Add(__pyx_t_5, __pyx_t_1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 119, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __pyx_v_wind_rw2 = __pyx_t_4;
   __pyx_t_4 = 0;
 
-  /* "nav_env/ships/physics.pyx":111
+  /* "nav_env/ships/physics.pyx":120
  *         gamma_rw = psi - beta_w - np.pi
  *         wind_rw2 = u_rw ** 2 + v_rw ** 2
  *         c_x = -self._cx * np.cos(gamma_rw) # TODO: Check if this is correct, originally it was c_x = -self._cx * np.cos(gamma_rw)             # <<<<<<<<<<<<<<
  *         c_y = self._cy * np.sin(gamma_rw)
  *         c_n = self._cn * np.sin(2 * gamma_rw)
  */
-  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_cx); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 111, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_cx); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 120, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
-  __pyx_t_1 = PyNumber_Negative(__pyx_t_4); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 111, __pyx_L1_error)
+  __pyx_t_1 = PyNumber_Negative(__pyx_t_4); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 120, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  __Pyx_GetModuleGlobalName(__pyx_t_5, __pyx_n_s_np); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 111, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_5, __pyx_n_s_np); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 120, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
-  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_5, __pyx_n_s_cos); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 111, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_5, __pyx_n_s_cos); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 120, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
   __pyx_t_5 = NULL;
@@ -8787,29 +9004,29 @@ static PyObject *__pyx_pf_7nav_env_5ships_7physics_11ShipPhysics_26get_wind_forc
     PyObject *__pyx_callargs[2] = {__pyx_t_5, __pyx_v_gamma_rw};
     __pyx_t_4 = __Pyx_PyObject_FastCall(__pyx_t_3, __pyx_callargs+1-__pyx_t_6, 1+__pyx_t_6);
     __Pyx_XDECREF(__pyx_t_5); __pyx_t_5 = 0;
-    if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 111, __pyx_L1_error)
+    if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 120, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_4);
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   }
-  __pyx_t_3 = PyNumber_Multiply(__pyx_t_1, __pyx_t_4); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 111, __pyx_L1_error)
+  __pyx_t_3 = PyNumber_Multiply(__pyx_t_1, __pyx_t_4); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 120, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
   __pyx_v_c_x = __pyx_t_3;
   __pyx_t_3 = 0;
 
-  /* "nav_env/ships/physics.pyx":112
+  /* "nav_env/ships/physics.pyx":121
  *         wind_rw2 = u_rw ** 2 + v_rw ** 2
  *         c_x = -self._cx * np.cos(gamma_rw) # TODO: Check if this is correct, originally it was c_x = -self._cx * np.cos(gamma_rw)
  *         c_y = self._cy * np.sin(gamma_rw)             # <<<<<<<<<<<<<<
  *         c_n = self._cn * np.sin(2 * gamma_rw)
  *         # print(f"beta_w: {beta_w*180/np.pi:.2f} | psi: {psi*180/np.pi:.2f} | vx_in_ship: {vx_in_ship:.2f}, vy_in_ship: {vy_in_ship:.2f} | v_rw: {v_rw:.2f}, u_rw: {u_rw:.2f} | gamma_rw: {gamma_rw*180/np.pi:.2f} | wind_rw2: {wind_rw2:.2f} | c_x: {c_x:.2f}, c_y: {c_y:.2f}, c_n: {c_n:.2f}")
  */
-  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_cy); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 112, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_cy); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 121, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  __Pyx_GetModuleGlobalName(__pyx_t_1, __pyx_n_s_np); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 112, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_1, __pyx_n_s_np); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 121, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_sin); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 112, __pyx_L1_error)
+  __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_sin); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 121, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __pyx_t_1 = NULL;
@@ -8830,32 +9047,32 @@ static PyObject *__pyx_pf_7nav_env_5ships_7physics_11ShipPhysics_26get_wind_forc
     PyObject *__pyx_callargs[2] = {__pyx_t_1, __pyx_v_gamma_rw};
     __pyx_t_4 = __Pyx_PyObject_FastCall(__pyx_t_5, __pyx_callargs+1-__pyx_t_6, 1+__pyx_t_6);
     __Pyx_XDECREF(__pyx_t_1); __pyx_t_1 = 0;
-    if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 112, __pyx_L1_error)
+    if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 121, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_4);
     __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
   }
-  __pyx_t_5 = PyNumber_Multiply(__pyx_t_3, __pyx_t_4); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 112, __pyx_L1_error)
+  __pyx_t_5 = PyNumber_Multiply(__pyx_t_3, __pyx_t_4); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 121, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
   __pyx_v_c_y = __pyx_t_5;
   __pyx_t_5 = 0;
 
-  /* "nav_env/ships/physics.pyx":113
+  /* "nav_env/ships/physics.pyx":122
  *         c_x = -self._cx * np.cos(gamma_rw) # TODO: Check if this is correct, originally it was c_x = -self._cx * np.cos(gamma_rw)
  *         c_y = self._cy * np.sin(gamma_rw)
  *         c_n = self._cn * np.sin(2 * gamma_rw)             # <<<<<<<<<<<<<<
  *         # print(f"beta_w: {beta_w*180/np.pi:.2f} | psi: {psi*180/np.pi:.2f} | vx_in_ship: {vx_in_ship:.2f}, vy_in_ship: {vy_in_ship:.2f} | v_rw: {v_rw:.2f}, u_rw: {u_rw:.2f} | gamma_rw: {gamma_rw*180/np.pi:.2f} | wind_rw2: {wind_rw2:.2f} | c_x: {c_x:.2f}, c_y: {c_y:.2f}, c_n: {c_n:.2f}")
  *         # print(f"wind: {(wind.direction)*180/np.pi:.2f} | angle: {angle*180/np.pi:.2f} | yaw: {yaw*180/np.pi:.2f} | uw: {uw:.2f}, vw: {vw:.2f} | u_rw: {u_rw:.2f}, v_rw: {v_rw:.2f} | gamma_rw: {gamma_rw*180/np.pi:.2f} | wind_rw2: {wind_rw2:.2f} | c_x: {c_x:.2f}, c_y: {c_y:.2f}, c_n: {c_n:.2f}")
  */
-  __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_cn); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 113, __pyx_L1_error)
+  __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_cn); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 122, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
-  __Pyx_GetModuleGlobalName(__pyx_t_3, __pyx_n_s_np); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 113, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_3, __pyx_n_s_np); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 122, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_sin); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 113, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_sin); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 122, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  __pyx_t_3 = __Pyx_PyInt_MultiplyCObj(__pyx_int_2, __pyx_v_gamma_rw, 2, 0, 0); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 113, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyInt_MultiplyCObj(__pyx_int_2, __pyx_v_gamma_rw, 2, 0, 0); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 122, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __pyx_t_2 = NULL;
   __pyx_t_6 = 0;
@@ -8876,96 +9093,96 @@ static PyObject *__pyx_pf_7nav_env_5ships_7physics_11ShipPhysics_26get_wind_forc
     __pyx_t_4 = __Pyx_PyObject_FastCall(__pyx_t_1, __pyx_callargs+1-__pyx_t_6, 1+__pyx_t_6);
     __Pyx_XDECREF(__pyx_t_2); __pyx_t_2 = 0;
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-    if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 113, __pyx_L1_error)
+    if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 122, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_4);
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   }
-  __pyx_t_1 = PyNumber_Multiply(__pyx_t_5, __pyx_t_4); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 113, __pyx_L1_error)
+  __pyx_t_1 = PyNumber_Multiply(__pyx_t_5, __pyx_t_4); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 122, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
   __pyx_v_c_n = __pyx_t_1;
   __pyx_t_1 = 0;
 
-  /* "nav_env/ships/physics.pyx":116
+  /* "nav_env/ships/physics.pyx":125
  *         # print(f"beta_w: {beta_w*180/np.pi:.2f} | psi: {psi*180/np.pi:.2f} | vx_in_ship: {vx_in_ship:.2f}, vy_in_ship: {vy_in_ship:.2f} | v_rw: {v_rw:.2f}, u_rw: {u_rw:.2f} | gamma_rw: {gamma_rw*180/np.pi:.2f} | wind_rw2: {wind_rw2:.2f} | c_x: {c_x:.2f}, c_y: {c_y:.2f}, c_n: {c_n:.2f}")
  *         # print(f"wind: {(wind.direction)*180/np.pi:.2f} | angle: {angle*180/np.pi:.2f} | yaw: {yaw*180/np.pi:.2f} | uw: {uw:.2f}, vw: {vw:.2f} | u_rw: {u_rw:.2f}, v_rw: {v_rw:.2f} | gamma_rw: {gamma_rw*180/np.pi:.2f} | wind_rw2: {wind_rw2:.2f} | c_x: {c_x:.2f}, c_y: {c_y:.2f}, c_n: {c_n:.2f}")
  *         tau_coeff = 0.5 * self._rho_a * wind_rw2             # <<<<<<<<<<<<<<
  *         tau_u = tau_coeff * c_x * self._proj_area_front
  *         tau_v = tau_coeff * c_y * self._proj_area_side
  */
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_rho_a); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 116, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_rho_a); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 125, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_4 = PyNumber_Multiply(__pyx_float_0_5, __pyx_t_1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 116, __pyx_L1_error)
+  __pyx_t_4 = PyNumber_Multiply(__pyx_float_0_5, __pyx_t_1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 125, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_t_1 = PyNumber_Multiply(__pyx_t_4, __pyx_v_wind_rw2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 116, __pyx_L1_error)
+  __pyx_t_1 = PyNumber_Multiply(__pyx_t_4, __pyx_v_wind_rw2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 125, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
   __pyx_v_tau_coeff = __pyx_t_1;
   __pyx_t_1 = 0;
 
-  /* "nav_env/ships/physics.pyx":117
+  /* "nav_env/ships/physics.pyx":126
  *         # print(f"wind: {(wind.direction)*180/np.pi:.2f} | angle: {angle*180/np.pi:.2f} | yaw: {yaw*180/np.pi:.2f} | uw: {uw:.2f}, vw: {vw:.2f} | u_rw: {u_rw:.2f}, v_rw: {v_rw:.2f} | gamma_rw: {gamma_rw*180/np.pi:.2f} | wind_rw2: {wind_rw2:.2f} | c_x: {c_x:.2f}, c_y: {c_y:.2f}, c_n: {c_n:.2f}")
  *         tau_coeff = 0.5 * self._rho_a * wind_rw2
  *         tau_u = tau_coeff * c_x * self._proj_area_front             # <<<<<<<<<<<<<<
  *         tau_v = tau_coeff * c_y * self._proj_area_side
  *         tau_n = tau_coeff * c_n * self._proj_area_side * self._length
  */
-  __pyx_t_1 = PyNumber_Multiply(__pyx_v_tau_coeff, __pyx_v_c_x); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 117, __pyx_L1_error)
+  __pyx_t_1 = PyNumber_Multiply(__pyx_v_tau_coeff, __pyx_v_c_x); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 126, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_proj_area_front); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 117, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_proj_area_front); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 126, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
-  __pyx_t_5 = PyNumber_Multiply(__pyx_t_1, __pyx_t_4); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 117, __pyx_L1_error)
+  __pyx_t_5 = PyNumber_Multiply(__pyx_t_1, __pyx_t_4); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 126, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
   __pyx_v_tau_u = __pyx_t_5;
   __pyx_t_5 = 0;
 
-  /* "nav_env/ships/physics.pyx":118
+  /* "nav_env/ships/physics.pyx":127
  *         tau_coeff = 0.5 * self._rho_a * wind_rw2
  *         tau_u = tau_coeff * c_x * self._proj_area_front
  *         tau_v = tau_coeff * c_y * self._proj_area_side             # <<<<<<<<<<<<<<
  *         tau_n = tau_coeff * c_n * self._proj_area_side * self._length
  *         # print(f"w: {wind.direction:.2f}, {wind.speed:.2f} | xy_dot: {x_dot:.2f}, {y_dot:.2f} | yaw: {yaw:.2f} | uv_rw: {u_rw:.2f}, {v_rw:.2f} | tau: {tau_u:.2f}, {tau_v:.2f}, {tau_n:.2f}")
  */
-  __pyx_t_5 = PyNumber_Multiply(__pyx_v_tau_coeff, __pyx_v_c_y); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 118, __pyx_L1_error)
+  __pyx_t_5 = PyNumber_Multiply(__pyx_v_tau_coeff, __pyx_v_c_y); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 127, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
-  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_proj_area_side); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 118, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_proj_area_side); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 127, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
-  __pyx_t_1 = PyNumber_Multiply(__pyx_t_5, __pyx_t_4); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 118, __pyx_L1_error)
+  __pyx_t_1 = PyNumber_Multiply(__pyx_t_5, __pyx_t_4); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 127, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
   __pyx_v_tau_v = __pyx_t_1;
   __pyx_t_1 = 0;
 
-  /* "nav_env/ships/physics.pyx":119
+  /* "nav_env/ships/physics.pyx":128
  *         tau_u = tau_coeff * c_x * self._proj_area_front
  *         tau_v = tau_coeff * c_y * self._proj_area_side
  *         tau_n = tau_coeff * c_n * self._proj_area_side * self._length             # <<<<<<<<<<<<<<
  *         # print(f"w: {wind.direction:.2f}, {wind.speed:.2f} | xy_dot: {x_dot:.2f}, {y_dot:.2f} | yaw: {yaw:.2f} | uv_rw: {u_rw:.2f}, {v_rw:.2f} | tau: {tau_u:.2f}, {tau_v:.2f}, {tau_n:.2f}")
  *         return GeneralizedForces(float(tau_u), float(tau_v), 0., 0., 0., float(tau_n))
  */
-  __pyx_t_1 = PyNumber_Multiply(__pyx_v_tau_coeff, __pyx_v_c_n); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 119, __pyx_L1_error)
+  __pyx_t_1 = PyNumber_Multiply(__pyx_v_tau_coeff, __pyx_v_c_n); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 128, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_proj_area_side); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 119, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_proj_area_side); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 128, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
-  __pyx_t_5 = PyNumber_Multiply(__pyx_t_1, __pyx_t_4); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 119, __pyx_L1_error)
+  __pyx_t_5 = PyNumber_Multiply(__pyx_t_1, __pyx_t_4); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 128, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_length); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 119, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_length); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 128, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
-  __pyx_t_1 = PyNumber_Multiply(__pyx_t_5, __pyx_t_4); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 119, __pyx_L1_error)
+  __pyx_t_1 = PyNumber_Multiply(__pyx_t_5, __pyx_t_4); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 128, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
   __pyx_v_tau_n = __pyx_t_1;
   __pyx_t_1 = 0;
 
-  /* "nav_env/ships/physics.pyx":121
+  /* "nav_env/ships/physics.pyx":130
  *         tau_n = tau_coeff * c_n * self._proj_area_side * self._length
  *         # print(f"w: {wind.direction:.2f}, {wind.speed:.2f} | xy_dot: {x_dot:.2f}, {y_dot:.2f} | yaw: {yaw:.2f} | uv_rw: {u_rw:.2f}, {v_rw:.2f} | tau: {tau_u:.2f}, {tau_v:.2f}, {tau_n:.2f}")
  *         return GeneralizedForces(float(tau_u), float(tau_v), 0., 0., 0., float(tau_n))             # <<<<<<<<<<<<<<
@@ -8973,13 +9190,13 @@ static PyObject *__pyx_pf_7nav_env_5ships_7physics_11ShipPhysics_26get_wind_forc
  *     def get_water_force(self, water:WaterVector, x_dot:float, y_dot:float, yaw:float) -> GeneralizedForces:
  */
   __Pyx_XDECREF(__pyx_r);
-  __Pyx_GetModuleGlobalName(__pyx_t_4, __pyx_n_s_GeneralizedForces); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 121, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_4, __pyx_n_s_GeneralizedForces); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 130, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
-  __pyx_t_5 = __Pyx_PyNumber_Float(__pyx_v_tau_u); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 121, __pyx_L1_error)
+  __pyx_t_5 = __Pyx_PyNumber_Float(__pyx_v_tau_u); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 130, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
-  __pyx_t_3 = __Pyx_PyNumber_Float(__pyx_v_tau_v); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 121, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyNumber_Float(__pyx_v_tau_v); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 130, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_2 = __Pyx_PyNumber_Float(__pyx_v_tau_n); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 121, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyNumber_Float(__pyx_v_tau_n); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 130, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __pyx_t_7 = NULL;
   __pyx_t_6 = 0;
@@ -9002,7 +9219,7 @@ static PyObject *__pyx_pf_7nav_env_5ships_7physics_11ShipPhysics_26get_wind_forc
     __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-    if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 121, __pyx_L1_error)
+    if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 130, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
   }
@@ -9010,7 +9227,7 @@ static PyObject *__pyx_pf_7nav_env_5ships_7physics_11ShipPhysics_26get_wind_forc
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "nav_env/ships/physics.pyx":93
+  /* "nav_env/ships/physics.pyx":102
  *         ])[0:dim, 0:dim] # Transpose or not, it doesn't change anything!!! This transformation is correct!
  * 
  *     def get_wind_force(self, wind:WindVector, x_dot:float, y_dot:float, yaw:float) -> GeneralizedForces:             # <<<<<<<<<<<<<<
@@ -9048,7 +9265,7 @@ static PyObject *__pyx_pf_7nav_env_5ships_7physics_11ShipPhysics_26get_wind_forc
   return __pyx_r;
 }
 
-/* "nav_env/ships/physics.pyx":123
+/* "nav_env/ships/physics.pyx":132
  *         return GeneralizedForces(float(tau_u), float(tau_v), 0., 0., 0., float(tau_n))
  * 
  *     def get_water_force(self, water:WaterVector, x_dot:float, y_dot:float, yaw:float) -> GeneralizedForces:             # <<<<<<<<<<<<<<
@@ -9122,7 +9339,7 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
           (void)__Pyx_Arg_NewRef_FASTCALL(values[0]);
           kw_args--;
         }
-        else if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 123, __pyx_L3_error)
+        else if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 132, __pyx_L3_error)
         else goto __pyx_L5_argtuple_error;
         CYTHON_FALLTHROUGH;
         case  1:
@@ -9130,9 +9347,9 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
           (void)__Pyx_Arg_NewRef_FASTCALL(values[1]);
           kw_args--;
         }
-        else if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 123, __pyx_L3_error)
+        else if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 132, __pyx_L3_error)
         else {
-          __Pyx_RaiseArgtupleInvalid("get_water_force", 1, 5, 5, 1); __PYX_ERR(0, 123, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("get_water_force", 1, 5, 5, 1); __PYX_ERR(0, 132, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  2:
@@ -9140,9 +9357,9 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
           (void)__Pyx_Arg_NewRef_FASTCALL(values[2]);
           kw_args--;
         }
-        else if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 123, __pyx_L3_error)
+        else if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 132, __pyx_L3_error)
         else {
-          __Pyx_RaiseArgtupleInvalid("get_water_force", 1, 5, 5, 2); __PYX_ERR(0, 123, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("get_water_force", 1, 5, 5, 2); __PYX_ERR(0, 132, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  3:
@@ -9150,9 +9367,9 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
           (void)__Pyx_Arg_NewRef_FASTCALL(values[3]);
           kw_args--;
         }
-        else if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 123, __pyx_L3_error)
+        else if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 132, __pyx_L3_error)
         else {
-          __Pyx_RaiseArgtupleInvalid("get_water_force", 1, 5, 5, 3); __PYX_ERR(0, 123, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("get_water_force", 1, 5, 5, 3); __PYX_ERR(0, 132, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  4:
@@ -9160,14 +9377,14 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
           (void)__Pyx_Arg_NewRef_FASTCALL(values[4]);
           kw_args--;
         }
-        else if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 123, __pyx_L3_error)
+        else if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 132, __pyx_L3_error)
         else {
-          __Pyx_RaiseArgtupleInvalid("get_water_force", 1, 5, 5, 4); __PYX_ERR(0, 123, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("get_water_force", 1, 5, 5, 4); __PYX_ERR(0, 132, __pyx_L3_error)
         }
       }
       if (unlikely(kw_args > 0)) {
         const Py_ssize_t kwd_pos_args = __pyx_nargs;
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_kwvalues, __pyx_pyargnames, 0, values + 0, kwd_pos_args, "get_water_force") < 0)) __PYX_ERR(0, 123, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_kwvalues, __pyx_pyargnames, 0, values + 0, kwd_pos_args, "get_water_force") < 0)) __PYX_ERR(0, 132, __pyx_L3_error)
       }
     } else if (unlikely(__pyx_nargs != 5)) {
       goto __pyx_L5_argtuple_error;
@@ -9180,13 +9397,13 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
     }
     __pyx_v_self = values[0];
     __pyx_v_water = values[1];
-    __pyx_v_x_dot = __pyx_PyFloat_AsDouble(values[2]); if (unlikely((__pyx_v_x_dot == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 123, __pyx_L3_error)
-    __pyx_v_y_dot = __pyx_PyFloat_AsDouble(values[3]); if (unlikely((__pyx_v_y_dot == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 123, __pyx_L3_error)
-    __pyx_v_yaw = __pyx_PyFloat_AsDouble(values[4]); if (unlikely((__pyx_v_yaw == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 123, __pyx_L3_error)
+    __pyx_v_x_dot = __pyx_PyFloat_AsDouble(values[2]); if (unlikely((__pyx_v_x_dot == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 132, __pyx_L3_error)
+    __pyx_v_y_dot = __pyx_PyFloat_AsDouble(values[3]); if (unlikely((__pyx_v_y_dot == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 132, __pyx_L3_error)
+    __pyx_v_yaw = __pyx_PyFloat_AsDouble(values[4]); if (unlikely((__pyx_v_yaw == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 132, __pyx_L3_error)
   }
   goto __pyx_L6_skip;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("get_water_force", 1, 5, 5, __pyx_nargs); __PYX_ERR(0, 123, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("get_water_force", 1, 5, 5, __pyx_nargs); __PYX_ERR(0, 132, __pyx_L3_error)
   __pyx_L6_skip:;
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L3_error:;
@@ -9225,7 +9442,7 @@ static PyObject *__pyx_pf_7nav_env_5ships_7physics_11ShipPhysics_28get_water_for
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("get_water_force", 1);
 
-  /* "nav_env/ships/physics.pyx":127
+  /* "nav_env/ships/physics.pyx":136
  *         Get the water force acting on the ship.
  *         """
  *         return GeneralizedForces()             # <<<<<<<<<<<<<<
@@ -9233,7 +9450,7 @@ static PyObject *__pyx_pf_7nav_env_5ships_7physics_11ShipPhysics_28get_water_for
  *     def get_time_derivatives_and_forces(self,
  */
   __Pyx_XDECREF(__pyx_r);
-  __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_GeneralizedForces); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 127, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_GeneralizedForces); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 136, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __pyx_t_3 = NULL;
   __pyx_t_4 = 0;
@@ -9253,7 +9470,7 @@ static PyObject *__pyx_pf_7nav_env_5ships_7physics_11ShipPhysics_28get_water_for
     PyObject *__pyx_callargs[2] = {__pyx_t_3, NULL};
     __pyx_t_1 = __Pyx_PyObject_FastCall(__pyx_t_2, __pyx_callargs+1-__pyx_t_4, 0+__pyx_t_4);
     __Pyx_XDECREF(__pyx_t_3); __pyx_t_3 = 0;
-    if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 127, __pyx_L1_error)
+    if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 136, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   }
@@ -9261,7 +9478,7 @@ static PyObject *__pyx_pf_7nav_env_5ships_7physics_11ShipPhysics_28get_water_for
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "nav_env/ships/physics.pyx":123
+  /* "nav_env/ships/physics.pyx":132
  *         return GeneralizedForces(float(tau_u), float(tau_v), 0., 0., 0., float(tau_n))
  * 
  *     def get_water_force(self, water:WaterVector, x_dot:float, y_dot:float, yaw:float) -> GeneralizedForces:             # <<<<<<<<<<<<<<
@@ -9282,7 +9499,7 @@ static PyObject *__pyx_pf_7nav_env_5ships_7physics_11ShipPhysics_28get_water_for
   return __pyx_r;
 }
 
-/* "nav_env/ships/physics.pyx":129
+/* "nav_env/ships/physics.pyx":138
  *         return GeneralizedForces()
  * 
  *     def get_time_derivatives_and_forces(self,             # <<<<<<<<<<<<<<
@@ -9300,27 +9517,27 @@ static PyObject *__pyx_pf_7nav_env_5ships_7physics_4__defaults__(CYTHON_UNUSED P
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("__defaults__", 1);
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = PyTuple_New(4); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 129, __pyx_L1_error)
+  __pyx_t_1 = PyTuple_New(4); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 138, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_INCREF(__Pyx_CyFunction_Defaults(__pyx_defaults2, __pyx_self)->__pyx_arg_wind);
   __Pyx_GIVEREF(__Pyx_CyFunction_Defaults(__pyx_defaults2, __pyx_self)->__pyx_arg_wind);
-  if (__Pyx_PyTuple_SET_ITEM(__pyx_t_1, 0, __Pyx_CyFunction_Defaults(__pyx_defaults2, __pyx_self)->__pyx_arg_wind)) __PYX_ERR(0, 129, __pyx_L1_error);
+  if (__Pyx_PyTuple_SET_ITEM(__pyx_t_1, 0, __Pyx_CyFunction_Defaults(__pyx_defaults2, __pyx_self)->__pyx_arg_wind)) __PYX_ERR(0, 138, __pyx_L1_error);
   __Pyx_INCREF(__Pyx_CyFunction_Defaults(__pyx_defaults2, __pyx_self)->__pyx_arg_water);
   __Pyx_GIVEREF(__Pyx_CyFunction_Defaults(__pyx_defaults2, __pyx_self)->__pyx_arg_water);
-  if (__Pyx_PyTuple_SET_ITEM(__pyx_t_1, 1, __Pyx_CyFunction_Defaults(__pyx_defaults2, __pyx_self)->__pyx_arg_water)) __PYX_ERR(0, 129, __pyx_L1_error);
+  if (__Pyx_PyTuple_SET_ITEM(__pyx_t_1, 1, __Pyx_CyFunction_Defaults(__pyx_defaults2, __pyx_self)->__pyx_arg_water)) __PYX_ERR(0, 138, __pyx_L1_error);
   __Pyx_INCREF(__Pyx_CyFunction_Defaults(__pyx_defaults2, __pyx_self)->__pyx_arg_control_forces);
   __Pyx_GIVEREF(__Pyx_CyFunction_Defaults(__pyx_defaults2, __pyx_self)->__pyx_arg_control_forces);
-  if (__Pyx_PyTuple_SET_ITEM(__pyx_t_1, 2, __Pyx_CyFunction_Defaults(__pyx_defaults2, __pyx_self)->__pyx_arg_control_forces)) __PYX_ERR(0, 129, __pyx_L1_error);
+  if (__Pyx_PyTuple_SET_ITEM(__pyx_t_1, 2, __Pyx_CyFunction_Defaults(__pyx_defaults2, __pyx_self)->__pyx_arg_control_forces)) __PYX_ERR(0, 138, __pyx_L1_error);
   __Pyx_INCREF(__Pyx_CyFunction_Defaults(__pyx_defaults2, __pyx_self)->__pyx_arg_external_forces);
   __Pyx_GIVEREF(__Pyx_CyFunction_Defaults(__pyx_defaults2, __pyx_self)->__pyx_arg_external_forces);
-  if (__Pyx_PyTuple_SET_ITEM(__pyx_t_1, 3, __Pyx_CyFunction_Defaults(__pyx_defaults2, __pyx_self)->__pyx_arg_external_forces)) __PYX_ERR(0, 129, __pyx_L1_error);
-  __pyx_t_2 = PyTuple_New(2); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 129, __pyx_L1_error)
+  if (__Pyx_PyTuple_SET_ITEM(__pyx_t_1, 3, __Pyx_CyFunction_Defaults(__pyx_defaults2, __pyx_self)->__pyx_arg_external_forces)) __PYX_ERR(0, 138, __pyx_L1_error);
+  __pyx_t_2 = PyTuple_New(2); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 138, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_GIVEREF(__pyx_t_1);
-  if (__Pyx_PyTuple_SET_ITEM(__pyx_t_2, 0, __pyx_t_1)) __PYX_ERR(0, 129, __pyx_L1_error);
+  if (__Pyx_PyTuple_SET_ITEM(__pyx_t_2, 0, __pyx_t_1)) __PYX_ERR(0, 138, __pyx_L1_error);
   __Pyx_INCREF(Py_None);
   __Pyx_GIVEREF(Py_None);
-  if (__Pyx_PyTuple_SET_ITEM(__pyx_t_2, 1, Py_None)) __PYX_ERR(0, 129, __pyx_L1_error);
+  if (__Pyx_PyTuple_SET_ITEM(__pyx_t_2, 1, Py_None)) __PYX_ERR(0, 138, __pyx_L1_error);
   __pyx_t_1 = 0;
   __pyx_r = __pyx_t_2;
   __pyx_t_2 = 0;
@@ -9412,7 +9629,7 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
           (void)__Pyx_Arg_NewRef_FASTCALL(values[0]);
           kw_args--;
         }
-        else if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 129, __pyx_L3_error)
+        else if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 138, __pyx_L3_error)
         else goto __pyx_L5_argtuple_error;
         CYTHON_FALLTHROUGH;
         case  1:
@@ -9420,42 +9637,42 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
           (void)__Pyx_Arg_NewRef_FASTCALL(values[1]);
           kw_args--;
         }
-        else if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 129, __pyx_L3_error)
+        else if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 138, __pyx_L3_error)
         else {
-          __Pyx_RaiseArgtupleInvalid("get_time_derivatives_and_forces", 0, 2, 6, 1); __PYX_ERR(0, 129, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("get_time_derivatives_and_forces", 0, 2, 6, 1); __PYX_ERR(0, 138, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  2:
         if (kw_args > 0) {
           PyObject* value = __Pyx_GetKwValue_FASTCALL(__pyx_kwds, __pyx_kwvalues, __pyx_n_s_wind);
           if (value) { values[2] = __Pyx_Arg_NewRef_FASTCALL(value); kw_args--; }
-          else if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 129, __pyx_L3_error)
+          else if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 138, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  3:
         if (kw_args > 0) {
           PyObject* value = __Pyx_GetKwValue_FASTCALL(__pyx_kwds, __pyx_kwvalues, __pyx_n_s_water);
           if (value) { values[3] = __Pyx_Arg_NewRef_FASTCALL(value); kw_args--; }
-          else if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 129, __pyx_L3_error)
+          else if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 138, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  4:
         if (kw_args > 0) {
           PyObject* value = __Pyx_GetKwValue_FASTCALL(__pyx_kwds, __pyx_kwvalues, __pyx_n_s_control_forces);
           if (value) { values[4] = __Pyx_Arg_NewRef_FASTCALL(value); kw_args--; }
-          else if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 129, __pyx_L3_error)
+          else if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 138, __pyx_L3_error)
         }
         CYTHON_FALLTHROUGH;
         case  5:
         if (kw_args > 0) {
           PyObject* value = __Pyx_GetKwValue_FASTCALL(__pyx_kwds, __pyx_kwvalues, __pyx_n_s_external_forces);
           if (value) { values[5] = __Pyx_Arg_NewRef_FASTCALL(value); kw_args--; }
-          else if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 129, __pyx_L3_error)
+          else if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 138, __pyx_L3_error)
         }
       }
       if (unlikely(kw_args > 0)) {
         const Py_ssize_t kwd_pos_args = __pyx_nargs;
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_kwvalues, __pyx_pyargnames, 0, values + 0, kwd_pos_args, "get_time_derivatives_and_forces") < 0)) __PYX_ERR(0, 129, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_kwvalues, __pyx_pyargnames, 0, values + 0, kwd_pos_args, "get_time_derivatives_and_forces") < 0)) __PYX_ERR(0, 138, __pyx_L3_error)
       }
     } else {
       switch (__pyx_nargs) {
@@ -9482,7 +9699,7 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
   }
   goto __pyx_L6_skip;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("get_time_derivatives_and_forces", 0, 2, 6, __pyx_nargs); __PYX_ERR(0, 129, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("get_time_derivatives_and_forces", 0, 2, 6, __pyx_nargs); __PYX_ERR(0, 138, __pyx_L3_error)
   __pyx_L6_skip:;
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L3_error:;
@@ -9551,26 +9768,26 @@ static PyObject *__pyx_pf_7nav_env_5ships_7physics_11ShipPhysics_30get_time_deri
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("get_time_derivatives_and_forces", 1);
 
-  /* "nav_env/ships/physics.pyx":139
+  /* "nav_env/ships/physics.pyx":148
  *         All inputs are in the world frame.
  *         """
  *         R2d = self.__get_rotation_matrix(states.psi_rad, dim=2)             # <<<<<<<<<<<<<<
  *         R3d = self.__get_rotation_matrix(states.psi_rad, dim=3)
  *         pose_dot_in_ship_frame = np.dot(R3d, states.vel)
  */
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_ShipPhysics__get_rotation_matri); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 139, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_ShipPhysics__get_rotation_matri); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 148, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_states, __pyx_n_s_psi_rad); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 139, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_states, __pyx_n_s_psi_rad); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 148, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_3 = PyTuple_New(1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 139, __pyx_L1_error)
+  __pyx_t_3 = PyTuple_New(1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 148, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_GIVEREF(__pyx_t_2);
-  if (__Pyx_PyTuple_SET_ITEM(__pyx_t_3, 0, __pyx_t_2)) __PYX_ERR(0, 139, __pyx_L1_error);
+  if (__Pyx_PyTuple_SET_ITEM(__pyx_t_3, 0, __pyx_t_2)) __PYX_ERR(0, 148, __pyx_L1_error);
   __pyx_t_2 = 0;
-  __pyx_t_2 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 139, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 148, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  if (PyDict_SetItem(__pyx_t_2, __pyx_n_s_dim, __pyx_int_2) < 0) __PYX_ERR(0, 139, __pyx_L1_error)
-  __pyx_t_4 = __Pyx_PyObject_Call(__pyx_t_1, __pyx_t_3, __pyx_t_2); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 139, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_2, __pyx_n_s_dim, __pyx_int_2) < 0) __PYX_ERR(0, 148, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyObject_Call(__pyx_t_1, __pyx_t_3, __pyx_t_2); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 148, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
@@ -9578,26 +9795,26 @@ static PyObject *__pyx_pf_7nav_env_5ships_7physics_11ShipPhysics_30get_time_deri
   __pyx_v_R2d = __pyx_t_4;
   __pyx_t_4 = 0;
 
-  /* "nav_env/ships/physics.pyx":140
+  /* "nav_env/ships/physics.pyx":149
  *         """
  *         R2d = self.__get_rotation_matrix(states.psi_rad, dim=2)
  *         R3d = self.__get_rotation_matrix(states.psi_rad, dim=3)             # <<<<<<<<<<<<<<
  *         pose_dot_in_ship_frame = np.dot(R3d, states.vel)
  * 
  */
-  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_ShipPhysics__get_rotation_matri); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 140, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_ShipPhysics__get_rotation_matri); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 149, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_states, __pyx_n_s_psi_rad); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 140, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_states, __pyx_n_s_psi_rad); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 149, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_3 = PyTuple_New(1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 140, __pyx_L1_error)
+  __pyx_t_3 = PyTuple_New(1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 149, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_GIVEREF(__pyx_t_2);
-  if (__Pyx_PyTuple_SET_ITEM(__pyx_t_3, 0, __pyx_t_2)) __PYX_ERR(0, 140, __pyx_L1_error);
+  if (__Pyx_PyTuple_SET_ITEM(__pyx_t_3, 0, __pyx_t_2)) __PYX_ERR(0, 149, __pyx_L1_error);
   __pyx_t_2 = 0;
-  __pyx_t_2 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 140, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 149, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  if (PyDict_SetItem(__pyx_t_2, __pyx_n_s_dim, __pyx_int_3) < 0) __PYX_ERR(0, 140, __pyx_L1_error)
-  __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_3, __pyx_t_2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 140, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_2, __pyx_n_s_dim, __pyx_int_3) < 0) __PYX_ERR(0, 149, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_Call(__pyx_t_4, __pyx_t_3, __pyx_t_2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 149, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
@@ -9605,19 +9822,19 @@ static PyObject *__pyx_pf_7nav_env_5ships_7physics_11ShipPhysics_30get_time_deri
   __pyx_v_R3d = __pyx_t_1;
   __pyx_t_1 = 0;
 
-  /* "nav_env/ships/physics.pyx":141
+  /* "nav_env/ships/physics.pyx":150
  *         R2d = self.__get_rotation_matrix(states.psi_rad, dim=2)
  *         R3d = self.__get_rotation_matrix(states.psi_rad, dim=3)
  *         pose_dot_in_ship_frame = np.dot(R3d, states.vel)             # <<<<<<<<<<<<<<
  * 
  *         states_in_ship_frame = States3(0., 0., 0., *pose_dot_in_ship_frame)
  */
-  __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_np); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 141, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_np); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 150, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_dot); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 141, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_dot); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 150, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_states, __pyx_n_s_vel); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 141, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_states, __pyx_n_s_vel); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 150, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __pyx_t_4 = NULL;
   __pyx_t_5 = 0;
@@ -9638,48 +9855,48 @@ static PyObject *__pyx_pf_7nav_env_5ships_7physics_11ShipPhysics_30get_time_deri
     __pyx_t_1 = __Pyx_PyObject_FastCall(__pyx_t_3, __pyx_callargs+1-__pyx_t_5, 2+__pyx_t_5);
     __Pyx_XDECREF(__pyx_t_4); __pyx_t_4 = 0;
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-    if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 141, __pyx_L1_error)
+    if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 150, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   }
   __pyx_v_pose_dot_in_ship_frame = __pyx_t_1;
   __pyx_t_1 = 0;
 
-  /* "nav_env/ships/physics.pyx":143
+  /* "nav_env/ships/physics.pyx":152
  *         pose_dot_in_ship_frame = np.dot(R3d, states.vel)
  * 
  *         states_in_ship_frame = States3(0., 0., 0., *pose_dot_in_ship_frame)             # <<<<<<<<<<<<<<
  *         # print(states_in_ship_frame)
  * 
  */
-  __Pyx_GetModuleGlobalName(__pyx_t_1, __pyx_n_s_States3); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 143, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_1, __pyx_n_s_States3); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 152, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_3 = __Pyx_PySequence_Tuple(__pyx_v_pose_dot_in_ship_frame); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 143, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PySequence_Tuple(__pyx_v_pose_dot_in_ship_frame); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 152, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_2 = PyNumber_Add(__pyx_tuple_, __pyx_t_3); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 143, __pyx_L1_error)
+  __pyx_t_2 = PyNumber_Add(__pyx_tuple_, __pyx_t_3); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 152, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  __pyx_t_3 = __Pyx_PyObject_Call(__pyx_t_1, __pyx_t_2, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 143, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyObject_Call(__pyx_t_1, __pyx_t_2, NULL); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 152, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __pyx_v_states_in_ship_frame = __pyx_t_3;
   __pyx_t_3 = 0;
 
-  /* "nav_env/ships/physics.pyx":147
+  /* "nav_env/ships/physics.pyx":156
  * 
  *         # Compute external forces acting on the ship (wind, water, control, external)
  *         wind_force = self.get_wind_force(wind, states_in_ship_frame.x_dot, states_in_ship_frame.y_dot, states.psi_rad)             # <<<<<<<<<<<<<<
  *         water_force = self.get_water_force(water, states_in_ship_frame.x_dot, states_in_ship_frame.y_dot, states.psi_rad)
  *         # print(water_force)
  */
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_get_wind_force); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 147, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_get_wind_force); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 156, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_states_in_ship_frame, __pyx_n_s_x_dot); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 147, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_states_in_ship_frame, __pyx_n_s_x_dot); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 156, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_v_states_in_ship_frame, __pyx_n_s_y_dot); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 147, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_v_states_in_ship_frame, __pyx_n_s_y_dot); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 156, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
-  __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_v_states, __pyx_n_s_psi_rad); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 147, __pyx_L1_error)
+  __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_v_states, __pyx_n_s_psi_rad); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 156, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_6);
   __pyx_t_7 = NULL;
   __pyx_t_5 = 0;
@@ -9702,27 +9919,27 @@ static PyObject *__pyx_pf_7nav_env_5ships_7physics_11ShipPhysics_30get_time_deri
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
     __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-    if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 147, __pyx_L1_error)
+    if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 156, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   }
   __pyx_v_wind_force = __pyx_t_3;
   __pyx_t_3 = 0;
 
-  /* "nav_env/ships/physics.pyx":148
+  /* "nav_env/ships/physics.pyx":157
  *         # Compute external forces acting on the ship (wind, water, control, external)
  *         wind_force = self.get_wind_force(wind, states_in_ship_frame.x_dot, states_in_ship_frame.y_dot, states.psi_rad)
  *         water_force = self.get_water_force(water, states_in_ship_frame.x_dot, states_in_ship_frame.y_dot, states.psi_rad)             # <<<<<<<<<<<<<<
  *         # print(water_force)
  *         total_force_in_ship_frame:GeneralizedForces = wind_force + water_force + control_forces + external_forces # There is a wind force always acting on the ship
  */
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_get_water_force); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 148, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_get_water_force); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 157, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_v_states_in_ship_frame, __pyx_n_s_x_dot); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 148, __pyx_L1_error)
+  __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_v_states_in_ship_frame, __pyx_n_s_x_dot); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 157, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_6);
-  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_v_states_in_ship_frame, __pyx_n_s_y_dot); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 148, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_v_states_in_ship_frame, __pyx_n_s_y_dot); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 157, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_states, __pyx_n_s_psi_rad); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 148, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_states, __pyx_n_s_psi_rad); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 157, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_t_7 = NULL;
   __pyx_t_5 = 0;
@@ -9745,106 +9962,106 @@ static PyObject *__pyx_pf_7nav_env_5ships_7physics_11ShipPhysics_30get_time_deri
     __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-    if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 148, __pyx_L1_error)
+    if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 157, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   }
   __pyx_v_water_force = __pyx_t_3;
   __pyx_t_3 = 0;
 
-  /* "nav_env/ships/physics.pyx":150
+  /* "nav_env/ships/physics.pyx":159
  *         water_force = self.get_water_force(water, states_in_ship_frame.x_dot, states_in_ship_frame.y_dot, states.psi_rad)
  *         # print(water_force)
  *         total_force_in_ship_frame:GeneralizedForces = wind_force + water_force + control_forces + external_forces # There is a wind force always acting on the ship             # <<<<<<<<<<<<<<
  *         # print(wind_force.f_y, water_force.f_y, control_forces.f_y, external_forces.f_y, total_force.f_y)
  * 
  */
-  __pyx_t_3 = PyNumber_Add(__pyx_v_wind_force, __pyx_v_water_force); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 150, __pyx_L1_error)
+  __pyx_t_3 = PyNumber_Add(__pyx_v_wind_force, __pyx_v_water_force); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 159, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_2 = PyNumber_Add(__pyx_t_3, __pyx_v_control_forces); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 150, __pyx_L1_error)
+  __pyx_t_2 = PyNumber_Add(__pyx_t_3, __pyx_v_control_forces); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 159, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  __pyx_t_3 = PyNumber_Add(__pyx_t_2, __pyx_v_external_forces); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 150, __pyx_L1_error)
+  __pyx_t_3 = PyNumber_Add(__pyx_t_2, __pyx_v_external_forces); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 159, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __pyx_v_total_force_in_ship_frame = __pyx_t_3;
   __pyx_t_3 = 0;
 
-  /* "nav_env/ships/physics.pyx":154
+  /* "nav_env/ships/physics.pyx":163
  * 
  *         # Transform water current velocity to ship frame
  *         current_vel_in_ship_frame = R2d @ water.velocity             # <<<<<<<<<<<<<<
  *         u_r = states_in_ship_frame.x_dot - current_vel_in_ship_frame[0] # relative speed in surge w.r.t water
  *         v_r = states_in_ship_frame.y_dot - current_vel_in_ship_frame[1] # relative speed in sway w.r.t water
  */
-  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_v_water, __pyx_n_s_velocity); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 154, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_v_water, __pyx_n_s_velocity); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 163, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_2 = __Pyx_PyNumber_MatrixMultiply(__pyx_v_R2d, __pyx_t_3); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 154, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyNumber_MatrixMultiply(__pyx_v_R2d, __pyx_t_3); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 163, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   __pyx_v_current_vel_in_ship_frame = __pyx_t_2;
   __pyx_t_2 = 0;
 
-  /* "nav_env/ships/physics.pyx":155
+  /* "nav_env/ships/physics.pyx":164
  *         # Transform water current velocity to ship frame
  *         current_vel_in_ship_frame = R2d @ water.velocity
  *         u_r = states_in_ship_frame.x_dot - current_vel_in_ship_frame[0] # relative speed in surge w.r.t water             # <<<<<<<<<<<<<<
  *         v_r = states_in_ship_frame.y_dot - current_vel_in_ship_frame[1] # relative speed in sway w.r.t water
  *         vel_relative_to_current_in_ship_frame = np.array([u_r, v_r, states_in_ship_frame.psi_dot_rad])
  */
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_states_in_ship_frame, __pyx_n_s_x_dot); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 155, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_states_in_ship_frame, __pyx_n_s_x_dot); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 164, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_3 = __Pyx_GetItemInt(__pyx_v_current_vel_in_ship_frame, 0, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 155, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_GetItemInt(__pyx_v_current_vel_in_ship_frame, 0, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 164, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_1 = PyNumber_Subtract(__pyx_t_2, __pyx_t_3); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 155, __pyx_L1_error)
+  __pyx_t_1 = PyNumber_Subtract(__pyx_t_2, __pyx_t_3); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 164, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   __pyx_v_u_r = __pyx_t_1;
   __pyx_t_1 = 0;
 
-  /* "nav_env/ships/physics.pyx":156
+  /* "nav_env/ships/physics.pyx":165
  *         current_vel_in_ship_frame = R2d @ water.velocity
  *         u_r = states_in_ship_frame.x_dot - current_vel_in_ship_frame[0] # relative speed in surge w.r.t water
  *         v_r = states_in_ship_frame.y_dot - current_vel_in_ship_frame[1] # relative speed in sway w.r.t water             # <<<<<<<<<<<<<<
  *         vel_relative_to_current_in_ship_frame = np.array([u_r, v_r, states_in_ship_frame.psi_dot_rad])
  *         # print(f"u_r: {u_r:.2f}, v_r: {v_r:.2f}")
  */
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_states_in_ship_frame, __pyx_n_s_y_dot); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 156, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_states_in_ship_frame, __pyx_n_s_y_dot); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 165, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_3 = __Pyx_GetItemInt(__pyx_v_current_vel_in_ship_frame, 1, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 156, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_GetItemInt(__pyx_v_current_vel_in_ship_frame, 1, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 165, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_2 = PyNumber_Subtract(__pyx_t_1, __pyx_t_3); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 156, __pyx_L1_error)
+  __pyx_t_2 = PyNumber_Subtract(__pyx_t_1, __pyx_t_3); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 165, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   __pyx_v_v_r = __pyx_t_2;
   __pyx_t_2 = 0;
 
-  /* "nav_env/ships/physics.pyx":157
+  /* "nav_env/ships/physics.pyx":166
  *         u_r = states_in_ship_frame.x_dot - current_vel_in_ship_frame[0] # relative speed in surge w.r.t water
  *         v_r = states_in_ship_frame.y_dot - current_vel_in_ship_frame[1] # relative speed in sway w.r.t water
  *         vel_relative_to_current_in_ship_frame = np.array([u_r, v_r, states_in_ship_frame.psi_dot_rad])             # <<<<<<<<<<<<<<
  *         # print(f"u_r: {u_r:.2f}, v_r: {v_r:.2f}")
  * 
  */
-  __Pyx_GetModuleGlobalName(__pyx_t_3, __pyx_n_s_np); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 157, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_3, __pyx_n_s_np); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 166, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_array); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 157, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_array); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 166, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_v_states_in_ship_frame, __pyx_n_s_psi_dot_rad); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 157, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_v_states_in_ship_frame, __pyx_n_s_psi_dot_rad); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 166, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_4 = PyList_New(3); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 157, __pyx_L1_error)
+  __pyx_t_4 = PyList_New(3); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 166, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_INCREF(__pyx_v_u_r);
   __Pyx_GIVEREF(__pyx_v_u_r);
-  if (__Pyx_PyList_SET_ITEM(__pyx_t_4, 0, __pyx_v_u_r)) __PYX_ERR(0, 157, __pyx_L1_error);
+  if (__Pyx_PyList_SET_ITEM(__pyx_t_4, 0, __pyx_v_u_r)) __PYX_ERR(0, 166, __pyx_L1_error);
   __Pyx_INCREF(__pyx_v_v_r);
   __Pyx_GIVEREF(__pyx_v_v_r);
-  if (__Pyx_PyList_SET_ITEM(__pyx_t_4, 1, __pyx_v_v_r)) __PYX_ERR(0, 157, __pyx_L1_error);
+  if (__Pyx_PyList_SET_ITEM(__pyx_t_4, 1, __pyx_v_v_r)) __PYX_ERR(0, 166, __pyx_L1_error);
   __Pyx_GIVEREF(__pyx_t_3);
-  if (__Pyx_PyList_SET_ITEM(__pyx_t_4, 2, __pyx_t_3)) __PYX_ERR(0, 157, __pyx_L1_error);
+  if (__Pyx_PyList_SET_ITEM(__pyx_t_4, 2, __pyx_t_3)) __PYX_ERR(0, 166, __pyx_L1_error);
   __pyx_t_3 = 0;
   __pyx_t_3 = NULL;
   __pyx_t_5 = 0;
@@ -9865,27 +10082,27 @@ static PyObject *__pyx_pf_7nav_env_5ships_7physics_11ShipPhysics_30get_time_deri
     __pyx_t_2 = __Pyx_PyObject_FastCall(__pyx_t_1, __pyx_callargs+1-__pyx_t_5, 1+__pyx_t_5);
     __Pyx_XDECREF(__pyx_t_3); __pyx_t_3 = 0;
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-    if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 157, __pyx_L1_error)
+    if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 166, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   }
   __pyx_v_vel_relative_to_current_in_ship_frame = __pyx_t_2;
   __pyx_t_2 = 0;
 
-  /* "nav_env/ships/physics.pyx":161
+  /* "nav_env/ships/physics.pyx":170
  * 
  *         # Compute matrices linked to the ship dynamics
  *         Crb = self.__get_coriolis_matrix(states_in_ship_frame.x_dot, states_in_ship_frame.y_dot, states_in_ship_frame.psi_dot_rad)             # <<<<<<<<<<<<<<
  *         Ca = self.__get_coriolis_added_matrix(u_r, v_r)
  *         Dl = self._linear_damping_matrix
  */
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_ShipPhysics__get_coriolis_matri); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 161, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_ShipPhysics__get_coriolis_matri); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 170, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_v_states_in_ship_frame, __pyx_n_s_x_dot); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 161, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_v_states_in_ship_frame, __pyx_n_s_x_dot); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 170, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
-  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_v_states_in_ship_frame, __pyx_n_s_y_dot); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 161, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_v_states_in_ship_frame, __pyx_n_s_y_dot); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 170, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_v_states_in_ship_frame, __pyx_n_s_psi_dot_rad); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 161, __pyx_L1_error)
+  __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_v_states_in_ship_frame, __pyx_n_s_psi_dot_rad); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 170, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_6);
   __pyx_t_7 = NULL;
   __pyx_t_5 = 0;
@@ -9908,21 +10125,21 @@ static PyObject *__pyx_pf_7nav_env_5ships_7physics_11ShipPhysics_30get_time_deri
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
     __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-    if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 161, __pyx_L1_error)
+    if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 170, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   }
   __pyx_v_Crb = __pyx_t_2;
   __pyx_t_2 = 0;
 
-  /* "nav_env/ships/physics.pyx":162
+  /* "nav_env/ships/physics.pyx":171
  *         # Compute matrices linked to the ship dynamics
  *         Crb = self.__get_coriolis_matrix(states_in_ship_frame.x_dot, states_in_ship_frame.y_dot, states_in_ship_frame.psi_dot_rad)
  *         Ca = self.__get_coriolis_added_matrix(u_r, v_r)             # <<<<<<<<<<<<<<
  *         Dl = self._linear_damping_matrix
  *         Dnl = self.__get_nonlinear_damping_matrix(*vel_relative_to_current_in_ship_frame)
  */
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_ShipPhysics__get_coriolis_added); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 162, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_ShipPhysics__get_coriolis_added); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 171, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_t_6 = NULL;
   __pyx_t_5 = 0;
@@ -9942,119 +10159,119 @@ static PyObject *__pyx_pf_7nav_env_5ships_7physics_11ShipPhysics_30get_time_deri
     PyObject *__pyx_callargs[3] = {__pyx_t_6, __pyx_v_u_r, __pyx_v_v_r};
     __pyx_t_2 = __Pyx_PyObject_FastCall(__pyx_t_1, __pyx_callargs+1-__pyx_t_5, 2+__pyx_t_5);
     __Pyx_XDECREF(__pyx_t_6); __pyx_t_6 = 0;
-    if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 162, __pyx_L1_error)
+    if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 171, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   }
   __pyx_v_Ca = __pyx_t_2;
   __pyx_t_2 = 0;
 
-  /* "nav_env/ships/physics.pyx":163
+  /* "nav_env/ships/physics.pyx":172
  *         Crb = self.__get_coriolis_matrix(states_in_ship_frame.x_dot, states_in_ship_frame.y_dot, states_in_ship_frame.psi_dot_rad)
  *         Ca = self.__get_coriolis_added_matrix(u_r, v_r)
  *         Dl = self._linear_damping_matrix             # <<<<<<<<<<<<<<
  *         Dnl = self.__get_nonlinear_damping_matrix(*vel_relative_to_current_in_ship_frame)
  * 
  */
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_linear_damping_matrix); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 163, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_linear_damping_matrix); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 172, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __pyx_v_Dl = __pyx_t_2;
   __pyx_t_2 = 0;
 
-  /* "nav_env/ships/physics.pyx":164
+  /* "nav_env/ships/physics.pyx":173
  *         Ca = self.__get_coriolis_added_matrix(u_r, v_r)
  *         Dl = self._linear_damping_matrix
  *         Dnl = self.__get_nonlinear_damping_matrix(*vel_relative_to_current_in_ship_frame)             # <<<<<<<<<<<<<<
  * 
  *         f1 = -(Crb @ states_in_ship_frame.vel)
  */
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_ShipPhysics__get_nonlinear_damp); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 164, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_ShipPhysics__get_nonlinear_damp); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 173, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_1 = __Pyx_PySequence_Tuple(__pyx_v_vel_relative_to_current_in_ship_frame); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 164, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PySequence_Tuple(__pyx_v_vel_relative_to_current_in_ship_frame); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 173, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_6 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_1, NULL); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 164, __pyx_L1_error)
+  __pyx_t_6 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_1, NULL); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 173, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_6);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __pyx_v_Dnl = __pyx_t_6;
   __pyx_t_6 = 0;
 
-  /* "nav_env/ships/physics.pyx":166
+  /* "nav_env/ships/physics.pyx":175
  *         Dnl = self.__get_nonlinear_damping_matrix(*vel_relative_to_current_in_ship_frame)
  * 
  *         f1 = -(Crb @ states_in_ship_frame.vel)             # <<<<<<<<<<<<<<
  *         f2 = -(Ca @ vel_relative_to_current_in_ship_frame)
  *         f3 = -(Dl @ vel_relative_to_current_in_ship_frame)
  */
-  __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_v_states_in_ship_frame, __pyx_n_s_vel); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 166, __pyx_L1_error)
+  __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_v_states_in_ship_frame, __pyx_n_s_vel); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 175, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_6);
-  __pyx_t_1 = __Pyx_PyNumber_MatrixMultiply(__pyx_v_Crb, __pyx_t_6); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 166, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyNumber_MatrixMultiply(__pyx_v_Crb, __pyx_t_6); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 175, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-  __pyx_t_6 = PyNumber_Negative(__pyx_t_1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 166, __pyx_L1_error)
+  __pyx_t_6 = PyNumber_Negative(__pyx_t_1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 175, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_6);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __pyx_v_f1 = __pyx_t_6;
   __pyx_t_6 = 0;
 
-  /* "nav_env/ships/physics.pyx":167
+  /* "nav_env/ships/physics.pyx":176
  * 
  *         f1 = -(Crb @ states_in_ship_frame.vel)
  *         f2 = -(Ca @ vel_relative_to_current_in_ship_frame)             # <<<<<<<<<<<<<<
  *         f3 = -(Dl @ vel_relative_to_current_in_ship_frame)
  *         f4 = -(Dnl @ vel_relative_to_current_in_ship_frame)
  */
-  __pyx_t_6 = __Pyx_PyNumber_MatrixMultiply(__pyx_v_Ca, __pyx_v_vel_relative_to_current_in_ship_frame); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 167, __pyx_L1_error)
+  __pyx_t_6 = __Pyx_PyNumber_MatrixMultiply(__pyx_v_Ca, __pyx_v_vel_relative_to_current_in_ship_frame); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 176, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_6);
-  __pyx_t_1 = PyNumber_Negative(__pyx_t_6); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 167, __pyx_L1_error)
+  __pyx_t_1 = PyNumber_Negative(__pyx_t_6); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 176, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
   __pyx_v_f2 = __pyx_t_1;
   __pyx_t_1 = 0;
 
-  /* "nav_env/ships/physics.pyx":168
+  /* "nav_env/ships/physics.pyx":177
  *         f1 = -(Crb @ states_in_ship_frame.vel)
  *         f2 = -(Ca @ vel_relative_to_current_in_ship_frame)
  *         f3 = -(Dl @ vel_relative_to_current_in_ship_frame)             # <<<<<<<<<<<<<<
  *         f4 = -(Dnl @ vel_relative_to_current_in_ship_frame)
  *         f5 = np.array(total_force_in_ship_frame.uvn)
  */
-  __pyx_t_1 = __Pyx_PyNumber_MatrixMultiply(__pyx_v_Dl, __pyx_v_vel_relative_to_current_in_ship_frame); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 168, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyNumber_MatrixMultiply(__pyx_v_Dl, __pyx_v_vel_relative_to_current_in_ship_frame); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 177, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_6 = PyNumber_Negative(__pyx_t_1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 168, __pyx_L1_error)
+  __pyx_t_6 = PyNumber_Negative(__pyx_t_1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 177, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_6);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __pyx_v_f3 = __pyx_t_6;
   __pyx_t_6 = 0;
 
-  /* "nav_env/ships/physics.pyx":169
+  /* "nav_env/ships/physics.pyx":178
  *         f2 = -(Ca @ vel_relative_to_current_in_ship_frame)
  *         f3 = -(Dl @ vel_relative_to_current_in_ship_frame)
  *         f4 = -(Dnl @ vel_relative_to_current_in_ship_frame)             # <<<<<<<<<<<<<<
  *         f5 = np.array(total_force_in_ship_frame.uvn)
  * 
  */
-  __pyx_t_6 = __Pyx_PyNumber_MatrixMultiply(__pyx_v_Dnl, __pyx_v_vel_relative_to_current_in_ship_frame); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 169, __pyx_L1_error)
+  __pyx_t_6 = __Pyx_PyNumber_MatrixMultiply(__pyx_v_Dnl, __pyx_v_vel_relative_to_current_in_ship_frame); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 178, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_6);
-  __pyx_t_1 = PyNumber_Negative(__pyx_t_6); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 169, __pyx_L1_error)
+  __pyx_t_1 = PyNumber_Negative(__pyx_t_6); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 178, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
   __pyx_v_f4 = __pyx_t_1;
   __pyx_t_1 = 0;
 
-  /* "nav_env/ships/physics.pyx":170
+  /* "nav_env/ships/physics.pyx":179
  *         f3 = -(Dl @ vel_relative_to_current_in_ship_frame)
  *         f4 = -(Dnl @ vel_relative_to_current_in_ship_frame)
  *         f5 = np.array(total_force_in_ship_frame.uvn)             # <<<<<<<<<<<<<<
  * 
  *         # idx = 0
  */
-  __Pyx_GetModuleGlobalName(__pyx_t_6, __pyx_n_s_np); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 170, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_6, __pyx_n_s_np); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 179, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_6);
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_6, __pyx_n_s_array); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 170, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_6, __pyx_n_s_array); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 179, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-  __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_v_total_force_in_ship_frame, __pyx_n_s_uvn); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 170, __pyx_L1_error)
+  __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_v_total_force_in_ship_frame, __pyx_n_s_uvn); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 179, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_6);
   __pyx_t_3 = NULL;
   __pyx_t_5 = 0;
@@ -10075,74 +10292,74 @@ static PyObject *__pyx_pf_7nav_env_5ships_7physics_11ShipPhysics_30get_time_deri
     __pyx_t_1 = __Pyx_PyObject_FastCall(__pyx_t_2, __pyx_callargs+1-__pyx_t_5, 1+__pyx_t_5);
     __Pyx_XDECREF(__pyx_t_3); __pyx_t_3 = 0;
     __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-    if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 170, __pyx_L1_error)
+    if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 179, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   }
   __pyx_v_f5 = __pyx_t_1;
   __pyx_t_1 = 0;
 
-  /* "nav_env/ships/physics.pyx":176
+  /* "nav_env/ships/physics.pyx":185
  * 
  *         # Sum all forces acting on the ship
  *         f = f1 + f2 + f3 + f4 + f5             # <<<<<<<<<<<<<<
  * 
  *         # Compute the acceleration in the ship frame
  */
-  __pyx_t_1 = PyNumber_Add(__pyx_v_f1, __pyx_v_f2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 176, __pyx_L1_error)
+  __pyx_t_1 = PyNumber_Add(__pyx_v_f1, __pyx_v_f2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 185, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = PyNumber_Add(__pyx_t_1, __pyx_v_f3); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 176, __pyx_L1_error)
+  __pyx_t_2 = PyNumber_Add(__pyx_t_1, __pyx_v_f3); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 185, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_t_1 = PyNumber_Add(__pyx_t_2, __pyx_v_f4); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 176, __pyx_L1_error)
+  __pyx_t_1 = PyNumber_Add(__pyx_t_2, __pyx_v_f4); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 185, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_2 = PyNumber_Add(__pyx_t_1, __pyx_v_f5); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 176, __pyx_L1_error)
+  __pyx_t_2 = PyNumber_Add(__pyx_t_1, __pyx_v_f5); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 185, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __pyx_v_f = __pyx_t_2;
   __pyx_t_2 = 0;
 
-  /* "nav_env/ships/physics.pyx":179
+  /* "nav_env/ships/physics.pyx":188
  * 
  *         # Compute the acceleration in the ship frame
  *         acc = self._inv_mass_matrix @ f             # <<<<<<<<<<<<<<
  * 
  *         # Transform the acceleration / forces back to the world frame
  */
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_inv_mass_matrix); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 179, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_inv_mass_matrix); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 188, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_1 = __Pyx_PyNumber_MatrixMultiply(__pyx_t_2, __pyx_v_f); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 179, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyNumber_MatrixMultiply(__pyx_t_2, __pyx_v_f); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 188, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __pyx_v_acc = __pyx_t_1;
   __pyx_t_1 = 0;
 
-  /* "nav_env/ships/physics.pyx":182
+  /* "nav_env/ships/physics.pyx":191
  * 
  *         # Transform the acceleration / forces back to the world frame
  *         f_in_world = R3d @ f             # <<<<<<<<<<<<<<
  *         acc_in_world_frame = R3d @ acc
  * 
  */
-  __pyx_t_1 = __Pyx_PyNumber_MatrixMultiply(__pyx_v_R3d, __pyx_v_f); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 182, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyNumber_MatrixMultiply(__pyx_v_R3d, __pyx_v_f); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 191, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_v_f_in_world = __pyx_t_1;
   __pyx_t_1 = 0;
 
-  /* "nav_env/ships/physics.pyx":183
+  /* "nav_env/ships/physics.pyx":192
  *         # Transform the acceleration / forces back to the world frame
  *         f_in_world = R3d @ f
  *         acc_in_world_frame = R3d @ acc             # <<<<<<<<<<<<<<
  * 
  *         # TODO: Make the resulting forces plottable
  */
-  __pyx_t_1 = __Pyx_PyNumber_MatrixMultiply(__pyx_v_R3d, __pyx_v_acc); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 183, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyNumber_MatrixMultiply(__pyx_v_R3d, __pyx_v_acc); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 192, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_v_acc_in_world_frame = __pyx_t_1;
   __pyx_t_1 = 0;
 
-  /* "nav_env/ships/physics.pyx":186
+  /* "nav_env/ships/physics.pyx":195
  * 
  *         # TODO: Make the resulting forces plottable
  *         return TimeDerivatives3(states.x_dot, states.y_dot, states.psi_dot_deg, float(acc_in_world_frame[0]), float(acc_in_world_frame[1]), float(acc_in_world_frame[2])), GeneralizedForces(f_in_world[0], f_in_world[1], 0., 0., 0., f_in_world[2])             # <<<<<<<<<<<<<<
@@ -10150,27 +10367,27 @@ static PyObject *__pyx_pf_7nav_env_5ships_7physics_11ShipPhysics_30get_time_deri
  *     def __repr__(self) -> str:
  */
   __Pyx_XDECREF(__pyx_r);
-  __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_TimeDerivatives3); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 186, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_TimeDerivatives3); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 195, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_v_states, __pyx_n_s_x_dot); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 186, __pyx_L1_error)
+  __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_v_states, __pyx_n_s_x_dot); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 195, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_6);
-  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_v_states, __pyx_n_s_y_dot); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 186, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_v_states, __pyx_n_s_y_dot); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 195, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_v_states, __pyx_n_s_psi_dot_deg); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 186, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_v_states, __pyx_n_s_psi_dot_deg); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 195, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
-  __pyx_t_7 = __Pyx_GetItemInt(__pyx_v_acc_in_world_frame, 0, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 186, __pyx_L1_error)
+  __pyx_t_7 = __Pyx_GetItemInt(__pyx_v_acc_in_world_frame, 0, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 195, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_7);
-  __pyx_t_8 = __Pyx_PyNumber_Float(__pyx_t_7); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 186, __pyx_L1_error)
+  __pyx_t_8 = __Pyx_PyNumber_Float(__pyx_t_7); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 195, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_8);
   __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
-  __pyx_t_7 = __Pyx_GetItemInt(__pyx_v_acc_in_world_frame, 1, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 186, __pyx_L1_error)
+  __pyx_t_7 = __Pyx_GetItemInt(__pyx_v_acc_in_world_frame, 1, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 195, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_7);
-  __pyx_t_9 = __Pyx_PyNumber_Float(__pyx_t_7); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 186, __pyx_L1_error)
+  __pyx_t_9 = __Pyx_PyNumber_Float(__pyx_t_7); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 195, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_9);
   __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
-  __pyx_t_7 = __Pyx_GetItemInt(__pyx_v_acc_in_world_frame, 2, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 186, __pyx_L1_error)
+  __pyx_t_7 = __Pyx_GetItemInt(__pyx_v_acc_in_world_frame, 2, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 195, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_7);
-  __pyx_t_10 = __Pyx_PyNumber_Float(__pyx_t_7); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 186, __pyx_L1_error)
+  __pyx_t_10 = __Pyx_PyNumber_Float(__pyx_t_7); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 195, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_10);
   __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
   __pyx_t_7 = NULL;
@@ -10197,17 +10414,17 @@ static PyObject *__pyx_pf_7nav_env_5ships_7physics_11ShipPhysics_30get_time_deri
     __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
     __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
     __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
-    if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 186, __pyx_L1_error)
+    if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 195, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   }
-  __Pyx_GetModuleGlobalName(__pyx_t_10, __pyx_n_s_GeneralizedForces); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 186, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_10, __pyx_n_s_GeneralizedForces); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 195, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_10);
-  __pyx_t_9 = __Pyx_GetItemInt(__pyx_v_f_in_world, 0, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 186, __pyx_L1_error)
+  __pyx_t_9 = __Pyx_GetItemInt(__pyx_v_f_in_world, 0, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 195, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_9);
-  __pyx_t_8 = __Pyx_GetItemInt(__pyx_v_f_in_world, 1, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 186, __pyx_L1_error)
+  __pyx_t_8 = __Pyx_GetItemInt(__pyx_v_f_in_world, 1, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 195, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_8);
-  __pyx_t_4 = __Pyx_GetItemInt(__pyx_v_f_in_world, 2, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 186, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_GetItemInt(__pyx_v_f_in_world, 2, long, 1, __Pyx_PyInt_From_long, 0, 0, 1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 195, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __pyx_t_3 = NULL;
   __pyx_t_5 = 0;
@@ -10230,23 +10447,23 @@ static PyObject *__pyx_pf_7nav_env_5ships_7physics_11ShipPhysics_30get_time_deri
     __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
     __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-    if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 186, __pyx_L1_error)
+    if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 195, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
     __Pyx_DECREF(__pyx_t_10); __pyx_t_10 = 0;
   }
-  __pyx_t_10 = PyTuple_New(2); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 186, __pyx_L1_error)
+  __pyx_t_10 = PyTuple_New(2); if (unlikely(!__pyx_t_10)) __PYX_ERR(0, 195, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_10);
   __Pyx_GIVEREF(__pyx_t_1);
-  if (__Pyx_PyTuple_SET_ITEM(__pyx_t_10, 0, __pyx_t_1)) __PYX_ERR(0, 186, __pyx_L1_error);
+  if (__Pyx_PyTuple_SET_ITEM(__pyx_t_10, 0, __pyx_t_1)) __PYX_ERR(0, 195, __pyx_L1_error);
   __Pyx_GIVEREF(__pyx_t_2);
-  if (__Pyx_PyTuple_SET_ITEM(__pyx_t_10, 1, __pyx_t_2)) __PYX_ERR(0, 186, __pyx_L1_error);
+  if (__Pyx_PyTuple_SET_ITEM(__pyx_t_10, 1, __pyx_t_2)) __PYX_ERR(0, 195, __pyx_L1_error);
   __pyx_t_1 = 0;
   __pyx_t_2 = 0;
   __pyx_r = ((PyObject*)__pyx_t_10);
   __pyx_t_10 = 0;
   goto __pyx_L0;
 
-  /* "nav_env/ships/physics.pyx":129
+  /* "nav_env/ships/physics.pyx":138
  *         return GeneralizedForces()
  * 
  *     def get_time_derivatives_and_forces(self,             # <<<<<<<<<<<<<<
@@ -10297,7 +10514,7 @@ static PyObject *__pyx_pf_7nav_env_5ships_7physics_11ShipPhysics_30get_time_deri
   return __pyx_r;
 }
 
-/* "nav_env/ships/physics.pyx":188
+/* "nav_env/ships/physics.pyx":197
  *         return TimeDerivatives3(states.x_dot, states.y_dot, states.psi_dot_deg, float(acc_in_world_frame[0]), float(acc_in_world_frame[1]), float(acc_in_world_frame[2])), GeneralizedForces(f_in_world[0], f_in_world[1], 0., 0., 0., f_in_world[2])
  * 
  *     def __repr__(self) -> str:             # <<<<<<<<<<<<<<
@@ -10358,12 +10575,12 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
           (void)__Pyx_Arg_NewRef_FASTCALL(values[0]);
           kw_args--;
         }
-        else if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 188, __pyx_L3_error)
+        else if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 197, __pyx_L3_error)
         else goto __pyx_L5_argtuple_error;
       }
       if (unlikely(kw_args > 0)) {
         const Py_ssize_t kwd_pos_args = __pyx_nargs;
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_kwvalues, __pyx_pyargnames, 0, values + 0, kwd_pos_args, "__repr__") < 0)) __PYX_ERR(0, 188, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_kwvalues, __pyx_pyargnames, 0, values + 0, kwd_pos_args, "__repr__") < 0)) __PYX_ERR(0, 197, __pyx_L3_error)
       }
     } else if (unlikely(__pyx_nargs != 1)) {
       goto __pyx_L5_argtuple_error;
@@ -10374,7 +10591,7 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
   }
   goto __pyx_L6_skip;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("__repr__", 1, 1, 1, __pyx_nargs); __PYX_ERR(0, 188, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("__repr__", 1, 1, 1, __pyx_nargs); __PYX_ERR(0, 197, __pyx_L3_error)
   __pyx_L6_skip:;
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L3_error:;
@@ -10414,7 +10631,7 @@ static PyObject *__pyx_pf_7nav_env_5ships_7physics_11ShipPhysics_32__repr__(CYTH
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("__repr__", 1);
 
-  /* "nav_env/ships/physics.pyx":189
+  /* "nav_env/ships/physics.pyx":198
  * 
  *     def __repr__(self) -> str:
  *         return "{} Object".format(type(self).__name__)             # <<<<<<<<<<<<<<
@@ -10422,9 +10639,9 @@ static PyObject *__pyx_pf_7nav_env_5ships_7physics_11ShipPhysics_32__repr__(CYTH
  *     @property
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_kp_s_Object, __pyx_n_s_format); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 189, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_kp_s_Object, __pyx_n_s_format); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 198, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(((PyObject *)Py_TYPE(__pyx_v_self)), __pyx_n_s_name); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 189, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(((PyObject *)Py_TYPE(__pyx_v_self)), __pyx_n_s_name); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 198, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __pyx_t_4 = NULL;
   __pyx_t_5 = 0;
@@ -10445,16 +10662,16 @@ static PyObject *__pyx_pf_7nav_env_5ships_7physics_11ShipPhysics_32__repr__(CYTH
     __pyx_t_1 = __Pyx_PyObject_FastCall(__pyx_t_2, __pyx_callargs+1-__pyx_t_5, 1+__pyx_t_5);
     __Pyx_XDECREF(__pyx_t_4); __pyx_t_4 = 0;
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-    if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 189, __pyx_L1_error)
+    if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 198, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   }
-  if (!(likely(PyString_CheckExact(__pyx_t_1))||((__pyx_t_1) == Py_None) || __Pyx_RaiseUnexpectedTypeError("str", __pyx_t_1))) __PYX_ERR(0, 189, __pyx_L1_error)
+  if (!(likely(PyString_CheckExact(__pyx_t_1))||((__pyx_t_1) == Py_None) || __Pyx_RaiseUnexpectedTypeError("str", __pyx_t_1))) __PYX_ERR(0, 198, __pyx_L1_error)
   __pyx_r = ((PyObject*)__pyx_t_1);
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "nav_env/ships/physics.pyx":188
+  /* "nav_env/ships/physics.pyx":197
  *         return TimeDerivatives3(states.x_dot, states.y_dot, states.psi_dot_deg, float(acc_in_world_frame[0]), float(acc_in_world_frame[1]), float(acc_in_world_frame[2])), GeneralizedForces(f_in_world[0], f_in_world[1], 0., 0., 0., f_in_world[2])
  * 
  *     def __repr__(self) -> str:             # <<<<<<<<<<<<<<
@@ -10476,7 +10693,7 @@ static PyObject *__pyx_pf_7nav_env_5ships_7physics_11ShipPhysics_32__repr__(CYTH
   return __pyx_r;
 }
 
-/* "nav_env/ships/physics.pyx":191
+/* "nav_env/ships/physics.pyx":200
  *         return "{} Object".format(type(self).__name__)
  * 
  *     @property             # <<<<<<<<<<<<<<
@@ -10537,12 +10754,12 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
           (void)__Pyx_Arg_NewRef_FASTCALL(values[0]);
           kw_args--;
         }
-        else if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 191, __pyx_L3_error)
+        else if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 200, __pyx_L3_error)
         else goto __pyx_L5_argtuple_error;
       }
       if (unlikely(kw_args > 0)) {
         const Py_ssize_t kwd_pos_args = __pyx_nargs;
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_kwvalues, __pyx_pyargnames, 0, values + 0, kwd_pos_args, "inv_mass_matrix") < 0)) __PYX_ERR(0, 191, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_kwvalues, __pyx_pyargnames, 0, values + 0, kwd_pos_args, "inv_mass_matrix") < 0)) __PYX_ERR(0, 200, __pyx_L3_error)
       }
     } else if (unlikely(__pyx_nargs != 1)) {
       goto __pyx_L5_argtuple_error;
@@ -10553,7 +10770,7 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
   }
   goto __pyx_L6_skip;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("inv_mass_matrix", 1, 1, 1, __pyx_nargs); __PYX_ERR(0, 191, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("inv_mass_matrix", 1, 1, 1, __pyx_nargs); __PYX_ERR(0, 200, __pyx_L3_error)
   __pyx_L6_skip:;
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L3_error:;
@@ -10589,7 +10806,7 @@ static PyObject *__pyx_pf_7nav_env_5ships_7physics_11ShipPhysics_34inv_mass_matr
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("inv_mass_matrix", 1);
 
-  /* "nav_env/ships/physics.pyx":193
+  /* "nav_env/ships/physics.pyx":202
  *     @property
  *     def inv_mass_matrix(self) -> np.ndarray:
  *         return self._inv_mass_matrix             # <<<<<<<<<<<<<<
@@ -10597,13 +10814,13 @@ static PyObject *__pyx_pf_7nav_env_5ships_7physics_11ShipPhysics_34inv_mass_matr
  *     @property
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_inv_mass_matrix); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 193, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_inv_mass_matrix); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 202, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "nav_env/ships/physics.pyx":191
+  /* "nav_env/ships/physics.pyx":200
  *         return "{} Object".format(type(self).__name__)
  * 
  *     @property             # <<<<<<<<<<<<<<
@@ -10622,7 +10839,7 @@ static PyObject *__pyx_pf_7nav_env_5ships_7physics_11ShipPhysics_34inv_mass_matr
   return __pyx_r;
 }
 
-/* "nav_env/ships/physics.pyx":195
+/* "nav_env/ships/physics.pyx":204
  *         return self._inv_mass_matrix
  * 
  *     @property             # <<<<<<<<<<<<<<
@@ -10683,12 +10900,12 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
           (void)__Pyx_Arg_NewRef_FASTCALL(values[0]);
           kw_args--;
         }
-        else if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 195, __pyx_L3_error)
+        else if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 204, __pyx_L3_error)
         else goto __pyx_L5_argtuple_error;
       }
       if (unlikely(kw_args > 0)) {
         const Py_ssize_t kwd_pos_args = __pyx_nargs;
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_kwvalues, __pyx_pyargnames, 0, values + 0, kwd_pos_args, "coriolis_matrix") < 0)) __PYX_ERR(0, 195, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_kwvalues, __pyx_pyargnames, 0, values + 0, kwd_pos_args, "coriolis_matrix") < 0)) __PYX_ERR(0, 204, __pyx_L3_error)
       }
     } else if (unlikely(__pyx_nargs != 1)) {
       goto __pyx_L5_argtuple_error;
@@ -10699,7 +10916,7 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
   }
   goto __pyx_L6_skip;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("coriolis_matrix", 1, 1, 1, __pyx_nargs); __PYX_ERR(0, 195, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("coriolis_matrix", 1, 1, 1, __pyx_nargs); __PYX_ERR(0, 204, __pyx_L3_error)
   __pyx_L6_skip:;
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L3_error:;
@@ -10735,7 +10952,7 @@ static PyObject *__pyx_pf_7nav_env_5ships_7physics_11ShipPhysics_36coriolis_matr
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("coriolis_matrix", 1);
 
-  /* "nav_env/ships/physics.pyx":197
+  /* "nav_env/ships/physics.pyx":206
  *     @property
  *     def coriolis_matrix(self) -> Callable:
  *         return self.__get_coriolis_matrix             # <<<<<<<<<<<<<<
@@ -10743,13 +10960,13 @@ static PyObject *__pyx_pf_7nav_env_5ships_7physics_11ShipPhysics_36coriolis_matr
  *     @property
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_ShipPhysics__get_coriolis_matri); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 197, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_ShipPhysics__get_coriolis_matri); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 206, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "nav_env/ships/physics.pyx":195
+  /* "nav_env/ships/physics.pyx":204
  *         return self._inv_mass_matrix
  * 
  *     @property             # <<<<<<<<<<<<<<
@@ -10768,7 +10985,7 @@ static PyObject *__pyx_pf_7nav_env_5ships_7physics_11ShipPhysics_36coriolis_matr
   return __pyx_r;
 }
 
-/* "nav_env/ships/physics.pyx":199
+/* "nav_env/ships/physics.pyx":208
  *         return self.__get_coriolis_matrix
  * 
  *     @property             # <<<<<<<<<<<<<<
@@ -10829,12 +11046,12 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
           (void)__Pyx_Arg_NewRef_FASTCALL(values[0]);
           kw_args--;
         }
-        else if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 199, __pyx_L3_error)
+        else if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 208, __pyx_L3_error)
         else goto __pyx_L5_argtuple_error;
       }
       if (unlikely(kw_args > 0)) {
         const Py_ssize_t kwd_pos_args = __pyx_nargs;
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_kwvalues, __pyx_pyargnames, 0, values + 0, kwd_pos_args, "coriolis_added_mass_matrix") < 0)) __PYX_ERR(0, 199, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_kwvalues, __pyx_pyargnames, 0, values + 0, kwd_pos_args, "coriolis_added_mass_matrix") < 0)) __PYX_ERR(0, 208, __pyx_L3_error)
       }
     } else if (unlikely(__pyx_nargs != 1)) {
       goto __pyx_L5_argtuple_error;
@@ -10845,7 +11062,7 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
   }
   goto __pyx_L6_skip;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("coriolis_added_mass_matrix", 1, 1, 1, __pyx_nargs); __PYX_ERR(0, 199, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("coriolis_added_mass_matrix", 1, 1, 1, __pyx_nargs); __PYX_ERR(0, 208, __pyx_L3_error)
   __pyx_L6_skip:;
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L3_error:;
@@ -10881,7 +11098,7 @@ static PyObject *__pyx_pf_7nav_env_5ships_7physics_11ShipPhysics_38coriolis_adde
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("coriolis_added_mass_matrix", 1);
 
-  /* "nav_env/ships/physics.pyx":201
+  /* "nav_env/ships/physics.pyx":210
  *     @property
  *     def coriolis_added_mass_matrix(self) -> Callable:
  *         return self.__get_coriolis_added_matrix             # <<<<<<<<<<<<<<
@@ -10889,13 +11106,13 @@ static PyObject *__pyx_pf_7nav_env_5ships_7physics_11ShipPhysics_38coriolis_adde
  *     @property
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_ShipPhysics__get_coriolis_added); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 201, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_ShipPhysics__get_coriolis_added); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 210, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "nav_env/ships/physics.pyx":199
+  /* "nav_env/ships/physics.pyx":208
  *         return self.__get_coriolis_matrix
  * 
  *     @property             # <<<<<<<<<<<<<<
@@ -10914,7 +11131,7 @@ static PyObject *__pyx_pf_7nav_env_5ships_7physics_11ShipPhysics_38coriolis_adde
   return __pyx_r;
 }
 
-/* "nav_env/ships/physics.pyx":203
+/* "nav_env/ships/physics.pyx":212
  *         return self.__get_coriolis_added_matrix
  * 
  *     @property             # <<<<<<<<<<<<<<
@@ -10975,12 +11192,12 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
           (void)__Pyx_Arg_NewRef_FASTCALL(values[0]);
           kw_args--;
         }
-        else if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 203, __pyx_L3_error)
+        else if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 212, __pyx_L3_error)
         else goto __pyx_L5_argtuple_error;
       }
       if (unlikely(kw_args > 0)) {
         const Py_ssize_t kwd_pos_args = __pyx_nargs;
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_kwvalues, __pyx_pyargnames, 0, values + 0, kwd_pos_args, "linear_damping_matrix") < 0)) __PYX_ERR(0, 203, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_kwvalues, __pyx_pyargnames, 0, values + 0, kwd_pos_args, "linear_damping_matrix") < 0)) __PYX_ERR(0, 212, __pyx_L3_error)
       }
     } else if (unlikely(__pyx_nargs != 1)) {
       goto __pyx_L5_argtuple_error;
@@ -10991,7 +11208,7 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
   }
   goto __pyx_L6_skip;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("linear_damping_matrix", 1, 1, 1, __pyx_nargs); __PYX_ERR(0, 203, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("linear_damping_matrix", 1, 1, 1, __pyx_nargs); __PYX_ERR(0, 212, __pyx_L3_error)
   __pyx_L6_skip:;
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L3_error:;
@@ -11027,7 +11244,7 @@ static PyObject *__pyx_pf_7nav_env_5ships_7physics_11ShipPhysics_40linear_dampin
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("linear_damping_matrix", 1);
 
-  /* "nav_env/ships/physics.pyx":205
+  /* "nav_env/ships/physics.pyx":214
  *     @property
  *     def linear_damping_matrix(self) -> np.ndarray:
  *         return self._linear_damping_matrix             # <<<<<<<<<<<<<<
@@ -11035,13 +11252,13 @@ static PyObject *__pyx_pf_7nav_env_5ships_7physics_11ShipPhysics_40linear_dampin
  *     @property
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_linear_damping_matrix); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 205, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_linear_damping_matrix); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 214, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "nav_env/ships/physics.pyx":203
+  /* "nav_env/ships/physics.pyx":212
  *         return self.__get_coriolis_added_matrix
  * 
  *     @property             # <<<<<<<<<<<<<<
@@ -11060,7 +11277,7 @@ static PyObject *__pyx_pf_7nav_env_5ships_7physics_11ShipPhysics_40linear_dampin
   return __pyx_r;
 }
 
-/* "nav_env/ships/physics.pyx":207
+/* "nav_env/ships/physics.pyx":216
  *         return self._linear_damping_matrix
  * 
  *     @property             # <<<<<<<<<<<<<<
@@ -11121,12 +11338,12 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
           (void)__Pyx_Arg_NewRef_FASTCALL(values[0]);
           kw_args--;
         }
-        else if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 207, __pyx_L3_error)
+        else if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 216, __pyx_L3_error)
         else goto __pyx_L5_argtuple_error;
       }
       if (unlikely(kw_args > 0)) {
         const Py_ssize_t kwd_pos_args = __pyx_nargs;
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_kwvalues, __pyx_pyargnames, 0, values + 0, kwd_pos_args, "nonlinear_damping_matrix") < 0)) __PYX_ERR(0, 207, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_kwvalues, __pyx_pyargnames, 0, values + 0, kwd_pos_args, "nonlinear_damping_matrix") < 0)) __PYX_ERR(0, 216, __pyx_L3_error)
       }
     } else if (unlikely(__pyx_nargs != 1)) {
       goto __pyx_L5_argtuple_error;
@@ -11137,7 +11354,7 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
   }
   goto __pyx_L6_skip;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("nonlinear_damping_matrix", 1, 1, 1, __pyx_nargs); __PYX_ERR(0, 207, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("nonlinear_damping_matrix", 1, 1, 1, __pyx_nargs); __PYX_ERR(0, 216, __pyx_L3_error)
   __pyx_L6_skip:;
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L3_error:;
@@ -11173,7 +11390,7 @@ static PyObject *__pyx_pf_7nav_env_5ships_7physics_11ShipPhysics_42nonlinear_dam
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("nonlinear_damping_matrix", 1);
 
-  /* "nav_env/ships/physics.pyx":209
+  /* "nav_env/ships/physics.pyx":218
  *     @property
  *     def nonlinear_damping_matrix(self) -> Callable:
  *         return self.__get_nonlinear_damping_matrix             # <<<<<<<<<<<<<<
@@ -11181,13 +11398,13 @@ static PyObject *__pyx_pf_7nav_env_5ships_7physics_11ShipPhysics_42nonlinear_dam
  *     @property
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_ShipPhysics__get_nonlinear_damp); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 209, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_ShipPhysics__get_nonlinear_damp); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 218, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "nav_env/ships/physics.pyx":207
+  /* "nav_env/ships/physics.pyx":216
  *         return self._linear_damping_matrix
  * 
  *     @property             # <<<<<<<<<<<<<<
@@ -11206,7 +11423,7 @@ static PyObject *__pyx_pf_7nav_env_5ships_7physics_11ShipPhysics_42nonlinear_dam
   return __pyx_r;
 }
 
-/* "nav_env/ships/physics.pyx":211
+/* "nav_env/ships/physics.pyx":220
  *         return self.__get_nonlinear_damping_matrix
  * 
  *     @property             # <<<<<<<<<<<<<<
@@ -11267,12 +11484,12 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
           (void)__Pyx_Arg_NewRef_FASTCALL(values[0]);
           kw_args--;
         }
-        else if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 211, __pyx_L3_error)
+        else if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 220, __pyx_L3_error)
         else goto __pyx_L5_argtuple_error;
       }
       if (unlikely(kw_args > 0)) {
         const Py_ssize_t kwd_pos_args = __pyx_nargs;
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_kwvalues, __pyx_pyargnames, 0, values + 0, kwd_pos_args, "rotation_matrix") < 0)) __PYX_ERR(0, 211, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_kwvalues, __pyx_pyargnames, 0, values + 0, kwd_pos_args, "rotation_matrix") < 0)) __PYX_ERR(0, 220, __pyx_L3_error)
       }
     } else if (unlikely(__pyx_nargs != 1)) {
       goto __pyx_L5_argtuple_error;
@@ -11283,7 +11500,7 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
   }
   goto __pyx_L6_skip;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("rotation_matrix", 1, 1, 1, __pyx_nargs); __PYX_ERR(0, 211, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("rotation_matrix", 1, 1, 1, __pyx_nargs); __PYX_ERR(0, 220, __pyx_L3_error)
   __pyx_L6_skip:;
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L3_error:;
@@ -11319,7 +11536,7 @@ static PyObject *__pyx_pf_7nav_env_5ships_7physics_11ShipPhysics_44rotation_matr
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("rotation_matrix", 1);
 
-  /* "nav_env/ships/physics.pyx":213
+  /* "nav_env/ships/physics.pyx":222
  *     @property
  *     def rotation_matrix(self) -> Callable:
  *         return self.__get_rotation_matrix             # <<<<<<<<<<<<<<
@@ -11327,13 +11544,13 @@ static PyObject *__pyx_pf_7nav_env_5ships_7physics_11ShipPhysics_44rotation_matr
  *     @property
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_ShipPhysics__get_rotation_matri); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 213, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_ShipPhysics__get_rotation_matri); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 222, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "nav_env/ships/physics.pyx":211
+  /* "nav_env/ships/physics.pyx":220
  *         return self.__get_nonlinear_damping_matrix
  * 
  *     @property             # <<<<<<<<<<<<<<
@@ -11352,7 +11569,7 @@ static PyObject *__pyx_pf_7nav_env_5ships_7physics_11ShipPhysics_44rotation_matr
   return __pyx_r;
 }
 
-/* "nav_env/ships/physics.pyx":215
+/* "nav_env/ships/physics.pyx":224
  *         return self.__get_rotation_matrix
  * 
  *     @property             # <<<<<<<<<<<<<<
@@ -11413,12 +11630,12 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
           (void)__Pyx_Arg_NewRef_FASTCALL(values[0]);
           kw_args--;
         }
-        else if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 215, __pyx_L3_error)
+        else if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 224, __pyx_L3_error)
         else goto __pyx_L5_argtuple_error;
       }
       if (unlikely(kw_args > 0)) {
         const Py_ssize_t kwd_pos_args = __pyx_nargs;
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_kwvalues, __pyx_pyargnames, 0, values + 0, kwd_pos_args, "i_z") < 0)) __PYX_ERR(0, 215, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_kwvalues, __pyx_pyargnames, 0, values + 0, kwd_pos_args, "i_z") < 0)) __PYX_ERR(0, 224, __pyx_L3_error)
       }
     } else if (unlikely(__pyx_nargs != 1)) {
       goto __pyx_L5_argtuple_error;
@@ -11429,7 +11646,7 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
   }
   goto __pyx_L6_skip;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("i_z", 1, 1, 1, __pyx_nargs); __PYX_ERR(0, 215, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("i_z", 1, 1, 1, __pyx_nargs); __PYX_ERR(0, 224, __pyx_L3_error)
   __pyx_L6_skip:;
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L3_error:;
@@ -11465,7 +11682,7 @@ static PyObject *__pyx_pf_7nav_env_5ships_7physics_11ShipPhysics_46i_z(CYTHON_UN
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("i_z", 1);
 
-  /* "nav_env/ships/physics.pyx":217
+  /* "nav_env/ships/physics.pyx":226
  *     @property
  *     def i_z(self) -> float:
  *         return self._i_z             # <<<<<<<<<<<<<<
@@ -11473,13 +11690,13 @@ static PyObject *__pyx_pf_7nav_env_5ships_7physics_11ShipPhysics_46i_z(CYTHON_UN
  *     @property
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_i_z); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 217, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_i_z); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 226, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "nav_env/ships/physics.pyx":215
+  /* "nav_env/ships/physics.pyx":224
  *         return self.__get_rotation_matrix
  * 
  *     @property             # <<<<<<<<<<<<<<
@@ -11498,7 +11715,7 @@ static PyObject *__pyx_pf_7nav_env_5ships_7physics_11ShipPhysics_46i_z(CYTHON_UN
   return __pyx_r;
 }
 
-/* "nav_env/ships/physics.pyx":219
+/* "nav_env/ships/physics.pyx":228
  *         return self._i_z
  * 
  *     @property             # <<<<<<<<<<<<<<
@@ -11559,12 +11776,12 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
           (void)__Pyx_Arg_NewRef_FASTCALL(values[0]);
           kw_args--;
         }
-        else if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 219, __pyx_L3_error)
+        else if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 228, __pyx_L3_error)
         else goto __pyx_L5_argtuple_error;
       }
       if (unlikely(kw_args > 0)) {
         const Py_ssize_t kwd_pos_args = __pyx_nargs;
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_kwvalues, __pyx_pyargnames, 0, values + 0, kwd_pos_args, "mass") < 0)) __PYX_ERR(0, 219, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_kwvalues, __pyx_pyargnames, 0, values + 0, kwd_pos_args, "mass") < 0)) __PYX_ERR(0, 228, __pyx_L3_error)
       }
     } else if (unlikely(__pyx_nargs != 1)) {
       goto __pyx_L5_argtuple_error;
@@ -11575,7 +11792,7 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
   }
   goto __pyx_L6_skip;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("mass", 1, 1, 1, __pyx_nargs); __PYX_ERR(0, 219, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("mass", 1, 1, 1, __pyx_nargs); __PYX_ERR(0, 228, __pyx_L3_error)
   __pyx_L6_skip:;
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L3_error:;
@@ -11611,7 +11828,7 @@ static PyObject *__pyx_pf_7nav_env_5ships_7physics_11ShipPhysics_48mass(CYTHON_U
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("mass", 1);
 
-  /* "nav_env/ships/physics.pyx":221
+  /* "nav_env/ships/physics.pyx":230
  *     @property
  *     def mass(self) -> float:
  *         return self._mass             # <<<<<<<<<<<<<<
@@ -11619,13 +11836,13 @@ static PyObject *__pyx_pf_7nav_env_5ships_7physics_11ShipPhysics_48mass(CYTHON_U
  *     @property
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_mass_2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 221, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_mass_2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 230, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "nav_env/ships/physics.pyx":219
+  /* "nav_env/ships/physics.pyx":228
  *         return self._i_z
  * 
  *     @property             # <<<<<<<<<<<<<<
@@ -11644,7 +11861,7 @@ static PyObject *__pyx_pf_7nav_env_5ships_7physics_11ShipPhysics_48mass(CYTHON_U
   return __pyx_r;
 }
 
-/* "nav_env/ships/physics.pyx":223
+/* "nav_env/ships/physics.pyx":232
  *         return self._mass
  * 
  *     @property             # <<<<<<<<<<<<<<
@@ -11705,12 +11922,12 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
           (void)__Pyx_Arg_NewRef_FASTCALL(values[0]);
           kw_args--;
         }
-        else if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 223, __pyx_L3_error)
+        else if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 232, __pyx_L3_error)
         else goto __pyx_L5_argtuple_error;
       }
       if (unlikely(kw_args > 0)) {
         const Py_ssize_t kwd_pos_args = __pyx_nargs;
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_kwvalues, __pyx_pyargnames, 0, values + 0, kwd_pos_args, "x_du") < 0)) __PYX_ERR(0, 223, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_kwvalues, __pyx_pyargnames, 0, values + 0, kwd_pos_args, "x_du") < 0)) __PYX_ERR(0, 232, __pyx_L3_error)
       }
     } else if (unlikely(__pyx_nargs != 1)) {
       goto __pyx_L5_argtuple_error;
@@ -11721,7 +11938,7 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
   }
   goto __pyx_L6_skip;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("x_du", 1, 1, 1, __pyx_nargs); __PYX_ERR(0, 223, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("x_du", 1, 1, 1, __pyx_nargs); __PYX_ERR(0, 232, __pyx_L3_error)
   __pyx_L6_skip:;
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L3_error:;
@@ -11757,7 +11974,7 @@ static PyObject *__pyx_pf_7nav_env_5ships_7physics_11ShipPhysics_50x_du(CYTHON_U
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("x_du", 1);
 
-  /* "nav_env/ships/physics.pyx":225
+  /* "nav_env/ships/physics.pyx":234
  *     @property
  *     def x_du(self) -> float:
  *         return self._x_du             # <<<<<<<<<<<<<<
@@ -11765,13 +11982,13 @@ static PyObject *__pyx_pf_7nav_env_5ships_7physics_11ShipPhysics_50x_du(CYTHON_U
  *     @property
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_x_du); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 225, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_x_du); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 234, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "nav_env/ships/physics.pyx":223
+  /* "nav_env/ships/physics.pyx":232
  *         return self._mass
  * 
  *     @property             # <<<<<<<<<<<<<<
@@ -11790,7 +12007,7 @@ static PyObject *__pyx_pf_7nav_env_5ships_7physics_11ShipPhysics_50x_du(CYTHON_U
   return __pyx_r;
 }
 
-/* "nav_env/ships/physics.pyx":227
+/* "nav_env/ships/physics.pyx":236
  *         return self._x_du
  * 
  *     @property             # <<<<<<<<<<<<<<
@@ -11851,12 +12068,12 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
           (void)__Pyx_Arg_NewRef_FASTCALL(values[0]);
           kw_args--;
         }
-        else if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 227, __pyx_L3_error)
+        else if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 236, __pyx_L3_error)
         else goto __pyx_L5_argtuple_error;
       }
       if (unlikely(kw_args > 0)) {
         const Py_ssize_t kwd_pos_args = __pyx_nargs;
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_kwvalues, __pyx_pyargnames, 0, values + 0, kwd_pos_args, "y_dv") < 0)) __PYX_ERR(0, 227, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_kwvalues, __pyx_pyargnames, 0, values + 0, kwd_pos_args, "y_dv") < 0)) __PYX_ERR(0, 236, __pyx_L3_error)
       }
     } else if (unlikely(__pyx_nargs != 1)) {
       goto __pyx_L5_argtuple_error;
@@ -11867,7 +12084,7 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
   }
   goto __pyx_L6_skip;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("y_dv", 1, 1, 1, __pyx_nargs); __PYX_ERR(0, 227, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("y_dv", 1, 1, 1, __pyx_nargs); __PYX_ERR(0, 236, __pyx_L3_error)
   __pyx_L6_skip:;
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L3_error:;
@@ -11903,7 +12120,7 @@ static PyObject *__pyx_pf_7nav_env_5ships_7physics_11ShipPhysics_52y_dv(CYTHON_U
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("y_dv", 1);
 
-  /* "nav_env/ships/physics.pyx":229
+  /* "nav_env/ships/physics.pyx":238
  *     @property
  *     def y_dv(self) -> float:
  *         return self._y_dv             # <<<<<<<<<<<<<<
@@ -11911,13 +12128,13 @@ static PyObject *__pyx_pf_7nav_env_5ships_7physics_11ShipPhysics_52y_dv(CYTHON_U
  *     @property
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_y_dv); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 229, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_y_dv); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 238, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "nav_env/ships/physics.pyx":227
+  /* "nav_env/ships/physics.pyx":236
  *         return self._x_du
  * 
  *     @property             # <<<<<<<<<<<<<<
@@ -11936,7 +12153,7 @@ static PyObject *__pyx_pf_7nav_env_5ships_7physics_11ShipPhysics_52y_dv(CYTHON_U
   return __pyx_r;
 }
 
-/* "nav_env/ships/physics.pyx":231
+/* "nav_env/ships/physics.pyx":240
  *         return self._y_dv
  * 
  *     @property             # <<<<<<<<<<<<<<
@@ -11997,12 +12214,12 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
           (void)__Pyx_Arg_NewRef_FASTCALL(values[0]);
           kw_args--;
         }
-        else if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 231, __pyx_L3_error)
+        else if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 240, __pyx_L3_error)
         else goto __pyx_L5_argtuple_error;
       }
       if (unlikely(kw_args > 0)) {
         const Py_ssize_t kwd_pos_args = __pyx_nargs;
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_kwvalues, __pyx_pyargnames, 0, values + 0, kwd_pos_args, "n_dr") < 0)) __PYX_ERR(0, 231, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_kwvalues, __pyx_pyargnames, 0, values + 0, kwd_pos_args, "n_dr") < 0)) __PYX_ERR(0, 240, __pyx_L3_error)
       }
     } else if (unlikely(__pyx_nargs != 1)) {
       goto __pyx_L5_argtuple_error;
@@ -12013,7 +12230,7 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
   }
   goto __pyx_L6_skip;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("n_dr", 1, 1, 1, __pyx_nargs); __PYX_ERR(0, 231, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("n_dr", 1, 1, 1, __pyx_nargs); __PYX_ERR(0, 240, __pyx_L3_error)
   __pyx_L6_skip:;
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L3_error:;
@@ -12049,7 +12266,7 @@ static PyObject *__pyx_pf_7nav_env_5ships_7physics_11ShipPhysics_54n_dr(CYTHON_U
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("n_dr", 1);
 
-  /* "nav_env/ships/physics.pyx":233
+  /* "nav_env/ships/physics.pyx":242
  *     @property
  *     def n_dr(self) -> float:
  *         return self._n_dr             # <<<<<<<<<<<<<<
@@ -12057,13 +12274,13 @@ static PyObject *__pyx_pf_7nav_env_5ships_7physics_11ShipPhysics_54n_dr(CYTHON_U
  *     @property
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_n_dr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 233, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_n_dr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 242, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "nav_env/ships/physics.pyx":231
+  /* "nav_env/ships/physics.pyx":240
  *         return self._y_dv
  * 
  *     @property             # <<<<<<<<<<<<<<
@@ -12082,7 +12299,7 @@ static PyObject *__pyx_pf_7nav_env_5ships_7physics_11ShipPhysics_54n_dr(CYTHON_U
   return __pyx_r;
 }
 
-/* "nav_env/ships/physics.pyx":235
+/* "nav_env/ships/physics.pyx":244
  *         return self._n_dr
  * 
  *     @property             # <<<<<<<<<<<<<<
@@ -12143,12 +12360,12 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
           (void)__Pyx_Arg_NewRef_FASTCALL(values[0]);
           kw_args--;
         }
-        else if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 235, __pyx_L3_error)
+        else if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 244, __pyx_L3_error)
         else goto __pyx_L5_argtuple_error;
       }
       if (unlikely(kw_args > 0)) {
         const Py_ssize_t kwd_pos_args = __pyx_nargs;
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_kwvalues, __pyx_pyargnames, 0, values + 0, kwd_pos_args, "t_surge") < 0)) __PYX_ERR(0, 235, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_kwvalues, __pyx_pyargnames, 0, values + 0, kwd_pos_args, "t_surge") < 0)) __PYX_ERR(0, 244, __pyx_L3_error)
       }
     } else if (unlikely(__pyx_nargs != 1)) {
       goto __pyx_L5_argtuple_error;
@@ -12159,7 +12376,7 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
   }
   goto __pyx_L6_skip;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("t_surge", 1, 1, 1, __pyx_nargs); __PYX_ERR(0, 235, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("t_surge", 1, 1, 1, __pyx_nargs); __PYX_ERR(0, 244, __pyx_L3_error)
   __pyx_L6_skip:;
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L3_error:;
@@ -12195,7 +12412,7 @@ static PyObject *__pyx_pf_7nav_env_5ships_7physics_11ShipPhysics_56t_surge(CYTHO
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("t_surge", 1);
 
-  /* "nav_env/ships/physics.pyx":237
+  /* "nav_env/ships/physics.pyx":246
  *     @property
  *     def t_surge(self) -> float:
  *         return self._t_surge             # <<<<<<<<<<<<<<
@@ -12203,13 +12420,13 @@ static PyObject *__pyx_pf_7nav_env_5ships_7physics_11ShipPhysics_56t_surge(CYTHO
  *     @property
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_t_surge); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 237, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_t_surge); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 246, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "nav_env/ships/physics.pyx":235
+  /* "nav_env/ships/physics.pyx":244
  *         return self._n_dr
  * 
  *     @property             # <<<<<<<<<<<<<<
@@ -12228,7 +12445,7 @@ static PyObject *__pyx_pf_7nav_env_5ships_7physics_11ShipPhysics_56t_surge(CYTHO
   return __pyx_r;
 }
 
-/* "nav_env/ships/physics.pyx":239
+/* "nav_env/ships/physics.pyx":248
  *         return self._t_surge
  * 
  *     @property             # <<<<<<<<<<<<<<
@@ -12289,12 +12506,12 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
           (void)__Pyx_Arg_NewRef_FASTCALL(values[0]);
           kw_args--;
         }
-        else if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 239, __pyx_L3_error)
+        else if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 248, __pyx_L3_error)
         else goto __pyx_L5_argtuple_error;
       }
       if (unlikely(kw_args > 0)) {
         const Py_ssize_t kwd_pos_args = __pyx_nargs;
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_kwvalues, __pyx_pyargnames, 0, values + 0, kwd_pos_args, "t_sway") < 0)) __PYX_ERR(0, 239, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_kwvalues, __pyx_pyargnames, 0, values + 0, kwd_pos_args, "t_sway") < 0)) __PYX_ERR(0, 248, __pyx_L3_error)
       }
     } else if (unlikely(__pyx_nargs != 1)) {
       goto __pyx_L5_argtuple_error;
@@ -12305,7 +12522,7 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
   }
   goto __pyx_L6_skip;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("t_sway", 1, 1, 1, __pyx_nargs); __PYX_ERR(0, 239, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("t_sway", 1, 1, 1, __pyx_nargs); __PYX_ERR(0, 248, __pyx_L3_error)
   __pyx_L6_skip:;
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L3_error:;
@@ -12341,7 +12558,7 @@ static PyObject *__pyx_pf_7nav_env_5ships_7physics_11ShipPhysics_58t_sway(CYTHON
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("t_sway", 1);
 
-  /* "nav_env/ships/physics.pyx":241
+  /* "nav_env/ships/physics.pyx":250
  *     @property
  *     def t_sway(self) -> float:
  *         return self._t_sway             # <<<<<<<<<<<<<<
@@ -12349,13 +12566,13 @@ static PyObject *__pyx_pf_7nav_env_5ships_7physics_11ShipPhysics_58t_sway(CYTHON
  *     @property
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_t_sway); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 241, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_t_sway); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 250, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "nav_env/ships/physics.pyx":239
+  /* "nav_env/ships/physics.pyx":248
  *         return self._t_surge
  * 
  *     @property             # <<<<<<<<<<<<<<
@@ -12374,7 +12591,7 @@ static PyObject *__pyx_pf_7nav_env_5ships_7physics_11ShipPhysics_58t_sway(CYTHON
   return __pyx_r;
 }
 
-/* "nav_env/ships/physics.pyx":243
+/* "nav_env/ships/physics.pyx":252
  *         return self._t_sway
  * 
  *     @property             # <<<<<<<<<<<<<<
@@ -12435,12 +12652,12 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
           (void)__Pyx_Arg_NewRef_FASTCALL(values[0]);
           kw_args--;
         }
-        else if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 243, __pyx_L3_error)
+        else if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 252, __pyx_L3_error)
         else goto __pyx_L5_argtuple_error;
       }
       if (unlikely(kw_args > 0)) {
         const Py_ssize_t kwd_pos_args = __pyx_nargs;
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_kwvalues, __pyx_pyargnames, 0, values + 0, kwd_pos_args, "t_yaw") < 0)) __PYX_ERR(0, 243, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_kwvalues, __pyx_pyargnames, 0, values + 0, kwd_pos_args, "t_yaw") < 0)) __PYX_ERR(0, 252, __pyx_L3_error)
       }
     } else if (unlikely(__pyx_nargs != 1)) {
       goto __pyx_L5_argtuple_error;
@@ -12451,7 +12668,7 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
   }
   goto __pyx_L6_skip;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("t_yaw", 1, 1, 1, __pyx_nargs); __PYX_ERR(0, 243, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("t_yaw", 1, 1, 1, __pyx_nargs); __PYX_ERR(0, 252, __pyx_L3_error)
   __pyx_L6_skip:;
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L3_error:;
@@ -12487,7 +12704,7 @@ static PyObject *__pyx_pf_7nav_env_5ships_7physics_11ShipPhysics_60t_yaw(CYTHON_
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("t_yaw", 1);
 
-  /* "nav_env/ships/physics.pyx":245
+  /* "nav_env/ships/physics.pyx":254
  *     @property
  *     def t_yaw(self) -> float:
  *         return self._t_yaw             # <<<<<<<<<<<<<<
@@ -12495,13 +12712,13 @@ static PyObject *__pyx_pf_7nav_env_5ships_7physics_11ShipPhysics_60t_yaw(CYTHON_
  *     @property
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_t_yaw); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 245, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_t_yaw); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 254, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "nav_env/ships/physics.pyx":243
+  /* "nav_env/ships/physics.pyx":252
  *         return self._t_sway
  * 
  *     @property             # <<<<<<<<<<<<<<
@@ -12520,7 +12737,7 @@ static PyObject *__pyx_pf_7nav_env_5ships_7physics_11ShipPhysics_60t_yaw(CYTHON_
   return __pyx_r;
 }
 
-/* "nav_env/ships/physics.pyx":247
+/* "nav_env/ships/physics.pyx":256
  *         return self._t_yaw
  * 
  *     @property             # <<<<<<<<<<<<<<
@@ -12581,12 +12798,12 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
           (void)__Pyx_Arg_NewRef_FASTCALL(values[0]);
           kw_args--;
         }
-        else if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 247, __pyx_L3_error)
+        else if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 256, __pyx_L3_error)
         else goto __pyx_L5_argtuple_error;
       }
       if (unlikely(kw_args > 0)) {
         const Py_ssize_t kwd_pos_args = __pyx_nargs;
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_kwvalues, __pyx_pyargnames, 0, values + 0, kwd_pos_args, "ku") < 0)) __PYX_ERR(0, 247, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_kwvalues, __pyx_pyargnames, 0, values + 0, kwd_pos_args, "ku") < 0)) __PYX_ERR(0, 256, __pyx_L3_error)
       }
     } else if (unlikely(__pyx_nargs != 1)) {
       goto __pyx_L5_argtuple_error;
@@ -12597,7 +12814,7 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
   }
   goto __pyx_L6_skip;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("ku", 1, 1, 1, __pyx_nargs); __PYX_ERR(0, 247, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("ku", 1, 1, 1, __pyx_nargs); __PYX_ERR(0, 256, __pyx_L3_error)
   __pyx_L6_skip:;
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L3_error:;
@@ -12633,7 +12850,7 @@ static PyObject *__pyx_pf_7nav_env_5ships_7physics_11ShipPhysics_62ku(CYTHON_UNU
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("ku", 1);
 
-  /* "nav_env/ships/physics.pyx":249
+  /* "nav_env/ships/physics.pyx":258
  *     @property
  *     def ku(self) -> float:
  *         return self._ku             # <<<<<<<<<<<<<<
@@ -12641,13 +12858,13 @@ static PyObject *__pyx_pf_7nav_env_5ships_7physics_11ShipPhysics_62ku(CYTHON_UNU
  *     @property
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_ku); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 249, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_ku); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 258, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "nav_env/ships/physics.pyx":247
+  /* "nav_env/ships/physics.pyx":256
  *         return self._t_yaw
  * 
  *     @property             # <<<<<<<<<<<<<<
@@ -12666,7 +12883,7 @@ static PyObject *__pyx_pf_7nav_env_5ships_7physics_11ShipPhysics_62ku(CYTHON_UNU
   return __pyx_r;
 }
 
-/* "nav_env/ships/physics.pyx":251
+/* "nav_env/ships/physics.pyx":260
  *         return self._ku
  * 
  *     @property             # <<<<<<<<<<<<<<
@@ -12727,12 +12944,12 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
           (void)__Pyx_Arg_NewRef_FASTCALL(values[0]);
           kw_args--;
         }
-        else if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 251, __pyx_L3_error)
+        else if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 260, __pyx_L3_error)
         else goto __pyx_L5_argtuple_error;
       }
       if (unlikely(kw_args > 0)) {
         const Py_ssize_t kwd_pos_args = __pyx_nargs;
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_kwvalues, __pyx_pyargnames, 0, values + 0, kwd_pos_args, "kv") < 0)) __PYX_ERR(0, 251, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_kwvalues, __pyx_pyargnames, 0, values + 0, kwd_pos_args, "kv") < 0)) __PYX_ERR(0, 260, __pyx_L3_error)
       }
     } else if (unlikely(__pyx_nargs != 1)) {
       goto __pyx_L5_argtuple_error;
@@ -12743,7 +12960,7 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
   }
   goto __pyx_L6_skip;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("kv", 1, 1, 1, __pyx_nargs); __PYX_ERR(0, 251, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("kv", 1, 1, 1, __pyx_nargs); __PYX_ERR(0, 260, __pyx_L3_error)
   __pyx_L6_skip:;
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L3_error:;
@@ -12779,7 +12996,7 @@ static PyObject *__pyx_pf_7nav_env_5ships_7physics_11ShipPhysics_64kv(CYTHON_UNU
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("kv", 1);
 
-  /* "nav_env/ships/physics.pyx":253
+  /* "nav_env/ships/physics.pyx":262
  *     @property
  *     def kv(self) -> float:
  *         return self._kv             # <<<<<<<<<<<<<<
@@ -12787,13 +13004,13 @@ static PyObject *__pyx_pf_7nav_env_5ships_7physics_11ShipPhysics_64kv(CYTHON_UNU
  *     @property
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_kv); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 253, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_kv); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 262, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "nav_env/ships/physics.pyx":251
+  /* "nav_env/ships/physics.pyx":260
  *         return self._ku
  * 
  *     @property             # <<<<<<<<<<<<<<
@@ -12812,7 +13029,7 @@ static PyObject *__pyx_pf_7nav_env_5ships_7physics_11ShipPhysics_64kv(CYTHON_UNU
   return __pyx_r;
 }
 
-/* "nav_env/ships/physics.pyx":255
+/* "nav_env/ships/physics.pyx":264
  *         return self._kv
  * 
  *     @property             # <<<<<<<<<<<<<<
@@ -12873,12 +13090,12 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
           (void)__Pyx_Arg_NewRef_FASTCALL(values[0]);
           kw_args--;
         }
-        else if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 255, __pyx_L3_error)
+        else if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 264, __pyx_L3_error)
         else goto __pyx_L5_argtuple_error;
       }
       if (unlikely(kw_args > 0)) {
         const Py_ssize_t kwd_pos_args = __pyx_nargs;
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_kwvalues, __pyx_pyargnames, 0, values + 0, kwd_pos_args, "kr") < 0)) __PYX_ERR(0, 255, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_kwvalues, __pyx_pyargnames, 0, values + 0, kwd_pos_args, "kr") < 0)) __PYX_ERR(0, 264, __pyx_L3_error)
       }
     } else if (unlikely(__pyx_nargs != 1)) {
       goto __pyx_L5_argtuple_error;
@@ -12889,7 +13106,7 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
   }
   goto __pyx_L6_skip;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("kr", 1, 1, 1, __pyx_nargs); __PYX_ERR(0, 255, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("kr", 1, 1, 1, __pyx_nargs); __PYX_ERR(0, 264, __pyx_L3_error)
   __pyx_L6_skip:;
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L3_error:;
@@ -12925,7 +13142,7 @@ static PyObject *__pyx_pf_7nav_env_5ships_7physics_11ShipPhysics_66kr(CYTHON_UNU
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("kr", 1);
 
-  /* "nav_env/ships/physics.pyx":257
+  /* "nav_env/ships/physics.pyx":266
  *     @property
  *     def kr(self) -> float:
  *         return self._kr             # <<<<<<<<<<<<<<
@@ -12933,13 +13150,13 @@ static PyObject *__pyx_pf_7nav_env_5ships_7physics_11ShipPhysics_66kr(CYTHON_UNU
  *     @property
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_kr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 257, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_kr); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 266, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "nav_env/ships/physics.pyx":255
+  /* "nav_env/ships/physics.pyx":264
  *         return self._kv
  * 
  *     @property             # <<<<<<<<<<<<<<
@@ -12958,7 +13175,7 @@ static PyObject *__pyx_pf_7nav_env_5ships_7physics_11ShipPhysics_66kr(CYTHON_UNU
   return __pyx_r;
 }
 
-/* "nav_env/ships/physics.pyx":259
+/* "nav_env/ships/physics.pyx":268
  *         return self._kr
  * 
  *     @property             # <<<<<<<<<<<<<<
@@ -13019,12 +13236,12 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
           (void)__Pyx_Arg_NewRef_FASTCALL(values[0]);
           kw_args--;
         }
-        else if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 259, __pyx_L3_error)
+        else if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 268, __pyx_L3_error)
         else goto __pyx_L5_argtuple_error;
       }
       if (unlikely(kw_args > 0)) {
         const Py_ssize_t kwd_pos_args = __pyx_nargs;
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_kwvalues, __pyx_pyargnames, 0, values + 0, kwd_pos_args, "params") < 0)) __PYX_ERR(0, 259, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_kwvalues, __pyx_pyargnames, 0, values + 0, kwd_pos_args, "params") < 0)) __PYX_ERR(0, 268, __pyx_L3_error)
       }
     } else if (unlikely(__pyx_nargs != 1)) {
       goto __pyx_L5_argtuple_error;
@@ -13035,7 +13252,7 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
   }
   goto __pyx_L6_skip;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("params", 1, 1, 1, __pyx_nargs); __PYX_ERR(0, 259, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("params", 1, 1, 1, __pyx_nargs); __PYX_ERR(0, 268, __pyx_L3_error)
   __pyx_L6_skip:;
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L3_error:;
@@ -13071,7 +13288,7 @@ static PyObject *__pyx_pf_7nav_env_5ships_7physics_11ShipPhysics_68params(CYTHON
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("params", 1);
 
-  /* "nav_env/ships/physics.pyx":261
+  /* "nav_env/ships/physics.pyx":270
  *     @property
  *     def params(self) -> ShipPhysicalParams:
  *         return self._params             # <<<<<<<<<<<<<<
@@ -13079,13 +13296,13 @@ static PyObject *__pyx_pf_7nav_env_5ships_7physics_11ShipPhysics_68params(CYTHON
  *     @property
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_params); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 261, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_params); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 270, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "nav_env/ships/physics.pyx":259
+  /* "nav_env/ships/physics.pyx":268
  *         return self._kr
  * 
  *     @property             # <<<<<<<<<<<<<<
@@ -13104,7 +13321,7 @@ static PyObject *__pyx_pf_7nav_env_5ships_7physics_11ShipPhysics_68params(CYTHON
   return __pyx_r;
 }
 
-/* "nav_env/ships/physics.pyx":263
+/* "nav_env/ships/physics.pyx":272
  *         return self._params
  * 
  *     @property             # <<<<<<<<<<<<<<
@@ -13165,12 +13382,12 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
           (void)__Pyx_Arg_NewRef_FASTCALL(values[0]);
           kw_args--;
         }
-        else if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 263, __pyx_L3_error)
+        else if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 272, __pyx_L3_error)
         else goto __pyx_L5_argtuple_error;
       }
       if (unlikely(kw_args > 0)) {
         const Py_ssize_t kwd_pos_args = __pyx_nargs;
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_kwvalues, __pyx_pyargnames, 0, values + 0, kwd_pos_args, "x_g") < 0)) __PYX_ERR(0, 263, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_kwvalues, __pyx_pyargnames, 0, values + 0, kwd_pos_args, "x_g") < 0)) __PYX_ERR(0, 272, __pyx_L3_error)
       }
     } else if (unlikely(__pyx_nargs != 1)) {
       goto __pyx_L5_argtuple_error;
@@ -13181,7 +13398,7 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
   }
   goto __pyx_L6_skip;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("x_g", 1, 1, 1, __pyx_nargs); __PYX_ERR(0, 263, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("x_g", 1, 1, 1, __pyx_nargs); __PYX_ERR(0, 272, __pyx_L3_error)
   __pyx_L6_skip:;
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L3_error:;
@@ -13217,7 +13434,7 @@ static PyObject *__pyx_pf_7nav_env_5ships_7physics_11ShipPhysics_70x_g(CYTHON_UN
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("x_g", 1);
 
-  /* "nav_env/ships/physics.pyx":265
+  /* "nav_env/ships/physics.pyx":274
  *     @property
  *     def x_g(self) -> float:
  *         return self._x_g             # <<<<<<<<<<<<<<
@@ -13225,13 +13442,13 @@ static PyObject *__pyx_pf_7nav_env_5ships_7physics_11ShipPhysics_70x_g(CYTHON_UN
  *     @property
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_x_g_2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 265, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_x_g_2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 274, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "nav_env/ships/physics.pyx":263
+  /* "nav_env/ships/physics.pyx":272
  *         return self._params
  * 
  *     @property             # <<<<<<<<<<<<<<
@@ -13250,7 +13467,7 @@ static PyObject *__pyx_pf_7nav_env_5ships_7physics_11ShipPhysics_70x_g(CYTHON_UN
   return __pyx_r;
 }
 
-/* "nav_env/ships/physics.pyx":267
+/* "nav_env/ships/physics.pyx":276
  *         return self._x_g
  * 
  *     @property             # <<<<<<<<<<<<<<
@@ -13311,12 +13528,12 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
           (void)__Pyx_Arg_NewRef_FASTCALL(values[0]);
           kw_args--;
         }
-        else if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 267, __pyx_L3_error)
+        else if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 276, __pyx_L3_error)
         else goto __pyx_L5_argtuple_error;
       }
       if (unlikely(kw_args > 0)) {
         const Py_ssize_t kwd_pos_args = __pyx_nargs;
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_kwvalues, __pyx_pyargnames, 0, values + 0, kwd_pos_args, "length") < 0)) __PYX_ERR(0, 267, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_kwvalues, __pyx_pyargnames, 0, values + 0, kwd_pos_args, "length") < 0)) __PYX_ERR(0, 276, __pyx_L3_error)
       }
     } else if (unlikely(__pyx_nargs != 1)) {
       goto __pyx_L5_argtuple_error;
@@ -13327,7 +13544,7 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
   }
   goto __pyx_L6_skip;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("length", 1, 1, 1, __pyx_nargs); __PYX_ERR(0, 267, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("length", 1, 1, 1, __pyx_nargs); __PYX_ERR(0, 276, __pyx_L3_error)
   __pyx_L6_skip:;
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L3_error:;
@@ -13363,7 +13580,7 @@ static PyObject *__pyx_pf_7nav_env_5ships_7physics_11ShipPhysics_72length(CYTHON
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("length", 1);
 
-  /* "nav_env/ships/physics.pyx":269
+  /* "nav_env/ships/physics.pyx":278
  *     @property
  *     def length(self) -> float:
  *         return self._length             # <<<<<<<<<<<<<<
@@ -13371,13 +13588,13 @@ static PyObject *__pyx_pf_7nav_env_5ships_7physics_11ShipPhysics_72length(CYTHON
  *     @property
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_length); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 269, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_length); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 278, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "nav_env/ships/physics.pyx":267
+  /* "nav_env/ships/physics.pyx":276
  *         return self._x_g
  * 
  *     @property             # <<<<<<<<<<<<<<
@@ -13396,7 +13613,7 @@ static PyObject *__pyx_pf_7nav_env_5ships_7physics_11ShipPhysics_72length(CYTHON
   return __pyx_r;
 }
 
-/* "nav_env/ships/physics.pyx":271
+/* "nav_env/ships/physics.pyx":280
  *         return self._length
  * 
  *     @property             # <<<<<<<<<<<<<<
@@ -13457,12 +13674,12 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
           (void)__Pyx_Arg_NewRef_FASTCALL(values[0]);
           kw_args--;
         }
-        else if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 271, __pyx_L3_error)
+        else if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 280, __pyx_L3_error)
         else goto __pyx_L5_argtuple_error;
       }
       if (unlikely(kw_args > 0)) {
         const Py_ssize_t kwd_pos_args = __pyx_nargs;
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_kwvalues, __pyx_pyargnames, 0, values + 0, kwd_pos_args, "width") < 0)) __PYX_ERR(0, 271, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_kwvalues, __pyx_pyargnames, 0, values + 0, kwd_pos_args, "width") < 0)) __PYX_ERR(0, 280, __pyx_L3_error)
       }
     } else if (unlikely(__pyx_nargs != 1)) {
       goto __pyx_L5_argtuple_error;
@@ -13473,7 +13690,7 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
   }
   goto __pyx_L6_skip;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("width", 1, 1, 1, __pyx_nargs); __PYX_ERR(0, 271, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("width", 1, 1, 1, __pyx_nargs); __PYX_ERR(0, 280, __pyx_L3_error)
   __pyx_L6_skip:;
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L3_error:;
@@ -13509,7 +13726,7 @@ static PyObject *__pyx_pf_7nav_env_5ships_7physics_11ShipPhysics_74width(CYTHON_
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("width", 1);
 
-  /* "nav_env/ships/physics.pyx":273
+  /* "nav_env/ships/physics.pyx":282
  *     @property
  *     def width(self) -> float:
  *         return self._width             # <<<<<<<<<<<<<<
@@ -13517,13 +13734,13 @@ static PyObject *__pyx_pf_7nav_env_5ships_7physics_11ShipPhysics_74width(CYTHON_
  *     @property
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_width); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 273, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_width); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 282, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "nav_env/ships/physics.pyx":271
+  /* "nav_env/ships/physics.pyx":280
  *         return self._length
  * 
  *     @property             # <<<<<<<<<<<<<<
@@ -13542,7 +13759,7 @@ static PyObject *__pyx_pf_7nav_env_5ships_7physics_11ShipPhysics_74width(CYTHON_
   return __pyx_r;
 }
 
-/* "nav_env/ships/physics.pyx":275
+/* "nav_env/ships/physics.pyx":284
  *         return self._width
  * 
  *     @property             # <<<<<<<<<<<<<<
@@ -13603,12 +13820,12 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
           (void)__Pyx_Arg_NewRef_FASTCALL(values[0]);
           kw_args--;
         }
-        else if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 275, __pyx_L3_error)
+        else if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 284, __pyx_L3_error)
         else goto __pyx_L5_argtuple_error;
       }
       if (unlikely(kw_args > 0)) {
         const Py_ssize_t kwd_pos_args = __pyx_nargs;
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_kwvalues, __pyx_pyargnames, 0, values + 0, kwd_pos_args, "proj_area_front") < 0)) __PYX_ERR(0, 275, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_kwvalues, __pyx_pyargnames, 0, values + 0, kwd_pos_args, "proj_area_front") < 0)) __PYX_ERR(0, 284, __pyx_L3_error)
       }
     } else if (unlikely(__pyx_nargs != 1)) {
       goto __pyx_L5_argtuple_error;
@@ -13619,7 +13836,7 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
   }
   goto __pyx_L6_skip;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("proj_area_front", 1, 1, 1, __pyx_nargs); __PYX_ERR(0, 275, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("proj_area_front", 1, 1, 1, __pyx_nargs); __PYX_ERR(0, 284, __pyx_L3_error)
   __pyx_L6_skip:;
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L3_error:;
@@ -13655,7 +13872,7 @@ static PyObject *__pyx_pf_7nav_env_5ships_7physics_11ShipPhysics_76proj_area_fro
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("proj_area_front", 1);
 
-  /* "nav_env/ships/physics.pyx":277
+  /* "nav_env/ships/physics.pyx":286
  *     @property
  *     def proj_area_front(self) -> float:
  *         return self._proj_area_front             # <<<<<<<<<<<<<<
@@ -13663,13 +13880,13 @@ static PyObject *__pyx_pf_7nav_env_5ships_7physics_11ShipPhysics_76proj_area_fro
  *     @property
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_proj_area_front); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 277, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_proj_area_front); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 286, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "nav_env/ships/physics.pyx":275
+  /* "nav_env/ships/physics.pyx":284
  *         return self._width
  * 
  *     @property             # <<<<<<<<<<<<<<
@@ -13688,7 +13905,7 @@ static PyObject *__pyx_pf_7nav_env_5ships_7physics_11ShipPhysics_76proj_area_fro
   return __pyx_r;
 }
 
-/* "nav_env/ships/physics.pyx":279
+/* "nav_env/ships/physics.pyx":288
  *         return self._proj_area_front
  * 
  *     @property             # <<<<<<<<<<<<<<
@@ -13749,12 +13966,12 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
           (void)__Pyx_Arg_NewRef_FASTCALL(values[0]);
           kw_args--;
         }
-        else if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 279, __pyx_L3_error)
+        else if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 288, __pyx_L3_error)
         else goto __pyx_L5_argtuple_error;
       }
       if (unlikely(kw_args > 0)) {
         const Py_ssize_t kwd_pos_args = __pyx_nargs;
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_kwvalues, __pyx_pyargnames, 0, values + 0, kwd_pos_args, "proj_area_side") < 0)) __PYX_ERR(0, 279, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_kwvalues, __pyx_pyargnames, 0, values + 0, kwd_pos_args, "proj_area_side") < 0)) __PYX_ERR(0, 288, __pyx_L3_error)
       }
     } else if (unlikely(__pyx_nargs != 1)) {
       goto __pyx_L5_argtuple_error;
@@ -13765,7 +13982,7 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
   }
   goto __pyx_L6_skip;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("proj_area_side", 1, 1, 1, __pyx_nargs); __PYX_ERR(0, 279, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("proj_area_side", 1, 1, 1, __pyx_nargs); __PYX_ERR(0, 288, __pyx_L3_error)
   __pyx_L6_skip:;
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L3_error:;
@@ -13801,7 +14018,7 @@ static PyObject *__pyx_pf_7nav_env_5ships_7physics_11ShipPhysics_78proj_area_sid
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("proj_area_side", 1);
 
-  /* "nav_env/ships/physics.pyx":281
+  /* "nav_env/ships/physics.pyx":290
  *     @property
  *     def proj_area_side(self) -> float:
  *         return self._proj_area_side             # <<<<<<<<<<<<<<
@@ -13809,13 +14026,13 @@ static PyObject *__pyx_pf_7nav_env_5ships_7physics_11ShipPhysics_78proj_area_sid
  *     @property
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_proj_area_side); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 281, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_proj_area_side); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 290, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "nav_env/ships/physics.pyx":279
+  /* "nav_env/ships/physics.pyx":288
  *         return self._proj_area_front
  * 
  *     @property             # <<<<<<<<<<<<<<
@@ -13834,7 +14051,7 @@ static PyObject *__pyx_pf_7nav_env_5ships_7physics_11ShipPhysics_78proj_area_sid
   return __pyx_r;
 }
 
-/* "nav_env/ships/physics.pyx":283
+/* "nav_env/ships/physics.pyx":292
  *         return self._proj_area_side
  * 
  *     @property             # <<<<<<<<<<<<<<
@@ -13895,12 +14112,12 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
           (void)__Pyx_Arg_NewRef_FASTCALL(values[0]);
           kw_args--;
         }
-        else if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 283, __pyx_L3_error)
+        else if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 292, __pyx_L3_error)
         else goto __pyx_L5_argtuple_error;
       }
       if (unlikely(kw_args > 0)) {
         const Py_ssize_t kwd_pos_args = __pyx_nargs;
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_kwvalues, __pyx_pyargnames, 0, values + 0, kwd_pos_args, "rho_a") < 0)) __PYX_ERR(0, 283, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_kwvalues, __pyx_pyargnames, 0, values + 0, kwd_pos_args, "rho_a") < 0)) __PYX_ERR(0, 292, __pyx_L3_error)
       }
     } else if (unlikely(__pyx_nargs != 1)) {
       goto __pyx_L5_argtuple_error;
@@ -13911,7 +14128,7 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
   }
   goto __pyx_L6_skip;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("rho_a", 1, 1, 1, __pyx_nargs); __PYX_ERR(0, 283, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("rho_a", 1, 1, 1, __pyx_nargs); __PYX_ERR(0, 292, __pyx_L3_error)
   __pyx_L6_skip:;
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L3_error:;
@@ -13947,7 +14164,7 @@ static PyObject *__pyx_pf_7nav_env_5ships_7physics_11ShipPhysics_80rho_a(CYTHON_
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("rho_a", 1);
 
-  /* "nav_env/ships/physics.pyx":285
+  /* "nav_env/ships/physics.pyx":294
  *     @property
  *     def rho_a(self) -> float:
  *         return self._rho_a             # <<<<<<<<<<<<<<
@@ -13955,13 +14172,13 @@ static PyObject *__pyx_pf_7nav_env_5ships_7physics_11ShipPhysics_80rho_a(CYTHON_
  * # def test():
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_rho_a); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 285, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_self, __pyx_n_s_rho_a); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 294, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "nav_env/ships/physics.pyx":283
+  /* "nav_env/ships/physics.pyx":292
  *         return self._proj_area_side
  * 
  *     @property             # <<<<<<<<<<<<<<
@@ -14139,6 +14356,8 @@ static int __Pyx_CreateStringTabAndInitStrings(void) {
     {&__pyx_n_s_inv_mass_matrix, __pyx_k_inv_mass_matrix, sizeof(__pyx_k_inv_mass_matrix), 0, 0, 1, 1},
     {&__pyx_n_s_inv_mass_matrix_2, __pyx_k_inv_mass_matrix_2, sizeof(__pyx_k_inv_mass_matrix_2), 0, 0, 1, 1},
     {&__pyx_n_s_is_coroutine, __pyx_k_is_coroutine, sizeof(__pyx_k_is_coroutine), 0, 0, 1, 1},
+    {&__pyx_n_s_iz, __pyx_k_iz, sizeof(__pyx_k_iz), 0, 0, 1, 1},
+    {&__pyx_n_s_keys, __pyx_k_keys, sizeof(__pyx_k_keys), 0, 0, 1, 1},
     {&__pyx_n_s_kr, __pyx_k_kr, sizeof(__pyx_k_kr), 0, 0, 1, 1},
     {&__pyx_n_s_kr_2, __pyx_k_kr_2, sizeof(__pyx_k_kr_2), 0, 0, 1, 1},
     {&__pyx_n_s_ku, __pyx_k_ku, sizeof(__pyx_k_ku), 0, 0, 1, 1},
@@ -14183,6 +14402,7 @@ static int __Pyx_CreateStringTabAndInitStrings(void) {
     {&__pyx_n_s_prepare, __pyx_k_prepare, sizeof(__pyx_k_prepare), 0, 0, 1, 1},
     {&__pyx_n_s_proj_area_front, __pyx_k_proj_area_front, sizeof(__pyx_k_proj_area_front), 0, 0, 1, 1},
     {&__pyx_n_s_proj_area_front_2, __pyx_k_proj_area_front_2, sizeof(__pyx_k_proj_area_front_2), 0, 0, 1, 1},
+    {&__pyx_n_s_proj_area_lateral, __pyx_k_proj_area_lateral, sizeof(__pyx_k_proj_area_lateral), 0, 0, 1, 1},
     {&__pyx_n_s_proj_area_side, __pyx_k_proj_area_side, sizeof(__pyx_k_proj_area_side), 0, 0, 1, 1},
     {&__pyx_n_s_proj_area_side_2, __pyx_k_proj_area_side_2, sizeof(__pyx_k_proj_area_side_2), 0, 0, 1, 1},
     {&__pyx_n_s_property, __pyx_k_property, sizeof(__pyx_k_property), 0, 0, 1, 1},
@@ -14258,7 +14478,7 @@ static int __Pyx_CreateStringTabAndInitStrings(void) {
 }
 /* #### Code section: cached_builtins ### */
 static CYTHON_SMALL_CODE int __Pyx_InitCachedBuiltins(void) {
-  __pyx_builtin_property = __Pyx_GetBuiltinName(__pyx_n_s_property); if (!__pyx_builtin_property) __PYX_ERR(0, 191, __pyx_L1_error)
+  __pyx_builtin_property = __Pyx_GetBuiltinName(__pyx_n_s_property); if (!__pyx_builtin_property) __PYX_ERR(0, 200, __pyx_L1_error)
   return 0;
   __pyx_L1_error:;
   return -1;
@@ -14269,14 +14489,14 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
   __Pyx_RefNannyDeclarations
   __Pyx_RefNannySetupContext("__Pyx_InitCachedConstants", 0);
 
-  /* "nav_env/ships/physics.pyx":143
+  /* "nav_env/ships/physics.pyx":152
  *         pose_dot_in_ship_frame = np.dot(R3d, states.vel)
  * 
  *         states_in_ship_frame = States3(0., 0., 0., *pose_dot_in_ship_frame)             # <<<<<<<<<<<<<<
  *         # print(states_in_ship_frame)
  * 
  */
-  __pyx_tuple_ = PyTuple_Pack(3, __pyx_float_0_, __pyx_float_0_, __pyx_float_0_); if (unlikely(!__pyx_tuple_)) __PYX_ERR(0, 143, __pyx_L1_error)
+  __pyx_tuple_ = PyTuple_Pack(3, __pyx_float_0_, __pyx_float_0_, __pyx_float_0_); if (unlikely(!__pyx_tuple_)) __PYX_ERR(0, 152, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple_);
   __Pyx_GIVEREF(__pyx_tuple_);
 
@@ -14296,414 +14516,414 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
  *         self._linear_damping_matrix = self.__get_linear_damping_matrix()
  * 
  *     def __get_moment_of_inertia_about_z(self) -> float:             # <<<<<<<<<<<<<<
- *         l = self._params.dimensions['length']
- *         w = self._params.dimensions['width']
+ *         if 'iz' in self._params.inertia.keys():
+ *             return self._params.inertia['iz']
  */
   __pyx_tuple__6 = PyTuple_Pack(3, __pyx_n_s_self, __pyx_n_s_l, __pyx_n_s_w); if (unlikely(!__pyx_tuple__6)) __PYX_ERR(0, 22, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__6);
   __Pyx_GIVEREF(__pyx_tuple__6);
   __pyx_codeobj__7 = (PyObject*)__Pyx_PyCode_New(1, 0, 0, 3, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__6, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_nav_env_ships_physics_pyx, __pyx_n_s_get_moment_of_inertia_about_z, 22, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__7)) __PYX_ERR(0, 22, __pyx_L1_error)
 
-  /* "nav_env/ships/physics.pyx":27
- *         return  self._mass * (l**2 + w**2) / 12
+  /* "nav_env/ships/physics.pyx":30
+ *             return  self._mass * (l**2 + w**2) / 12
  * 
  *     def __get_added_mass(self) -> tuple[float, float, float]:             # <<<<<<<<<<<<<<
  *         x_du = self._mass * self._params.added_mass_coefficient['surge']
  *         y_dv = self._mass * self._params.added_mass_coefficient['sway']
  */
-  __pyx_tuple__8 = PyTuple_Pack(4, __pyx_n_s_self, __pyx_n_s_x_du_2, __pyx_n_s_y_dv_2, __pyx_n_s_n_dr_2); if (unlikely(!__pyx_tuple__8)) __PYX_ERR(0, 27, __pyx_L1_error)
+  __pyx_tuple__8 = PyTuple_Pack(4, __pyx_n_s_self, __pyx_n_s_x_du_2, __pyx_n_s_y_dv_2, __pyx_n_s_n_dr_2); if (unlikely(!__pyx_tuple__8)) __PYX_ERR(0, 30, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__8);
   __Pyx_GIVEREF(__pyx_tuple__8);
-  __pyx_codeobj__9 = (PyObject*)__Pyx_PyCode_New(1, 0, 0, 4, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__8, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_nav_env_ships_physics_pyx, __pyx_n_s_get_added_mass, 27, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__9)) __PYX_ERR(0, 27, __pyx_L1_error)
+  __pyx_codeobj__9 = (PyObject*)__Pyx_PyCode_New(1, 0, 0, 4, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__8, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_nav_env_ships_physics_pyx, __pyx_n_s_get_added_mass, 30, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__9)) __PYX_ERR(0, 30, __pyx_L1_error)
 
-  /* "nav_env/ships/physics.pyx":33
+  /* "nav_env/ships/physics.pyx":36
  *         return x_du, y_dv, n_dr
  * 
  *     def __get_dimensions_and_projection(self) -> tuple[float, float, float, float]:             # <<<<<<<<<<<<<<
  *         dimensions = self._params.dimensions
- *         proj_area_front = dimensions['width'] * dimensions['h_front']
+ *         if 'proj_area_front' in dimensions.keys():
  */
-  __pyx_tuple__10 = PyTuple_Pack(4, __pyx_n_s_self, __pyx_n_s_dimensions, __pyx_n_s_proj_area_front_2, __pyx_n_s_proj_area_side_2); if (unlikely(!__pyx_tuple__10)) __PYX_ERR(0, 33, __pyx_L1_error)
+  __pyx_tuple__10 = PyTuple_Pack(4, __pyx_n_s_self, __pyx_n_s_dimensions, __pyx_n_s_proj_area_front_2, __pyx_n_s_proj_area_side_2); if (unlikely(!__pyx_tuple__10)) __PYX_ERR(0, 36, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__10);
   __Pyx_GIVEREF(__pyx_tuple__10);
-  __pyx_codeobj__11 = (PyObject*)__Pyx_PyCode_New(1, 0, 0, 4, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__10, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_nav_env_ships_physics_pyx, __pyx_n_s_get_dimensions_and_projection, 33, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__11)) __PYX_ERR(0, 33, __pyx_L1_error)
+  __pyx_codeobj__11 = (PyObject*)__Pyx_PyCode_New(1, 0, 0, 4, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__10, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_nav_env_ships_physics_pyx, __pyx_n_s_get_dimensions_and_projection, 36, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__11)) __PYX_ERR(0, 36, __pyx_L1_error)
 
-  /* "nav_env/ships/physics.pyx":39
+  /* "nav_env/ships/physics.pyx":48
  *         return dimensions['length'], dimensions['width'], proj_area_front, proj_area_side
  * 
  *     def __get_nonlinear_friction_coefficients(self) -> tuple[float, float, float]:             # <<<<<<<<<<<<<<
  *         nonlinear_friction = self._params.nonlinear_friction_coefficient
  *         return nonlinear_friction['surge'], nonlinear_friction['sway'], nonlinear_friction['yaw']
  */
-  __pyx_tuple__12 = PyTuple_Pack(2, __pyx_n_s_self, __pyx_n_s_nonlinear_friction); if (unlikely(!__pyx_tuple__12)) __PYX_ERR(0, 39, __pyx_L1_error)
+  __pyx_tuple__12 = PyTuple_Pack(2, __pyx_n_s_self, __pyx_n_s_nonlinear_friction); if (unlikely(!__pyx_tuple__12)) __PYX_ERR(0, 48, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__12);
   __Pyx_GIVEREF(__pyx_tuple__12);
-  __pyx_codeobj__13 = (PyObject*)__Pyx_PyCode_New(1, 0, 0, 2, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__12, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_nav_env_ships_physics_pyx, __pyx_n_s_get_nonlinear_friction_coeffic, 39, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__13)) __PYX_ERR(0, 39, __pyx_L1_error)
+  __pyx_codeobj__13 = (PyObject*)__Pyx_PyCode_New(1, 0, 0, 2, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__12, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_nav_env_ships_physics_pyx, __pyx_n_s_get_nonlinear_friction_coeffic, 48, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__13)) __PYX_ERR(0, 48, __pyx_L1_error)
 
-  /* "nav_env/ships/physics.pyx":43
+  /* "nav_env/ships/physics.pyx":52
  *         return nonlinear_friction['surge'], nonlinear_friction['sway'], nonlinear_friction['yaw']
  * 
  *     def __get_wind_coefficients(self) -> tuple[float, float, float, float]:             # <<<<<<<<<<<<<<
  *         wind = self._params.wind
  *         return wind['rho_a'], wind['cx'], wind['cy'], wind['cn']
  */
-  __pyx_tuple__14 = PyTuple_Pack(2, __pyx_n_s_self, __pyx_n_s_wind); if (unlikely(!__pyx_tuple__14)) __PYX_ERR(0, 43, __pyx_L1_error)
+  __pyx_tuple__14 = PyTuple_Pack(2, __pyx_n_s_self, __pyx_n_s_wind); if (unlikely(!__pyx_tuple__14)) __PYX_ERR(0, 52, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__14);
   __Pyx_GIVEREF(__pyx_tuple__14);
-  __pyx_codeobj__15 = (PyObject*)__Pyx_PyCode_New(1, 0, 0, 2, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__14, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_nav_env_ships_physics_pyx, __pyx_n_s_get_wind_coefficients, 43, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__15)) __PYX_ERR(0, 43, __pyx_L1_error)
+  __pyx_codeobj__15 = (PyObject*)__Pyx_PyCode_New(1, 0, 0, 2, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__14, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_nav_env_ships_physics_pyx, __pyx_n_s_get_wind_coefficients, 52, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__15)) __PYX_ERR(0, 52, __pyx_L1_error)
 
-  /* "nav_env/ships/physics.pyx":47
+  /* "nav_env/ships/physics.pyx":56
  *         return wind['rho_a'], wind['cx'], wind['cy'], wind['cn']
  * 
  *     def __get_mass_over_linear_friction_coefficients(self) -> tuple[float, float, float]:             # <<<<<<<<<<<<<<
  *         mass_over_linear_friction_coefficient = self._params.mass_over_linear_friction_coefficient
  *         return mass_over_linear_friction_coefficient['surge'], mass_over_linear_friction_coefficient['sway'], mass_over_linear_friction_coefficient['yaw']
  */
-  __pyx_tuple__16 = PyTuple_Pack(2, __pyx_n_s_self, __pyx_n_s_mass_over_linear_friction_coeffi); if (unlikely(!__pyx_tuple__16)) __PYX_ERR(0, 47, __pyx_L1_error)
+  __pyx_tuple__16 = PyTuple_Pack(2, __pyx_n_s_self, __pyx_n_s_mass_over_linear_friction_coeffi); if (unlikely(!__pyx_tuple__16)) __PYX_ERR(0, 56, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__16);
   __Pyx_GIVEREF(__pyx_tuple__16);
-  __pyx_codeobj__17 = (PyObject*)__Pyx_PyCode_New(1, 0, 0, 2, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__16, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_nav_env_ships_physics_pyx, __pyx_n_s_get_mass_over_linear_friction, 47, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__17)) __PYX_ERR(0, 47, __pyx_L1_error)
+  __pyx_codeobj__17 = (PyObject*)__Pyx_PyCode_New(1, 0, 0, 2, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__16, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_nav_env_ships_physics_pyx, __pyx_n_s_get_mass_over_linear_friction, 56, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__17)) __PYX_ERR(0, 56, __pyx_L1_error)
 
-  /* "nav_env/ships/physics.pyx":51
+  /* "nav_env/ships/physics.pyx":60
  *         return mass_over_linear_friction_coefficient['surge'], mass_over_linear_friction_coefficient['sway'], mass_over_linear_friction_coefficient['yaw']
  * 
  *     def __get_inv_mass_matrix(self) -> np.ndarray:             # <<<<<<<<<<<<<<
  *         return np.linalg.inv(np.array([
  *                 [self._mass + self._x_du, 0., 0.],
  */
-  __pyx_tuple__18 = PyTuple_Pack(1, __pyx_n_s_self); if (unlikely(!__pyx_tuple__18)) __PYX_ERR(0, 51, __pyx_L1_error)
+  __pyx_tuple__18 = PyTuple_Pack(1, __pyx_n_s_self); if (unlikely(!__pyx_tuple__18)) __PYX_ERR(0, 60, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__18);
   __Pyx_GIVEREF(__pyx_tuple__18);
-  __pyx_codeobj__19 = (PyObject*)__Pyx_PyCode_New(1, 0, 0, 1, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__18, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_nav_env_ships_physics_pyx, __pyx_n_s_get_inv_mass_matrix, 51, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__19)) __PYX_ERR(0, 51, __pyx_L1_error)
+  __pyx_codeobj__19 = (PyObject*)__Pyx_PyCode_New(1, 0, 0, 1, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__18, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_nav_env_ships_physics_pyx, __pyx_n_s_get_inv_mass_matrix, 60, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__19)) __PYX_ERR(0, 60, __pyx_L1_error)
 
-  /* "nav_env/ships/physics.pyx":58
+  /* "nav_env/ships/physics.pyx":67
  *             ]))
  * 
  *     def __get_coriolis_matrix(self, x_dot, y_dot, psi_dot_rad) -> np.ndarray:             # <<<<<<<<<<<<<<
  *         return np.array([
  *                 [0., 0., -self._mass * (self._x_g * psi_dot_rad + y_dot)],
  */
-  __pyx_tuple__20 = PyTuple_Pack(4, __pyx_n_s_self, __pyx_n_s_x_dot, __pyx_n_s_y_dot, __pyx_n_s_psi_dot_rad); if (unlikely(!__pyx_tuple__20)) __PYX_ERR(0, 58, __pyx_L1_error)
+  __pyx_tuple__20 = PyTuple_Pack(4, __pyx_n_s_self, __pyx_n_s_x_dot, __pyx_n_s_y_dot, __pyx_n_s_psi_dot_rad); if (unlikely(!__pyx_tuple__20)) __PYX_ERR(0, 67, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__20);
   __Pyx_GIVEREF(__pyx_tuple__20);
-  __pyx_codeobj__21 = (PyObject*)__Pyx_PyCode_New(4, 0, 0, 4, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__20, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_nav_env_ships_physics_pyx, __pyx_n_s_get_coriolis_matrix, 58, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__21)) __PYX_ERR(0, 58, __pyx_L1_error)
+  __pyx_codeobj__21 = (PyObject*)__Pyx_PyCode_New(4, 0, 0, 4, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__20, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_nav_env_ships_physics_pyx, __pyx_n_s_get_coriolis_matrix, 67, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__21)) __PYX_ERR(0, 67, __pyx_L1_error)
 
-  /* "nav_env/ships/physics.pyx":65
+  /* "nav_env/ships/physics.pyx":74
  *                 ])
  * 
  *     def __get_coriolis_added_matrix(self, u_r, v_r) -> np.ndarray:             # <<<<<<<<<<<<<<
  *         return np.array([
  *             [0., 0., self._y_dv * v_r],
  */
-  __pyx_tuple__22 = PyTuple_Pack(3, __pyx_n_s_self, __pyx_n_s_u_r, __pyx_n_s_v_r); if (unlikely(!__pyx_tuple__22)) __PYX_ERR(0, 65, __pyx_L1_error)
+  __pyx_tuple__22 = PyTuple_Pack(3, __pyx_n_s_self, __pyx_n_s_u_r, __pyx_n_s_v_r); if (unlikely(!__pyx_tuple__22)) __PYX_ERR(0, 74, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__22);
   __Pyx_GIVEREF(__pyx_tuple__22);
-  __pyx_codeobj__23 = (PyObject*)__Pyx_PyCode_New(3, 0, 0, 3, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__22, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_nav_env_ships_physics_pyx, __pyx_n_s_get_coriolis_added_matrix, 65, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__23)) __PYX_ERR(0, 65, __pyx_L1_error)
+  __pyx_codeobj__23 = (PyObject*)__Pyx_PyCode_New(3, 0, 0, 3, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__22, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_nav_env_ships_physics_pyx, __pyx_n_s_get_coriolis_added_matrix, 74, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__23)) __PYX_ERR(0, 74, __pyx_L1_error)
 
-  /* "nav_env/ships/physics.pyx":72
+  /* "nav_env/ships/physics.pyx":81
  *         ])
  * 
  *     def __get_linear_damping_matrix(self) -> np.ndarray:             # <<<<<<<<<<<<<<
  *         return np.array([
  *             [self._mass / self._t_surge, 0., 0.],
  */
-  __pyx_codeobj__24 = (PyObject*)__Pyx_PyCode_New(1, 0, 0, 1, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__18, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_nav_env_ships_physics_pyx, __pyx_n_s_get_linear_damping_matrix, 72, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__24)) __PYX_ERR(0, 72, __pyx_L1_error)
+  __pyx_codeobj__24 = (PyObject*)__Pyx_PyCode_New(1, 0, 0, 1, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__18, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_nav_env_ships_physics_pyx, __pyx_n_s_get_linear_damping_matrix, 81, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__24)) __PYX_ERR(0, 81, __pyx_L1_error)
 
-  /* "nav_env/ships/physics.pyx":79
+  /* "nav_env/ships/physics.pyx":88
  *         ])
  * 
  *     def __get_nonlinear_damping_matrix(self, x_dot, y_dot, psi_dot_rad) -> np.ndarray:             # <<<<<<<<<<<<<<
  *         return np.array([
  *             [self._ku * np.abs(x_dot), 0., 0.],
  */
-  __pyx_codeobj__25 = (PyObject*)__Pyx_PyCode_New(4, 0, 0, 4, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__20, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_nav_env_ships_physics_pyx, __pyx_n_s_get_nonlinear_damping_matrix, 79, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__25)) __PYX_ERR(0, 79, __pyx_L1_error)
+  __pyx_codeobj__25 = (PyObject*)__Pyx_PyCode_New(4, 0, 0, 4, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__20, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_nav_env_ships_physics_pyx, __pyx_n_s_get_nonlinear_damping_matrix, 88, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__25)) __PYX_ERR(0, 88, __pyx_L1_error)
 
-  /* "nav_env/ships/physics.pyx":86
+  /* "nav_env/ships/physics.pyx":95
  *         ])
  * 
  *     def __get_rotation_matrix(self, psi_rad, dim:int=3) -> np.ndarray:             # <<<<<<<<<<<<<<
  *         return np.array([
  *             [-np.sin(psi_rad), np.cos(psi_rad), 0.],
  */
-  __pyx_tuple__26 = PyTuple_Pack(3, __pyx_n_s_self, __pyx_n_s_psi_rad, __pyx_n_s_dim); if (unlikely(!__pyx_tuple__26)) __PYX_ERR(0, 86, __pyx_L1_error)
+  __pyx_tuple__26 = PyTuple_Pack(3, __pyx_n_s_self, __pyx_n_s_psi_rad, __pyx_n_s_dim); if (unlikely(!__pyx_tuple__26)) __PYX_ERR(0, 95, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__26);
   __Pyx_GIVEREF(__pyx_tuple__26);
-  __pyx_codeobj__27 = (PyObject*)__Pyx_PyCode_New(3, 0, 0, 3, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__26, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_nav_env_ships_physics_pyx, __pyx_n_s_get_rotation_matrix, 86, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__27)) __PYX_ERR(0, 86, __pyx_L1_error)
+  __pyx_codeobj__27 = (PyObject*)__Pyx_PyCode_New(3, 0, 0, 3, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__26, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_nav_env_ships_physics_pyx, __pyx_n_s_get_rotation_matrix, 95, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__27)) __PYX_ERR(0, 95, __pyx_L1_error)
 
-  /* "nav_env/ships/physics.pyx":93
+  /* "nav_env/ships/physics.pyx":102
  *         ])[0:dim, 0:dim] # Transpose or not, it doesn't change anything!!! This transformation is correct!
  * 
  *     def get_wind_force(self, wind:WindVector, x_dot:float, y_dot:float, yaw:float) -> GeneralizedForces:             # <<<<<<<<<<<<<<
  *         """
  *         Get the wind force acting on the ship, in the ship frame.
  */
-  __pyx_tuple__28 = PyTuple_Pack(20, __pyx_n_s_self, __pyx_n_s_wind, __pyx_n_s_x_dot, __pyx_n_s_y_dot, __pyx_n_s_yaw, __pyx_n_s_beta_w, __pyx_n_s_psi, __pyx_n_s_vx_in_ship, __pyx_n_s_vy_in_ship, __pyx_n_s_u_rw, __pyx_n_s_v_rw, __pyx_n_s_gamma_rw, __pyx_n_s_wind_rw2, __pyx_n_s_c_x, __pyx_n_s_c_y, __pyx_n_s_c_n, __pyx_n_s_tau_coeff, __pyx_n_s_tau_u, __pyx_n_s_tau_v, __pyx_n_s_tau_n); if (unlikely(!__pyx_tuple__28)) __PYX_ERR(0, 93, __pyx_L1_error)
+  __pyx_tuple__28 = PyTuple_Pack(20, __pyx_n_s_self, __pyx_n_s_wind, __pyx_n_s_x_dot, __pyx_n_s_y_dot, __pyx_n_s_yaw, __pyx_n_s_beta_w, __pyx_n_s_psi, __pyx_n_s_vx_in_ship, __pyx_n_s_vy_in_ship, __pyx_n_s_u_rw, __pyx_n_s_v_rw, __pyx_n_s_gamma_rw, __pyx_n_s_wind_rw2, __pyx_n_s_c_x, __pyx_n_s_c_y, __pyx_n_s_c_n, __pyx_n_s_tau_coeff, __pyx_n_s_tau_u, __pyx_n_s_tau_v, __pyx_n_s_tau_n); if (unlikely(!__pyx_tuple__28)) __PYX_ERR(0, 102, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__28);
   __Pyx_GIVEREF(__pyx_tuple__28);
-  __pyx_codeobj__29 = (PyObject*)__Pyx_PyCode_New(5, 0, 0, 20, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__28, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_nav_env_ships_physics_pyx, __pyx_n_s_get_wind_force, 93, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__29)) __PYX_ERR(0, 93, __pyx_L1_error)
+  __pyx_codeobj__29 = (PyObject*)__Pyx_PyCode_New(5, 0, 0, 20, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__28, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_nav_env_ships_physics_pyx, __pyx_n_s_get_wind_force, 102, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__29)) __PYX_ERR(0, 102, __pyx_L1_error)
 
-  /* "nav_env/ships/physics.pyx":123
+  /* "nav_env/ships/physics.pyx":132
  *         return GeneralizedForces(float(tau_u), float(tau_v), 0., 0., 0., float(tau_n))
  * 
  *     def get_water_force(self, water:WaterVector, x_dot:float, y_dot:float, yaw:float) -> GeneralizedForces:             # <<<<<<<<<<<<<<
  *         """
  *         Get the water force acting on the ship.
  */
-  __pyx_tuple__30 = PyTuple_Pack(5, __pyx_n_s_self, __pyx_n_s_water, __pyx_n_s_x_dot, __pyx_n_s_y_dot, __pyx_n_s_yaw); if (unlikely(!__pyx_tuple__30)) __PYX_ERR(0, 123, __pyx_L1_error)
+  __pyx_tuple__30 = PyTuple_Pack(5, __pyx_n_s_self, __pyx_n_s_water, __pyx_n_s_x_dot, __pyx_n_s_y_dot, __pyx_n_s_yaw); if (unlikely(!__pyx_tuple__30)) __PYX_ERR(0, 132, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__30);
   __Pyx_GIVEREF(__pyx_tuple__30);
-  __pyx_codeobj__31 = (PyObject*)__Pyx_PyCode_New(5, 0, 0, 5, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__30, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_nav_env_ships_physics_pyx, __pyx_n_s_get_water_force, 123, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__31)) __PYX_ERR(0, 123, __pyx_L1_error)
+  __pyx_codeobj__31 = (PyObject*)__Pyx_PyCode_New(5, 0, 0, 5, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__30, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_nav_env_ships_physics_pyx, __pyx_n_s_get_water_force, 132, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__31)) __PYX_ERR(0, 132, __pyx_L1_error)
 
-  /* "nav_env/ships/physics.pyx":129
+  /* "nav_env/ships/physics.pyx":138
  *         return GeneralizedForces()
  * 
  *     def get_time_derivatives_and_forces(self,             # <<<<<<<<<<<<<<
  *                              states:States3,
  *                              wind:WindVector=WindVector((0., 0.), vector=(0., 0.)),
  */
-  __pyx_tuple__32 = PyTuple_Pack(30, __pyx_n_s_self, __pyx_n_s_states, __pyx_n_s_wind, __pyx_n_s_water, __pyx_n_s_control_forces, __pyx_n_s_external_forces, __pyx_n_s_R2d, __pyx_n_s_R3d, __pyx_n_s_pose_dot_in_ship_frame, __pyx_n_s_states_in_ship_frame, __pyx_n_s_wind_force, __pyx_n_s_water_force, __pyx_n_s_total_force_in_ship_frame, __pyx_n_s_current_vel_in_ship_frame, __pyx_n_s_u_r, __pyx_n_s_v_r, __pyx_n_s_vel_relative_to_current_in_ship, __pyx_n_s_Crb, __pyx_n_s_Ca, __pyx_n_s_Dl, __pyx_n_s_Dnl, __pyx_n_s_f1, __pyx_n_s_f2, __pyx_n_s_f3, __pyx_n_s_f4, __pyx_n_s_f5, __pyx_n_s_f, __pyx_n_s_acc, __pyx_n_s_f_in_world, __pyx_n_s_acc_in_world_frame); if (unlikely(!__pyx_tuple__32)) __PYX_ERR(0, 129, __pyx_L1_error)
+  __pyx_tuple__32 = PyTuple_Pack(30, __pyx_n_s_self, __pyx_n_s_states, __pyx_n_s_wind, __pyx_n_s_water, __pyx_n_s_control_forces, __pyx_n_s_external_forces, __pyx_n_s_R2d, __pyx_n_s_R3d, __pyx_n_s_pose_dot_in_ship_frame, __pyx_n_s_states_in_ship_frame, __pyx_n_s_wind_force, __pyx_n_s_water_force, __pyx_n_s_total_force_in_ship_frame, __pyx_n_s_current_vel_in_ship_frame, __pyx_n_s_u_r, __pyx_n_s_v_r, __pyx_n_s_vel_relative_to_current_in_ship, __pyx_n_s_Crb, __pyx_n_s_Ca, __pyx_n_s_Dl, __pyx_n_s_Dnl, __pyx_n_s_f1, __pyx_n_s_f2, __pyx_n_s_f3, __pyx_n_s_f4, __pyx_n_s_f5, __pyx_n_s_f, __pyx_n_s_acc, __pyx_n_s_f_in_world, __pyx_n_s_acc_in_world_frame); if (unlikely(!__pyx_tuple__32)) __PYX_ERR(0, 138, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__32);
   __Pyx_GIVEREF(__pyx_tuple__32);
-  __pyx_codeobj__33 = (PyObject*)__Pyx_PyCode_New(6, 0, 0, 30, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__32, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_nav_env_ships_physics_pyx, __pyx_n_s_get_time_derivatives_and_forces, 129, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__33)) __PYX_ERR(0, 129, __pyx_L1_error)
+  __pyx_codeobj__33 = (PyObject*)__Pyx_PyCode_New(6, 0, 0, 30, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__32, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_nav_env_ships_physics_pyx, __pyx_n_s_get_time_derivatives_and_forces, 138, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__33)) __PYX_ERR(0, 138, __pyx_L1_error)
 
-  /* "nav_env/ships/physics.pyx":131
+  /* "nav_env/ships/physics.pyx":140
  *     def get_time_derivatives_and_forces(self,
  *                              states:States3,
  *                              wind:WindVector=WindVector((0., 0.), vector=(0., 0.)),             # <<<<<<<<<<<<<<
  *                              water:WaterVector=WaterVector((0., 0.), vector=(0., 0.)),
  *                              control_forces:GeneralizedForces=GeneralizedForces(),
  */
-  __pyx_tuple__34 = PyTuple_Pack(2, __pyx_float_0_, __pyx_float_0_); if (unlikely(!__pyx_tuple__34)) __PYX_ERR(0, 131, __pyx_L1_error)
+  __pyx_tuple__34 = PyTuple_Pack(2, __pyx_float_0_, __pyx_float_0_); if (unlikely(!__pyx_tuple__34)) __PYX_ERR(0, 140, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__34);
   __Pyx_GIVEREF(__pyx_tuple__34);
-  __pyx_tuple__35 = PyTuple_Pack(1, __pyx_tuple__34); if (unlikely(!__pyx_tuple__35)) __PYX_ERR(0, 131, __pyx_L1_error)
+  __pyx_tuple__35 = PyTuple_Pack(1, __pyx_tuple__34); if (unlikely(!__pyx_tuple__35)) __PYX_ERR(0, 140, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__35);
   __Pyx_GIVEREF(__pyx_tuple__35);
 
-  /* "nav_env/ships/physics.pyx":188
+  /* "nav_env/ships/physics.pyx":197
  *         return TimeDerivatives3(states.x_dot, states.y_dot, states.psi_dot_deg, float(acc_in_world_frame[0]), float(acc_in_world_frame[1]), float(acc_in_world_frame[2])), GeneralizedForces(f_in_world[0], f_in_world[1], 0., 0., 0., f_in_world[2])
  * 
  *     def __repr__(self) -> str:             # <<<<<<<<<<<<<<
  *         return "{} Object".format(type(self).__name__)
  * 
  */
-  __pyx_codeobj__36 = (PyObject*)__Pyx_PyCode_New(1, 0, 0, 1, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__18, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_nav_env_ships_physics_pyx, __pyx_n_s_repr, 188, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__36)) __PYX_ERR(0, 188, __pyx_L1_error)
+  __pyx_codeobj__36 = (PyObject*)__Pyx_PyCode_New(1, 0, 0, 1, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__18, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_nav_env_ships_physics_pyx, __pyx_n_s_repr, 197, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__36)) __PYX_ERR(0, 197, __pyx_L1_error)
 
-  /* "nav_env/ships/physics.pyx":191
+  /* "nav_env/ships/physics.pyx":200
  *         return "{} Object".format(type(self).__name__)
  * 
  *     @property             # <<<<<<<<<<<<<<
  *     def inv_mass_matrix(self) -> np.ndarray:
  *         return self._inv_mass_matrix
  */
-  __pyx_codeobj__37 = (PyObject*)__Pyx_PyCode_New(1, 0, 0, 1, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__18, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_nav_env_ships_physics_pyx, __pyx_n_s_inv_mass_matrix_2, 191, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__37)) __PYX_ERR(0, 191, __pyx_L1_error)
+  __pyx_codeobj__37 = (PyObject*)__Pyx_PyCode_New(1, 0, 0, 1, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__18, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_nav_env_ships_physics_pyx, __pyx_n_s_inv_mass_matrix_2, 200, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__37)) __PYX_ERR(0, 200, __pyx_L1_error)
 
-  /* "nav_env/ships/physics.pyx":195
+  /* "nav_env/ships/physics.pyx":204
  *         return self._inv_mass_matrix
  * 
  *     @property             # <<<<<<<<<<<<<<
  *     def coriolis_matrix(self) -> Callable:
  *         return self.__get_coriolis_matrix
  */
-  __pyx_codeobj__38 = (PyObject*)__Pyx_PyCode_New(1, 0, 0, 1, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__18, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_nav_env_ships_physics_pyx, __pyx_n_s_coriolis_matrix, 195, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__38)) __PYX_ERR(0, 195, __pyx_L1_error)
+  __pyx_codeobj__38 = (PyObject*)__Pyx_PyCode_New(1, 0, 0, 1, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__18, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_nav_env_ships_physics_pyx, __pyx_n_s_coriolis_matrix, 204, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__38)) __PYX_ERR(0, 204, __pyx_L1_error)
 
-  /* "nav_env/ships/physics.pyx":199
+  /* "nav_env/ships/physics.pyx":208
  *         return self.__get_coriolis_matrix
  * 
  *     @property             # <<<<<<<<<<<<<<
  *     def coriolis_added_mass_matrix(self) -> Callable:
  *         return self.__get_coriolis_added_matrix
  */
-  __pyx_codeobj__39 = (PyObject*)__Pyx_PyCode_New(1, 0, 0, 1, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__18, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_nav_env_ships_physics_pyx, __pyx_n_s_coriolis_added_mass_matrix, 199, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__39)) __PYX_ERR(0, 199, __pyx_L1_error)
+  __pyx_codeobj__39 = (PyObject*)__Pyx_PyCode_New(1, 0, 0, 1, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__18, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_nav_env_ships_physics_pyx, __pyx_n_s_coriolis_added_mass_matrix, 208, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__39)) __PYX_ERR(0, 208, __pyx_L1_error)
 
-  /* "nav_env/ships/physics.pyx":203
+  /* "nav_env/ships/physics.pyx":212
  *         return self.__get_coriolis_added_matrix
  * 
  *     @property             # <<<<<<<<<<<<<<
  *     def linear_damping_matrix(self) -> np.ndarray:
  *         return self._linear_damping_matrix
  */
-  __pyx_codeobj__40 = (PyObject*)__Pyx_PyCode_New(1, 0, 0, 1, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__18, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_nav_env_ships_physics_pyx, __pyx_n_s_linear_damping_matrix_2, 203, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__40)) __PYX_ERR(0, 203, __pyx_L1_error)
+  __pyx_codeobj__40 = (PyObject*)__Pyx_PyCode_New(1, 0, 0, 1, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__18, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_nav_env_ships_physics_pyx, __pyx_n_s_linear_damping_matrix_2, 212, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__40)) __PYX_ERR(0, 212, __pyx_L1_error)
 
-  /* "nav_env/ships/physics.pyx":207
+  /* "nav_env/ships/physics.pyx":216
  *         return self._linear_damping_matrix
  * 
  *     @property             # <<<<<<<<<<<<<<
  *     def nonlinear_damping_matrix(self) -> Callable:
  *         return self.__get_nonlinear_damping_matrix
  */
-  __pyx_codeobj__41 = (PyObject*)__Pyx_PyCode_New(1, 0, 0, 1, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__18, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_nav_env_ships_physics_pyx, __pyx_n_s_nonlinear_damping_matrix, 207, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__41)) __PYX_ERR(0, 207, __pyx_L1_error)
+  __pyx_codeobj__41 = (PyObject*)__Pyx_PyCode_New(1, 0, 0, 1, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__18, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_nav_env_ships_physics_pyx, __pyx_n_s_nonlinear_damping_matrix, 216, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__41)) __PYX_ERR(0, 216, __pyx_L1_error)
 
-  /* "nav_env/ships/physics.pyx":211
+  /* "nav_env/ships/physics.pyx":220
  *         return self.__get_nonlinear_damping_matrix
  * 
  *     @property             # <<<<<<<<<<<<<<
  *     def rotation_matrix(self) -> Callable:
  *         return self.__get_rotation_matrix
  */
-  __pyx_codeobj__42 = (PyObject*)__Pyx_PyCode_New(1, 0, 0, 1, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__18, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_nav_env_ships_physics_pyx, __pyx_n_s_rotation_matrix, 211, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__42)) __PYX_ERR(0, 211, __pyx_L1_error)
+  __pyx_codeobj__42 = (PyObject*)__Pyx_PyCode_New(1, 0, 0, 1, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__18, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_nav_env_ships_physics_pyx, __pyx_n_s_rotation_matrix, 220, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__42)) __PYX_ERR(0, 220, __pyx_L1_error)
 
-  /* "nav_env/ships/physics.pyx":215
+  /* "nav_env/ships/physics.pyx":224
  *         return self.__get_rotation_matrix
  * 
  *     @property             # <<<<<<<<<<<<<<
  *     def i_z(self) -> float:
  *         return self._i_z
  */
-  __pyx_codeobj__43 = (PyObject*)__Pyx_PyCode_New(1, 0, 0, 1, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__18, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_nav_env_ships_physics_pyx, __pyx_n_s_i_z_2, 215, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__43)) __PYX_ERR(0, 215, __pyx_L1_error)
+  __pyx_codeobj__43 = (PyObject*)__Pyx_PyCode_New(1, 0, 0, 1, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__18, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_nav_env_ships_physics_pyx, __pyx_n_s_i_z_2, 224, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__43)) __PYX_ERR(0, 224, __pyx_L1_error)
 
-  /* "nav_env/ships/physics.pyx":219
+  /* "nav_env/ships/physics.pyx":228
  *         return self._i_z
  * 
  *     @property             # <<<<<<<<<<<<<<
  *     def mass(self) -> float:
  *         return self._mass
  */
-  __pyx_codeobj__44 = (PyObject*)__Pyx_PyCode_New(1, 0, 0, 1, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__18, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_nav_env_ships_physics_pyx, __pyx_n_s_mass, 219, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__44)) __PYX_ERR(0, 219, __pyx_L1_error)
+  __pyx_codeobj__44 = (PyObject*)__Pyx_PyCode_New(1, 0, 0, 1, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__18, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_nav_env_ships_physics_pyx, __pyx_n_s_mass, 228, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__44)) __PYX_ERR(0, 228, __pyx_L1_error)
 
-  /* "nav_env/ships/physics.pyx":223
+  /* "nav_env/ships/physics.pyx":232
  *         return self._mass
  * 
  *     @property             # <<<<<<<<<<<<<<
  *     def x_du(self) -> float:
  *         return self._x_du
  */
-  __pyx_codeobj__45 = (PyObject*)__Pyx_PyCode_New(1, 0, 0, 1, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__18, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_nav_env_ships_physics_pyx, __pyx_n_s_x_du_2, 223, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__45)) __PYX_ERR(0, 223, __pyx_L1_error)
+  __pyx_codeobj__45 = (PyObject*)__Pyx_PyCode_New(1, 0, 0, 1, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__18, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_nav_env_ships_physics_pyx, __pyx_n_s_x_du_2, 232, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__45)) __PYX_ERR(0, 232, __pyx_L1_error)
 
-  /* "nav_env/ships/physics.pyx":227
+  /* "nav_env/ships/physics.pyx":236
  *         return self._x_du
  * 
  *     @property             # <<<<<<<<<<<<<<
  *     def y_dv(self) -> float:
  *         return self._y_dv
  */
-  __pyx_codeobj__46 = (PyObject*)__Pyx_PyCode_New(1, 0, 0, 1, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__18, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_nav_env_ships_physics_pyx, __pyx_n_s_y_dv_2, 227, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__46)) __PYX_ERR(0, 227, __pyx_L1_error)
+  __pyx_codeobj__46 = (PyObject*)__Pyx_PyCode_New(1, 0, 0, 1, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__18, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_nav_env_ships_physics_pyx, __pyx_n_s_y_dv_2, 236, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__46)) __PYX_ERR(0, 236, __pyx_L1_error)
 
-  /* "nav_env/ships/physics.pyx":231
+  /* "nav_env/ships/physics.pyx":240
  *         return self._y_dv
  * 
  *     @property             # <<<<<<<<<<<<<<
  *     def n_dr(self) -> float:
  *         return self._n_dr
  */
-  __pyx_codeobj__47 = (PyObject*)__Pyx_PyCode_New(1, 0, 0, 1, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__18, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_nav_env_ships_physics_pyx, __pyx_n_s_n_dr_2, 231, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__47)) __PYX_ERR(0, 231, __pyx_L1_error)
+  __pyx_codeobj__47 = (PyObject*)__Pyx_PyCode_New(1, 0, 0, 1, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__18, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_nav_env_ships_physics_pyx, __pyx_n_s_n_dr_2, 240, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__47)) __PYX_ERR(0, 240, __pyx_L1_error)
 
-  /* "nav_env/ships/physics.pyx":235
+  /* "nav_env/ships/physics.pyx":244
  *         return self._n_dr
  * 
  *     @property             # <<<<<<<<<<<<<<
  *     def t_surge(self) -> float:
  *         return self._t_surge
  */
-  __pyx_codeobj__48 = (PyObject*)__Pyx_PyCode_New(1, 0, 0, 1, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__18, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_nav_env_ships_physics_pyx, __pyx_n_s_t_surge_2, 235, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__48)) __PYX_ERR(0, 235, __pyx_L1_error)
+  __pyx_codeobj__48 = (PyObject*)__Pyx_PyCode_New(1, 0, 0, 1, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__18, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_nav_env_ships_physics_pyx, __pyx_n_s_t_surge_2, 244, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__48)) __PYX_ERR(0, 244, __pyx_L1_error)
 
-  /* "nav_env/ships/physics.pyx":239
+  /* "nav_env/ships/physics.pyx":248
  *         return self._t_surge
  * 
  *     @property             # <<<<<<<<<<<<<<
  *     def t_sway(self) -> float:
  *         return self._t_sway
  */
-  __pyx_codeobj__49 = (PyObject*)__Pyx_PyCode_New(1, 0, 0, 1, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__18, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_nav_env_ships_physics_pyx, __pyx_n_s_t_sway_2, 239, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__49)) __PYX_ERR(0, 239, __pyx_L1_error)
+  __pyx_codeobj__49 = (PyObject*)__Pyx_PyCode_New(1, 0, 0, 1, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__18, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_nav_env_ships_physics_pyx, __pyx_n_s_t_sway_2, 248, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__49)) __PYX_ERR(0, 248, __pyx_L1_error)
 
-  /* "nav_env/ships/physics.pyx":243
+  /* "nav_env/ships/physics.pyx":252
  *         return self._t_sway
  * 
  *     @property             # <<<<<<<<<<<<<<
  *     def t_yaw(self) -> float:
  *         return self._t_yaw
  */
-  __pyx_codeobj__50 = (PyObject*)__Pyx_PyCode_New(1, 0, 0, 1, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__18, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_nav_env_ships_physics_pyx, __pyx_n_s_t_yaw_2, 243, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__50)) __PYX_ERR(0, 243, __pyx_L1_error)
+  __pyx_codeobj__50 = (PyObject*)__Pyx_PyCode_New(1, 0, 0, 1, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__18, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_nav_env_ships_physics_pyx, __pyx_n_s_t_yaw_2, 252, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__50)) __PYX_ERR(0, 252, __pyx_L1_error)
 
-  /* "nav_env/ships/physics.pyx":247
+  /* "nav_env/ships/physics.pyx":256
  *         return self._t_yaw
  * 
  *     @property             # <<<<<<<<<<<<<<
  *     def ku(self) -> float:
  *         return self._ku
  */
-  __pyx_codeobj__51 = (PyObject*)__Pyx_PyCode_New(1, 0, 0, 1, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__18, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_nav_env_ships_physics_pyx, __pyx_n_s_ku_2, 247, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__51)) __PYX_ERR(0, 247, __pyx_L1_error)
+  __pyx_codeobj__51 = (PyObject*)__Pyx_PyCode_New(1, 0, 0, 1, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__18, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_nav_env_ships_physics_pyx, __pyx_n_s_ku_2, 256, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__51)) __PYX_ERR(0, 256, __pyx_L1_error)
 
-  /* "nav_env/ships/physics.pyx":251
+  /* "nav_env/ships/physics.pyx":260
  *         return self._ku
  * 
  *     @property             # <<<<<<<<<<<<<<
  *     def kv(self) -> float:
  *         return self._kv
  */
-  __pyx_codeobj__52 = (PyObject*)__Pyx_PyCode_New(1, 0, 0, 1, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__18, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_nav_env_ships_physics_pyx, __pyx_n_s_kv_2, 251, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__52)) __PYX_ERR(0, 251, __pyx_L1_error)
+  __pyx_codeobj__52 = (PyObject*)__Pyx_PyCode_New(1, 0, 0, 1, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__18, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_nav_env_ships_physics_pyx, __pyx_n_s_kv_2, 260, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__52)) __PYX_ERR(0, 260, __pyx_L1_error)
 
-  /* "nav_env/ships/physics.pyx":255
+  /* "nav_env/ships/physics.pyx":264
  *         return self._kv
  * 
  *     @property             # <<<<<<<<<<<<<<
  *     def kr(self) -> float:
  *         return self._kr
  */
-  __pyx_codeobj__53 = (PyObject*)__Pyx_PyCode_New(1, 0, 0, 1, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__18, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_nav_env_ships_physics_pyx, __pyx_n_s_kr_2, 255, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__53)) __PYX_ERR(0, 255, __pyx_L1_error)
+  __pyx_codeobj__53 = (PyObject*)__Pyx_PyCode_New(1, 0, 0, 1, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__18, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_nav_env_ships_physics_pyx, __pyx_n_s_kr_2, 264, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__53)) __PYX_ERR(0, 264, __pyx_L1_error)
 
-  /* "nav_env/ships/physics.pyx":259
+  /* "nav_env/ships/physics.pyx":268
  *         return self._kr
  * 
  *     @property             # <<<<<<<<<<<<<<
  *     def params(self) -> ShipPhysicalParams:
  *         return self._params
  */
-  __pyx_codeobj__54 = (PyObject*)__Pyx_PyCode_New(1, 0, 0, 1, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__18, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_nav_env_ships_physics_pyx, __pyx_n_s_params_2, 259, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__54)) __PYX_ERR(0, 259, __pyx_L1_error)
+  __pyx_codeobj__54 = (PyObject*)__Pyx_PyCode_New(1, 0, 0, 1, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__18, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_nav_env_ships_physics_pyx, __pyx_n_s_params_2, 268, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__54)) __PYX_ERR(0, 268, __pyx_L1_error)
 
-  /* "nav_env/ships/physics.pyx":263
+  /* "nav_env/ships/physics.pyx":272
  *         return self._params
  * 
  *     @property             # <<<<<<<<<<<<<<
  *     def x_g(self) -> float:
  *         return self._x_g
  */
-  __pyx_codeobj__55 = (PyObject*)__Pyx_PyCode_New(1, 0, 0, 1, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__18, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_nav_env_ships_physics_pyx, __pyx_n_s_x_g, 263, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__55)) __PYX_ERR(0, 263, __pyx_L1_error)
+  __pyx_codeobj__55 = (PyObject*)__Pyx_PyCode_New(1, 0, 0, 1, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__18, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_nav_env_ships_physics_pyx, __pyx_n_s_x_g, 272, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__55)) __PYX_ERR(0, 272, __pyx_L1_error)
 
-  /* "nav_env/ships/physics.pyx":267
+  /* "nav_env/ships/physics.pyx":276
  *         return self._x_g
  * 
  *     @property             # <<<<<<<<<<<<<<
  *     def length(self) -> float:
  *         return self._length
  */
-  __pyx_codeobj__56 = (PyObject*)__Pyx_PyCode_New(1, 0, 0, 1, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__18, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_nav_env_ships_physics_pyx, __pyx_n_s_length_2, 267, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__56)) __PYX_ERR(0, 267, __pyx_L1_error)
+  __pyx_codeobj__56 = (PyObject*)__Pyx_PyCode_New(1, 0, 0, 1, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__18, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_nav_env_ships_physics_pyx, __pyx_n_s_length_2, 276, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__56)) __PYX_ERR(0, 276, __pyx_L1_error)
 
-  /* "nav_env/ships/physics.pyx":271
+  /* "nav_env/ships/physics.pyx":280
  *         return self._length
  * 
  *     @property             # <<<<<<<<<<<<<<
  *     def width(self) -> float:
  *         return self._width
  */
-  __pyx_codeobj__57 = (PyObject*)__Pyx_PyCode_New(1, 0, 0, 1, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__18, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_nav_env_ships_physics_pyx, __pyx_n_s_width_2, 271, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__57)) __PYX_ERR(0, 271, __pyx_L1_error)
+  __pyx_codeobj__57 = (PyObject*)__Pyx_PyCode_New(1, 0, 0, 1, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__18, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_nav_env_ships_physics_pyx, __pyx_n_s_width_2, 280, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__57)) __PYX_ERR(0, 280, __pyx_L1_error)
 
-  /* "nav_env/ships/physics.pyx":275
+  /* "nav_env/ships/physics.pyx":284
  *         return self._width
  * 
  *     @property             # <<<<<<<<<<<<<<
  *     def proj_area_front(self) -> float:
  *         return self._proj_area_front
  */
-  __pyx_codeobj__58 = (PyObject*)__Pyx_PyCode_New(1, 0, 0, 1, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__18, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_nav_env_ships_physics_pyx, __pyx_n_s_proj_area_front_2, 275, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__58)) __PYX_ERR(0, 275, __pyx_L1_error)
+  __pyx_codeobj__58 = (PyObject*)__Pyx_PyCode_New(1, 0, 0, 1, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__18, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_nav_env_ships_physics_pyx, __pyx_n_s_proj_area_front_2, 284, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__58)) __PYX_ERR(0, 284, __pyx_L1_error)
 
-  /* "nav_env/ships/physics.pyx":279
+  /* "nav_env/ships/physics.pyx":288
  *         return self._proj_area_front
  * 
  *     @property             # <<<<<<<<<<<<<<
  *     def proj_area_side(self) -> float:
  *         return self._proj_area_side
  */
-  __pyx_codeobj__59 = (PyObject*)__Pyx_PyCode_New(1, 0, 0, 1, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__18, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_nav_env_ships_physics_pyx, __pyx_n_s_proj_area_side_2, 279, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__59)) __PYX_ERR(0, 279, __pyx_L1_error)
+  __pyx_codeobj__59 = (PyObject*)__Pyx_PyCode_New(1, 0, 0, 1, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__18, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_nav_env_ships_physics_pyx, __pyx_n_s_proj_area_side_2, 288, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__59)) __PYX_ERR(0, 288, __pyx_L1_error)
 
-  /* "nav_env/ships/physics.pyx":283
+  /* "nav_env/ships/physics.pyx":292
  *         return self._proj_area_side
  * 
  *     @property             # <<<<<<<<<<<<<<
  *     def rho_a(self) -> float:
  *         return self._rho_a
  */
-  __pyx_codeobj__60 = (PyObject*)__Pyx_PyCode_New(1, 0, 0, 1, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__18, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_nav_env_ships_physics_pyx, __pyx_n_s_rho_a_2, 283, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__60)) __PYX_ERR(0, 283, __pyx_L1_error)
+  __pyx_codeobj__60 = (PyObject*)__Pyx_PyCode_New(1, 0, 0, 1, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__18, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_nav_env_ships_physics_pyx, __pyx_n_s_rho_a_2, 292, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__60)) __PYX_ERR(0, 292, __pyx_L1_error)
   __Pyx_RefNannyFinishContext();
   return 0;
   __pyx_L1_error:;
@@ -15268,8 +15488,8 @@ if (!__Pyx_RefNanny) {
  *         self._linear_damping_matrix = self.__get_linear_damping_matrix()
  * 
  *     def __get_moment_of_inertia_about_z(self) -> float:             # <<<<<<<<<<<<<<
- *         l = self._params.dimensions['length']
- *         w = self._params.dimensions['width']
+ *         if 'iz' in self._params.inertia.keys():
+ *             return self._params.inertia['iz']
  */
   __pyx_t_4 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 22, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
@@ -15281,274 +15501,274 @@ if (!__Pyx_RefNanny) {
   if (__Pyx_SetNameInClass(__pyx_t_2, __pyx_n_s_ShipPhysics__get_moment_of_iner, __pyx_t_3) < 0) __PYX_ERR(0, 22, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
 
-  /* "nav_env/ships/physics.pyx":27
- *         return  self._mass * (l**2 + w**2) / 12
+  /* "nav_env/ships/physics.pyx":30
+ *             return  self._mass * (l**2 + w**2) / 12
  * 
  *     def __get_added_mass(self) -> tuple[float, float, float]:             # <<<<<<<<<<<<<<
  *         x_du = self._mass * self._params.added_mass_coefficient['surge']
  *         y_dv = self._mass * self._params.added_mass_coefficient['sway']
  */
-  __pyx_t_3 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 27, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 30, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  if (PyDict_SetItem(__pyx_t_3, __pyx_n_s_return, __pyx_kp_s_tuple_float_float_float) < 0) __PYX_ERR(0, 27, __pyx_L1_error)
-  __pyx_t_4 = __Pyx_CyFunction_New(&__pyx_mdef_7nav_env_5ships_7physics_11ShipPhysics_5__get_added_mass, 0, __pyx_n_s_ShipPhysics___get_added_mass, NULL, __pyx_n_s_nav_env_ships_physics, __pyx_d, ((PyObject *)__pyx_codeobj__9)); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 27, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_3, __pyx_n_s_return, __pyx_kp_s_tuple_float_float_float) < 0) __PYX_ERR(0, 30, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_CyFunction_New(&__pyx_mdef_7nav_env_5ships_7physics_11ShipPhysics_5__get_added_mass, 0, __pyx_n_s_ShipPhysics___get_added_mass, NULL, __pyx_n_s_nav_env_ships_physics, __pyx_d, ((PyObject *)__pyx_codeobj__9)); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 30, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_CyFunction_SetAnnotationsDict(__pyx_t_4, __pyx_t_3);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  if (__Pyx_SetNameInClass(__pyx_t_2, __pyx_n_s_ShipPhysics__get_added_mass, __pyx_t_4) < 0) __PYX_ERR(0, 27, __pyx_L1_error)
+  if (__Pyx_SetNameInClass(__pyx_t_2, __pyx_n_s_ShipPhysics__get_added_mass, __pyx_t_4) < 0) __PYX_ERR(0, 30, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
 
-  /* "nav_env/ships/physics.pyx":33
+  /* "nav_env/ships/physics.pyx":36
  *         return x_du, y_dv, n_dr
  * 
  *     def __get_dimensions_and_projection(self) -> tuple[float, float, float, float]:             # <<<<<<<<<<<<<<
  *         dimensions = self._params.dimensions
- *         proj_area_front = dimensions['width'] * dimensions['h_front']
+ *         if 'proj_area_front' in dimensions.keys():
  */
-  __pyx_t_4 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 33, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 36, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
-  if (PyDict_SetItem(__pyx_t_4, __pyx_n_s_return, __pyx_kp_s_tuple_float_float_float_float) < 0) __PYX_ERR(0, 33, __pyx_L1_error)
-  __pyx_t_3 = __Pyx_CyFunction_New(&__pyx_mdef_7nav_env_5ships_7physics_11ShipPhysics_7__get_dimensions_and_projection, 0, __pyx_n_s_ShipPhysics___get_dimensions_and, NULL, __pyx_n_s_nav_env_ships_physics, __pyx_d, ((PyObject *)__pyx_codeobj__11)); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 33, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_4, __pyx_n_s_return, __pyx_kp_s_tuple_float_float_float_float) < 0) __PYX_ERR(0, 36, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_CyFunction_New(&__pyx_mdef_7nav_env_5ships_7physics_11ShipPhysics_7__get_dimensions_and_projection, 0, __pyx_n_s_ShipPhysics___get_dimensions_and, NULL, __pyx_n_s_nav_env_ships_physics, __pyx_d, ((PyObject *)__pyx_codeobj__11)); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 36, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_CyFunction_SetAnnotationsDict(__pyx_t_3, __pyx_t_4);
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  if (__Pyx_SetNameInClass(__pyx_t_2, __pyx_n_s_ShipPhysics__get_dimensions_and, __pyx_t_3) < 0) __PYX_ERR(0, 33, __pyx_L1_error)
+  if (__Pyx_SetNameInClass(__pyx_t_2, __pyx_n_s_ShipPhysics__get_dimensions_and, __pyx_t_3) < 0) __PYX_ERR(0, 36, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
 
-  /* "nav_env/ships/physics.pyx":39
+  /* "nav_env/ships/physics.pyx":48
  *         return dimensions['length'], dimensions['width'], proj_area_front, proj_area_side
  * 
  *     def __get_nonlinear_friction_coefficients(self) -> tuple[float, float, float]:             # <<<<<<<<<<<<<<
  *         nonlinear_friction = self._params.nonlinear_friction_coefficient
  *         return nonlinear_friction['surge'], nonlinear_friction['sway'], nonlinear_friction['yaw']
  */
-  __pyx_t_3 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 39, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 48, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  if (PyDict_SetItem(__pyx_t_3, __pyx_n_s_return, __pyx_kp_s_tuple_float_float_float) < 0) __PYX_ERR(0, 39, __pyx_L1_error)
-  __pyx_t_4 = __Pyx_CyFunction_New(&__pyx_mdef_7nav_env_5ships_7physics_11ShipPhysics_9__get_nonlinear_friction_coefficients, 0, __pyx_n_s_ShipPhysics___get_nonlinear_fric, NULL, __pyx_n_s_nav_env_ships_physics, __pyx_d, ((PyObject *)__pyx_codeobj__13)); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 39, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_3, __pyx_n_s_return, __pyx_kp_s_tuple_float_float_float) < 0) __PYX_ERR(0, 48, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_CyFunction_New(&__pyx_mdef_7nav_env_5ships_7physics_11ShipPhysics_9__get_nonlinear_friction_coefficients, 0, __pyx_n_s_ShipPhysics___get_nonlinear_fric, NULL, __pyx_n_s_nav_env_ships_physics, __pyx_d, ((PyObject *)__pyx_codeobj__13)); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 48, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_CyFunction_SetAnnotationsDict(__pyx_t_4, __pyx_t_3);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  if (__Pyx_SetNameInClass(__pyx_t_2, __pyx_n_s_ShipPhysics__get_nonlinear_fric, __pyx_t_4) < 0) __PYX_ERR(0, 39, __pyx_L1_error)
+  if (__Pyx_SetNameInClass(__pyx_t_2, __pyx_n_s_ShipPhysics__get_nonlinear_fric, __pyx_t_4) < 0) __PYX_ERR(0, 48, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
 
-  /* "nav_env/ships/physics.pyx":43
+  /* "nav_env/ships/physics.pyx":52
  *         return nonlinear_friction['surge'], nonlinear_friction['sway'], nonlinear_friction['yaw']
  * 
  *     def __get_wind_coefficients(self) -> tuple[float, float, float, float]:             # <<<<<<<<<<<<<<
  *         wind = self._params.wind
  *         return wind['rho_a'], wind['cx'], wind['cy'], wind['cn']
  */
-  __pyx_t_4 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 43, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 52, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
-  if (PyDict_SetItem(__pyx_t_4, __pyx_n_s_return, __pyx_kp_s_tuple_float_float_float_float) < 0) __PYX_ERR(0, 43, __pyx_L1_error)
-  __pyx_t_3 = __Pyx_CyFunction_New(&__pyx_mdef_7nav_env_5ships_7physics_11ShipPhysics_11__get_wind_coefficients, 0, __pyx_n_s_ShipPhysics___get_wind_coefficie, NULL, __pyx_n_s_nav_env_ships_physics, __pyx_d, ((PyObject *)__pyx_codeobj__15)); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 43, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_4, __pyx_n_s_return, __pyx_kp_s_tuple_float_float_float_float) < 0) __PYX_ERR(0, 52, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_CyFunction_New(&__pyx_mdef_7nav_env_5ships_7physics_11ShipPhysics_11__get_wind_coefficients, 0, __pyx_n_s_ShipPhysics___get_wind_coefficie, NULL, __pyx_n_s_nav_env_ships_physics, __pyx_d, ((PyObject *)__pyx_codeobj__15)); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 52, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_CyFunction_SetAnnotationsDict(__pyx_t_3, __pyx_t_4);
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  if (__Pyx_SetNameInClass(__pyx_t_2, __pyx_n_s_ShipPhysics__get_wind_coefficie, __pyx_t_3) < 0) __PYX_ERR(0, 43, __pyx_L1_error)
+  if (__Pyx_SetNameInClass(__pyx_t_2, __pyx_n_s_ShipPhysics__get_wind_coefficie, __pyx_t_3) < 0) __PYX_ERR(0, 52, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
 
-  /* "nav_env/ships/physics.pyx":47
+  /* "nav_env/ships/physics.pyx":56
  *         return wind['rho_a'], wind['cx'], wind['cy'], wind['cn']
  * 
  *     def __get_mass_over_linear_friction_coefficients(self) -> tuple[float, float, float]:             # <<<<<<<<<<<<<<
  *         mass_over_linear_friction_coefficient = self._params.mass_over_linear_friction_coefficient
  *         return mass_over_linear_friction_coefficient['surge'], mass_over_linear_friction_coefficient['sway'], mass_over_linear_friction_coefficient['yaw']
  */
-  __pyx_t_3 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 47, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 56, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  if (PyDict_SetItem(__pyx_t_3, __pyx_n_s_return, __pyx_kp_s_tuple_float_float_float) < 0) __PYX_ERR(0, 47, __pyx_L1_error)
-  __pyx_t_4 = __Pyx_CyFunction_New(&__pyx_mdef_7nav_env_5ships_7physics_11ShipPhysics_13__get_mass_over_linear_friction_coefficients, 0, __pyx_n_s_ShipPhysics___get_mass_over_line, NULL, __pyx_n_s_nav_env_ships_physics, __pyx_d, ((PyObject *)__pyx_codeobj__17)); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 47, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_3, __pyx_n_s_return, __pyx_kp_s_tuple_float_float_float) < 0) __PYX_ERR(0, 56, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_CyFunction_New(&__pyx_mdef_7nav_env_5ships_7physics_11ShipPhysics_13__get_mass_over_linear_friction_coefficients, 0, __pyx_n_s_ShipPhysics___get_mass_over_line, NULL, __pyx_n_s_nav_env_ships_physics, __pyx_d, ((PyObject *)__pyx_codeobj__17)); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 56, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_CyFunction_SetAnnotationsDict(__pyx_t_4, __pyx_t_3);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  if (__Pyx_SetNameInClass(__pyx_t_2, __pyx_n_s_ShipPhysics__get_mass_over_line, __pyx_t_4) < 0) __PYX_ERR(0, 47, __pyx_L1_error)
+  if (__Pyx_SetNameInClass(__pyx_t_2, __pyx_n_s_ShipPhysics__get_mass_over_line, __pyx_t_4) < 0) __PYX_ERR(0, 56, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
 
-  /* "nav_env/ships/physics.pyx":51
+  /* "nav_env/ships/physics.pyx":60
  *         return mass_over_linear_friction_coefficient['surge'], mass_over_linear_friction_coefficient['sway'], mass_over_linear_friction_coefficient['yaw']
  * 
  *     def __get_inv_mass_matrix(self) -> np.ndarray:             # <<<<<<<<<<<<<<
  *         return np.linalg.inv(np.array([
  *                 [self._mass + self._x_du, 0., 0.],
  */
-  __pyx_t_4 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 51, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 60, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
-  if (PyDict_SetItem(__pyx_t_4, __pyx_n_s_return, __pyx_kp_s_np_ndarray) < 0) __PYX_ERR(0, 51, __pyx_L1_error)
-  __pyx_t_3 = __Pyx_CyFunction_New(&__pyx_mdef_7nav_env_5ships_7physics_11ShipPhysics_15__get_inv_mass_matrix, 0, __pyx_n_s_ShipPhysics___get_inv_mass_matri, NULL, __pyx_n_s_nav_env_ships_physics, __pyx_d, ((PyObject *)__pyx_codeobj__19)); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 51, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_4, __pyx_n_s_return, __pyx_kp_s_np_ndarray) < 0) __PYX_ERR(0, 60, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_CyFunction_New(&__pyx_mdef_7nav_env_5ships_7physics_11ShipPhysics_15__get_inv_mass_matrix, 0, __pyx_n_s_ShipPhysics___get_inv_mass_matri, NULL, __pyx_n_s_nav_env_ships_physics, __pyx_d, ((PyObject *)__pyx_codeobj__19)); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 60, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_CyFunction_SetAnnotationsDict(__pyx_t_3, __pyx_t_4);
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  if (__Pyx_SetNameInClass(__pyx_t_2, __pyx_n_s_ShipPhysics__get_inv_mass_matri, __pyx_t_3) < 0) __PYX_ERR(0, 51, __pyx_L1_error)
+  if (__Pyx_SetNameInClass(__pyx_t_2, __pyx_n_s_ShipPhysics__get_inv_mass_matri, __pyx_t_3) < 0) __PYX_ERR(0, 60, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
 
-  /* "nav_env/ships/physics.pyx":58
+  /* "nav_env/ships/physics.pyx":67
  *             ]))
  * 
  *     def __get_coriolis_matrix(self, x_dot, y_dot, psi_dot_rad) -> np.ndarray:             # <<<<<<<<<<<<<<
  *         return np.array([
  *                 [0., 0., -self._mass * (self._x_g * psi_dot_rad + y_dot)],
  */
-  __pyx_t_3 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 58, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 67, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  if (PyDict_SetItem(__pyx_t_3, __pyx_n_s_return, __pyx_kp_s_np_ndarray) < 0) __PYX_ERR(0, 58, __pyx_L1_error)
-  __pyx_t_4 = __Pyx_CyFunction_New(&__pyx_mdef_7nav_env_5ships_7physics_11ShipPhysics_17__get_coriolis_matrix, 0, __pyx_n_s_ShipPhysics___get_coriolis_matri, NULL, __pyx_n_s_nav_env_ships_physics, __pyx_d, ((PyObject *)__pyx_codeobj__21)); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 58, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_3, __pyx_n_s_return, __pyx_kp_s_np_ndarray) < 0) __PYX_ERR(0, 67, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_CyFunction_New(&__pyx_mdef_7nav_env_5ships_7physics_11ShipPhysics_17__get_coriolis_matrix, 0, __pyx_n_s_ShipPhysics___get_coriolis_matri, NULL, __pyx_n_s_nav_env_ships_physics, __pyx_d, ((PyObject *)__pyx_codeobj__21)); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 67, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_CyFunction_SetAnnotationsDict(__pyx_t_4, __pyx_t_3);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  if (__Pyx_SetNameInClass(__pyx_t_2, __pyx_n_s_ShipPhysics__get_coriolis_matri, __pyx_t_4) < 0) __PYX_ERR(0, 58, __pyx_L1_error)
+  if (__Pyx_SetNameInClass(__pyx_t_2, __pyx_n_s_ShipPhysics__get_coriolis_matri, __pyx_t_4) < 0) __PYX_ERR(0, 67, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
 
-  /* "nav_env/ships/physics.pyx":65
+  /* "nav_env/ships/physics.pyx":74
  *                 ])
  * 
  *     def __get_coriolis_added_matrix(self, u_r, v_r) -> np.ndarray:             # <<<<<<<<<<<<<<
  *         return np.array([
  *             [0., 0., self._y_dv * v_r],
  */
-  __pyx_t_4 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 65, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 74, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
-  if (PyDict_SetItem(__pyx_t_4, __pyx_n_s_return, __pyx_kp_s_np_ndarray) < 0) __PYX_ERR(0, 65, __pyx_L1_error)
-  __pyx_t_3 = __Pyx_CyFunction_New(&__pyx_mdef_7nav_env_5ships_7physics_11ShipPhysics_19__get_coriolis_added_matrix, 0, __pyx_n_s_ShipPhysics___get_coriolis_added, NULL, __pyx_n_s_nav_env_ships_physics, __pyx_d, ((PyObject *)__pyx_codeobj__23)); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 65, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_4, __pyx_n_s_return, __pyx_kp_s_np_ndarray) < 0) __PYX_ERR(0, 74, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_CyFunction_New(&__pyx_mdef_7nav_env_5ships_7physics_11ShipPhysics_19__get_coriolis_added_matrix, 0, __pyx_n_s_ShipPhysics___get_coriolis_added, NULL, __pyx_n_s_nav_env_ships_physics, __pyx_d, ((PyObject *)__pyx_codeobj__23)); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 74, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_CyFunction_SetAnnotationsDict(__pyx_t_3, __pyx_t_4);
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  if (__Pyx_SetNameInClass(__pyx_t_2, __pyx_n_s_ShipPhysics__get_coriolis_added, __pyx_t_3) < 0) __PYX_ERR(0, 65, __pyx_L1_error)
+  if (__Pyx_SetNameInClass(__pyx_t_2, __pyx_n_s_ShipPhysics__get_coriolis_added, __pyx_t_3) < 0) __PYX_ERR(0, 74, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
 
-  /* "nav_env/ships/physics.pyx":72
+  /* "nav_env/ships/physics.pyx":81
  *         ])
  * 
  *     def __get_linear_damping_matrix(self) -> np.ndarray:             # <<<<<<<<<<<<<<
  *         return np.array([
  *             [self._mass / self._t_surge, 0., 0.],
  */
-  __pyx_t_3 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 72, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 81, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  if (PyDict_SetItem(__pyx_t_3, __pyx_n_s_return, __pyx_kp_s_np_ndarray) < 0) __PYX_ERR(0, 72, __pyx_L1_error)
-  __pyx_t_4 = __Pyx_CyFunction_New(&__pyx_mdef_7nav_env_5ships_7physics_11ShipPhysics_21__get_linear_damping_matrix, 0, __pyx_n_s_ShipPhysics___get_linear_damping, NULL, __pyx_n_s_nav_env_ships_physics, __pyx_d, ((PyObject *)__pyx_codeobj__24)); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 72, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_3, __pyx_n_s_return, __pyx_kp_s_np_ndarray) < 0) __PYX_ERR(0, 81, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_CyFunction_New(&__pyx_mdef_7nav_env_5ships_7physics_11ShipPhysics_21__get_linear_damping_matrix, 0, __pyx_n_s_ShipPhysics___get_linear_damping, NULL, __pyx_n_s_nav_env_ships_physics, __pyx_d, ((PyObject *)__pyx_codeobj__24)); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 81, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_CyFunction_SetAnnotationsDict(__pyx_t_4, __pyx_t_3);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  if (__Pyx_SetNameInClass(__pyx_t_2, __pyx_n_s_ShipPhysics__get_linear_damping, __pyx_t_4) < 0) __PYX_ERR(0, 72, __pyx_L1_error)
+  if (__Pyx_SetNameInClass(__pyx_t_2, __pyx_n_s_ShipPhysics__get_linear_damping, __pyx_t_4) < 0) __PYX_ERR(0, 81, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
 
-  /* "nav_env/ships/physics.pyx":79
+  /* "nav_env/ships/physics.pyx":88
  *         ])
  * 
  *     def __get_nonlinear_damping_matrix(self, x_dot, y_dot, psi_dot_rad) -> np.ndarray:             # <<<<<<<<<<<<<<
  *         return np.array([
  *             [self._ku * np.abs(x_dot), 0., 0.],
  */
-  __pyx_t_4 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 79, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 88, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
-  if (PyDict_SetItem(__pyx_t_4, __pyx_n_s_return, __pyx_kp_s_np_ndarray) < 0) __PYX_ERR(0, 79, __pyx_L1_error)
-  __pyx_t_3 = __Pyx_CyFunction_New(&__pyx_mdef_7nav_env_5ships_7physics_11ShipPhysics_23__get_nonlinear_damping_matrix, 0, __pyx_n_s_ShipPhysics___get_nonlinear_damp, NULL, __pyx_n_s_nav_env_ships_physics, __pyx_d, ((PyObject *)__pyx_codeobj__25)); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 79, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_4, __pyx_n_s_return, __pyx_kp_s_np_ndarray) < 0) __PYX_ERR(0, 88, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_CyFunction_New(&__pyx_mdef_7nav_env_5ships_7physics_11ShipPhysics_23__get_nonlinear_damping_matrix, 0, __pyx_n_s_ShipPhysics___get_nonlinear_damp, NULL, __pyx_n_s_nav_env_ships_physics, __pyx_d, ((PyObject *)__pyx_codeobj__25)); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 88, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_CyFunction_SetAnnotationsDict(__pyx_t_3, __pyx_t_4);
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  if (__Pyx_SetNameInClass(__pyx_t_2, __pyx_n_s_ShipPhysics__get_nonlinear_damp, __pyx_t_3) < 0) __PYX_ERR(0, 79, __pyx_L1_error)
+  if (__Pyx_SetNameInClass(__pyx_t_2, __pyx_n_s_ShipPhysics__get_nonlinear_damp, __pyx_t_3) < 0) __PYX_ERR(0, 88, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
 
-  /* "nav_env/ships/physics.pyx":86
+  /* "nav_env/ships/physics.pyx":95
  *         ])
  * 
  *     def __get_rotation_matrix(self, psi_rad, dim:int=3) -> np.ndarray:             # <<<<<<<<<<<<<<
  *         return np.array([
  *             [-np.sin(psi_rad), np.cos(psi_rad), 0.],
  */
-  __pyx_t_3 = __Pyx_PyDict_NewPresized(2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 86, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyDict_NewPresized(2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 95, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  if (PyDict_SetItem(__pyx_t_3, __pyx_n_s_dim, __pyx_n_s_int) < 0) __PYX_ERR(0, 86, __pyx_L1_error)
-  if (PyDict_SetItem(__pyx_t_3, __pyx_n_s_return, __pyx_kp_s_np_ndarray) < 0) __PYX_ERR(0, 86, __pyx_L1_error)
-  __pyx_t_4 = __Pyx_CyFunction_New(&__pyx_mdef_7nav_env_5ships_7physics_11ShipPhysics_25__get_rotation_matrix, 0, __pyx_n_s_ShipPhysics___get_rotation_matri, NULL, __pyx_n_s_nav_env_ships_physics, __pyx_d, ((PyObject *)__pyx_codeobj__27)); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 86, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_3, __pyx_n_s_dim, __pyx_n_s_int) < 0) __PYX_ERR(0, 95, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_3, __pyx_n_s_return, __pyx_kp_s_np_ndarray) < 0) __PYX_ERR(0, 95, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_CyFunction_New(&__pyx_mdef_7nav_env_5ships_7physics_11ShipPhysics_25__get_rotation_matrix, 0, __pyx_n_s_ShipPhysics___get_rotation_matri, NULL, __pyx_n_s_nav_env_ships_physics, __pyx_d, ((PyObject *)__pyx_codeobj__27)); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 95, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
-  if (!__Pyx_CyFunction_InitDefaults(__pyx_t_4, sizeof(__pyx_defaults1), 1)) __PYX_ERR(0, 86, __pyx_L1_error)
-  if (!(likely(__Pyx_Py3Int_CheckExact(__pyx_int_3)) || __Pyx_RaiseUnexpectedTypeError("int", __pyx_int_3))) __PYX_ERR(0, 86, __pyx_L1_error)
+  if (!__Pyx_CyFunction_InitDefaults(__pyx_t_4, sizeof(__pyx_defaults1), 1)) __PYX_ERR(0, 95, __pyx_L1_error)
+  if (!(likely(__Pyx_Py3Int_CheckExact(__pyx_int_3)) || __Pyx_RaiseUnexpectedTypeError("int", __pyx_int_3))) __PYX_ERR(0, 95, __pyx_L1_error)
   __Pyx_INCREF(__pyx_int_3);
   __Pyx_CyFunction_Defaults(__pyx_defaults1, __pyx_t_4)->__pyx_arg_dim = ((PyObject*)__pyx_int_3);
   __Pyx_GIVEREF(__pyx_int_3);
   __Pyx_CyFunction_SetDefaultsGetter(__pyx_t_4, __pyx_pf_7nav_env_5ships_7physics_2__defaults__);
   __Pyx_CyFunction_SetAnnotationsDict(__pyx_t_4, __pyx_t_3);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  if (__Pyx_SetNameInClass(__pyx_t_2, __pyx_n_s_ShipPhysics__get_rotation_matri, __pyx_t_4) < 0) __PYX_ERR(0, 86, __pyx_L1_error)
+  if (__Pyx_SetNameInClass(__pyx_t_2, __pyx_n_s_ShipPhysics__get_rotation_matri, __pyx_t_4) < 0) __PYX_ERR(0, 95, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
 
-  /* "nav_env/ships/physics.pyx":93
+  /* "nav_env/ships/physics.pyx":102
  *         ])[0:dim, 0:dim] # Transpose or not, it doesn't change anything!!! This transformation is correct!
  * 
  *     def get_wind_force(self, wind:WindVector, x_dot:float, y_dot:float, yaw:float) -> GeneralizedForces:             # <<<<<<<<<<<<<<
  *         """
  *         Get the wind force acting on the ship, in the ship frame.
  */
-  __pyx_t_4 = __Pyx_PyDict_NewPresized(5); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 93, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyDict_NewPresized(5); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 102, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
-  if (PyDict_SetItem(__pyx_t_4, __pyx_n_s_wind, __pyx_n_s_WindVector) < 0) __PYX_ERR(0, 93, __pyx_L1_error)
-  if (PyDict_SetItem(__pyx_t_4, __pyx_n_s_x_dot, __pyx_n_s_float) < 0) __PYX_ERR(0, 93, __pyx_L1_error)
-  if (PyDict_SetItem(__pyx_t_4, __pyx_n_s_y_dot, __pyx_n_s_float) < 0) __PYX_ERR(0, 93, __pyx_L1_error)
-  if (PyDict_SetItem(__pyx_t_4, __pyx_n_s_yaw, __pyx_n_s_float) < 0) __PYX_ERR(0, 93, __pyx_L1_error)
-  if (PyDict_SetItem(__pyx_t_4, __pyx_n_s_return, __pyx_n_s_GeneralizedForces) < 0) __PYX_ERR(0, 93, __pyx_L1_error)
-  __pyx_t_3 = __Pyx_CyFunction_New(&__pyx_mdef_7nav_env_5ships_7physics_11ShipPhysics_27get_wind_force, 0, __pyx_n_s_ShipPhysics_get_wind_force, NULL, __pyx_n_s_nav_env_ships_physics, __pyx_d, ((PyObject *)__pyx_codeobj__29)); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 93, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_4, __pyx_n_s_wind, __pyx_n_s_WindVector) < 0) __PYX_ERR(0, 102, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_4, __pyx_n_s_x_dot, __pyx_n_s_float) < 0) __PYX_ERR(0, 102, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_4, __pyx_n_s_y_dot, __pyx_n_s_float) < 0) __PYX_ERR(0, 102, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_4, __pyx_n_s_yaw, __pyx_n_s_float) < 0) __PYX_ERR(0, 102, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_4, __pyx_n_s_return, __pyx_n_s_GeneralizedForces) < 0) __PYX_ERR(0, 102, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_CyFunction_New(&__pyx_mdef_7nav_env_5ships_7physics_11ShipPhysics_27get_wind_force, 0, __pyx_n_s_ShipPhysics_get_wind_force, NULL, __pyx_n_s_nav_env_ships_physics, __pyx_d, ((PyObject *)__pyx_codeobj__29)); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 102, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_CyFunction_SetAnnotationsDict(__pyx_t_3, __pyx_t_4);
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  if (__Pyx_SetNameInClass(__pyx_t_2, __pyx_n_s_get_wind_force, __pyx_t_3) < 0) __PYX_ERR(0, 93, __pyx_L1_error)
+  if (__Pyx_SetNameInClass(__pyx_t_2, __pyx_n_s_get_wind_force, __pyx_t_3) < 0) __PYX_ERR(0, 102, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
 
-  /* "nav_env/ships/physics.pyx":123
+  /* "nav_env/ships/physics.pyx":132
  *         return GeneralizedForces(float(tau_u), float(tau_v), 0., 0., 0., float(tau_n))
  * 
  *     def get_water_force(self, water:WaterVector, x_dot:float, y_dot:float, yaw:float) -> GeneralizedForces:             # <<<<<<<<<<<<<<
  *         """
  *         Get the water force acting on the ship.
  */
-  __pyx_t_3 = __Pyx_PyDict_NewPresized(5); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 123, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyDict_NewPresized(5); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 132, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  if (PyDict_SetItem(__pyx_t_3, __pyx_n_s_water, __pyx_n_s_WaterVector) < 0) __PYX_ERR(0, 123, __pyx_L1_error)
-  if (PyDict_SetItem(__pyx_t_3, __pyx_n_s_x_dot, __pyx_n_s_float) < 0) __PYX_ERR(0, 123, __pyx_L1_error)
-  if (PyDict_SetItem(__pyx_t_3, __pyx_n_s_y_dot, __pyx_n_s_float) < 0) __PYX_ERR(0, 123, __pyx_L1_error)
-  if (PyDict_SetItem(__pyx_t_3, __pyx_n_s_yaw, __pyx_n_s_float) < 0) __PYX_ERR(0, 123, __pyx_L1_error)
-  if (PyDict_SetItem(__pyx_t_3, __pyx_n_s_return, __pyx_n_s_GeneralizedForces) < 0) __PYX_ERR(0, 123, __pyx_L1_error)
-  __pyx_t_4 = __Pyx_CyFunction_New(&__pyx_mdef_7nav_env_5ships_7physics_11ShipPhysics_29get_water_force, 0, __pyx_n_s_ShipPhysics_get_water_force, NULL, __pyx_n_s_nav_env_ships_physics, __pyx_d, ((PyObject *)__pyx_codeobj__31)); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 123, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_3, __pyx_n_s_water, __pyx_n_s_WaterVector) < 0) __PYX_ERR(0, 132, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_3, __pyx_n_s_x_dot, __pyx_n_s_float) < 0) __PYX_ERR(0, 132, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_3, __pyx_n_s_y_dot, __pyx_n_s_float) < 0) __PYX_ERR(0, 132, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_3, __pyx_n_s_yaw, __pyx_n_s_float) < 0) __PYX_ERR(0, 132, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_3, __pyx_n_s_return, __pyx_n_s_GeneralizedForces) < 0) __PYX_ERR(0, 132, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_CyFunction_New(&__pyx_mdef_7nav_env_5ships_7physics_11ShipPhysics_29get_water_force, 0, __pyx_n_s_ShipPhysics_get_water_force, NULL, __pyx_n_s_nav_env_ships_physics, __pyx_d, ((PyObject *)__pyx_codeobj__31)); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 132, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_CyFunction_SetAnnotationsDict(__pyx_t_4, __pyx_t_3);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  if (__Pyx_SetNameInClass(__pyx_t_2, __pyx_n_s_get_water_force, __pyx_t_4) < 0) __PYX_ERR(0, 123, __pyx_L1_error)
+  if (__Pyx_SetNameInClass(__pyx_t_2, __pyx_n_s_get_water_force, __pyx_t_4) < 0) __PYX_ERR(0, 132, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
 
-  /* "nav_env/ships/physics.pyx":129
+  /* "nav_env/ships/physics.pyx":138
  *         return GeneralizedForces()
  * 
  *     def get_time_derivatives_and_forces(self,             # <<<<<<<<<<<<<<
  *                              states:States3,
  *                              wind:WindVector=WindVector((0., 0.), vector=(0., 0.)),
  */
-  __pyx_t_4 = __Pyx_PyDict_NewPresized(6); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 129, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyDict_NewPresized(6); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 138, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
-  if (PyDict_SetItem(__pyx_t_4, __pyx_n_s_states, __pyx_n_s_States3) < 0) __PYX_ERR(0, 129, __pyx_L1_error)
-  if (PyDict_SetItem(__pyx_t_4, __pyx_n_s_wind, __pyx_n_s_WindVector) < 0) __PYX_ERR(0, 129, __pyx_L1_error)
-  if (PyDict_SetItem(__pyx_t_4, __pyx_n_s_water, __pyx_n_s_WaterVector) < 0) __PYX_ERR(0, 129, __pyx_L1_error)
-  if (PyDict_SetItem(__pyx_t_4, __pyx_n_s_control_forces, __pyx_n_s_GeneralizedForces) < 0) __PYX_ERR(0, 129, __pyx_L1_error)
-  if (PyDict_SetItem(__pyx_t_4, __pyx_n_s_external_forces, __pyx_n_s_GeneralizedForces) < 0) __PYX_ERR(0, 129, __pyx_L1_error)
-  if (PyDict_SetItem(__pyx_t_4, __pyx_n_s_return, __pyx_kp_s_tuple_TimeDerivatives3_Generaliz) < 0) __PYX_ERR(0, 129, __pyx_L1_error)
-  __pyx_t_3 = __Pyx_CyFunction_New(&__pyx_mdef_7nav_env_5ships_7physics_11ShipPhysics_31get_time_derivatives_and_forces, 0, __pyx_n_s_ShipPhysics_get_time_derivatives, NULL, __pyx_n_s_nav_env_ships_physics, __pyx_d, ((PyObject *)__pyx_codeobj__33)); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 129, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_4, __pyx_n_s_states, __pyx_n_s_States3) < 0) __PYX_ERR(0, 138, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_4, __pyx_n_s_wind, __pyx_n_s_WindVector) < 0) __PYX_ERR(0, 138, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_4, __pyx_n_s_water, __pyx_n_s_WaterVector) < 0) __PYX_ERR(0, 138, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_4, __pyx_n_s_control_forces, __pyx_n_s_GeneralizedForces) < 0) __PYX_ERR(0, 138, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_4, __pyx_n_s_external_forces, __pyx_n_s_GeneralizedForces) < 0) __PYX_ERR(0, 138, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_4, __pyx_n_s_return, __pyx_kp_s_tuple_TimeDerivatives3_Generaliz) < 0) __PYX_ERR(0, 138, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_CyFunction_New(&__pyx_mdef_7nav_env_5ships_7physics_11ShipPhysics_31get_time_derivatives_and_forces, 0, __pyx_n_s_ShipPhysics_get_time_derivatives, NULL, __pyx_n_s_nav_env_ships_physics, __pyx_d, ((PyObject *)__pyx_codeobj__33)); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 138, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  if (!__Pyx_CyFunction_InitDefaults(__pyx_t_3, sizeof(__pyx_defaults2), 4)) __PYX_ERR(0, 129, __pyx_L1_error)
+  if (!__Pyx_CyFunction_InitDefaults(__pyx_t_3, sizeof(__pyx_defaults2), 4)) __PYX_ERR(0, 138, __pyx_L1_error)
 
-  /* "nav_env/ships/physics.pyx":131
+  /* "nav_env/ships/physics.pyx":140
  *     def get_time_derivatives_and_forces(self,
  *                              states:States3,
  *                              wind:WindVector=WindVector((0., 0.), vector=(0., 0.)),             # <<<<<<<<<<<<<<
  *                              water:WaterVector=WaterVector((0., 0.), vector=(0., 0.)),
  *                              control_forces:GeneralizedForces=GeneralizedForces(),
  */
-  __Pyx_GetModuleGlobalName(__pyx_t_5, __pyx_n_s_WindVector); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 131, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_5, __pyx_n_s_WindVector); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 140, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
-  __pyx_t_6 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 131, __pyx_L1_error)
+  __pyx_t_6 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 140, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_6);
-  if (PyDict_SetItem(__pyx_t_6, __pyx_n_s_vector, __pyx_tuple__34) < 0) __PYX_ERR(0, 131, __pyx_L1_error)
-  __pyx_t_7 = __Pyx_PyObject_Call(__pyx_t_5, __pyx_tuple__35, __pyx_t_6); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 131, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_6, __pyx_n_s_vector, __pyx_tuple__34) < 0) __PYX_ERR(0, 140, __pyx_L1_error)
+  __pyx_t_7 = __Pyx_PyObject_Call(__pyx_t_5, __pyx_tuple__35, __pyx_t_6); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 140, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_7);
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
   __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
@@ -15556,19 +15776,19 @@ if (!__Pyx_RefNanny) {
   __Pyx_GIVEREF(__pyx_t_7);
   __pyx_t_7 = 0;
 
-  /* "nav_env/ships/physics.pyx":132
+  /* "nav_env/ships/physics.pyx":141
  *                              states:States3,
  *                              wind:WindVector=WindVector((0., 0.), vector=(0., 0.)),
  *                              water:WaterVector=WaterVector((0., 0.), vector=(0., 0.)),             # <<<<<<<<<<<<<<
  *                              control_forces:GeneralizedForces=GeneralizedForces(),
  *                              external_forces:GeneralizedForces=GeneralizedForces()
  */
-  __Pyx_GetModuleGlobalName(__pyx_t_7, __pyx_n_s_WaterVector); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 132, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_7, __pyx_n_s_WaterVector); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 141, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_7);
-  __pyx_t_6 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 132, __pyx_L1_error)
+  __pyx_t_6 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 141, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_6);
-  if (PyDict_SetItem(__pyx_t_6, __pyx_n_s_vector, __pyx_tuple__34) < 0) __PYX_ERR(0, 132, __pyx_L1_error)
-  __pyx_t_5 = __Pyx_PyObject_Call(__pyx_t_7, __pyx_tuple__35, __pyx_t_6); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 132, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_6, __pyx_n_s_vector, __pyx_tuple__34) < 0) __PYX_ERR(0, 141, __pyx_L1_error)
+  __pyx_t_5 = __Pyx_PyObject_Call(__pyx_t_7, __pyx_tuple__35, __pyx_t_6); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 141, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
   __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
   __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
@@ -15576,32 +15796,32 @@ if (!__Pyx_RefNanny) {
   __Pyx_GIVEREF(__pyx_t_5);
   __pyx_t_5 = 0;
 
-  /* "nav_env/ships/physics.pyx":133
+  /* "nav_env/ships/physics.pyx":142
  *                              wind:WindVector=WindVector((0., 0.), vector=(0., 0.)),
  *                              water:WaterVector=WaterVector((0., 0.), vector=(0., 0.)),
  *                              control_forces:GeneralizedForces=GeneralizedForces(),             # <<<<<<<<<<<<<<
  *                              external_forces:GeneralizedForces=GeneralizedForces()
  *                              ) -> tuple[TimeDerivatives3, GeneralizedForces]:
  */
-  __Pyx_GetModuleGlobalName(__pyx_t_5, __pyx_n_s_GeneralizedForces); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 133, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_5, __pyx_n_s_GeneralizedForces); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 142, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
-  __pyx_t_6 = __Pyx_PyObject_CallNoArg(__pyx_t_5); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 133, __pyx_L1_error)
+  __pyx_t_6 = __Pyx_PyObject_CallNoArg(__pyx_t_5); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 142, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_6);
   __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
   __Pyx_CyFunction_Defaults(__pyx_defaults2, __pyx_t_3)->__pyx_arg_control_forces = __pyx_t_6;
   __Pyx_GIVEREF(__pyx_t_6);
   __pyx_t_6 = 0;
 
-  /* "nav_env/ships/physics.pyx":134
+  /* "nav_env/ships/physics.pyx":143
  *                              water:WaterVector=WaterVector((0., 0.), vector=(0., 0.)),
  *                              control_forces:GeneralizedForces=GeneralizedForces(),
  *                              external_forces:GeneralizedForces=GeneralizedForces()             # <<<<<<<<<<<<<<
  *                              ) -> tuple[TimeDerivatives3, GeneralizedForces]:
  *         """
  */
-  __Pyx_GetModuleGlobalName(__pyx_t_6, __pyx_n_s_GeneralizedForces); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 134, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_6, __pyx_n_s_GeneralizedForces); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 143, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_6);
-  __pyx_t_5 = __Pyx_PyObject_CallNoArg(__pyx_t_6); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 134, __pyx_L1_error)
+  __pyx_t_5 = __Pyx_PyObject_CallNoArg(__pyx_t_6); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 143, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_5);
   __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
   __Pyx_CyFunction_Defaults(__pyx_defaults2, __pyx_t_3)->__pyx_arg_external_forces = __pyx_t_5;
@@ -15610,504 +15830,504 @@ if (!__Pyx_RefNanny) {
   __Pyx_CyFunction_SetDefaultsGetter(__pyx_t_3, __pyx_pf_7nav_env_5ships_7physics_4__defaults__);
   __Pyx_CyFunction_SetAnnotationsDict(__pyx_t_3, __pyx_t_4);
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  if (__Pyx_SetNameInClass(__pyx_t_2, __pyx_n_s_get_time_derivatives_and_forces, __pyx_t_3) < 0) __PYX_ERR(0, 129, __pyx_L1_error)
+  if (__Pyx_SetNameInClass(__pyx_t_2, __pyx_n_s_get_time_derivatives_and_forces, __pyx_t_3) < 0) __PYX_ERR(0, 138, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
 
-  /* "nav_env/ships/physics.pyx":188
+  /* "nav_env/ships/physics.pyx":197
  *         return TimeDerivatives3(states.x_dot, states.y_dot, states.psi_dot_deg, float(acc_in_world_frame[0]), float(acc_in_world_frame[1]), float(acc_in_world_frame[2])), GeneralizedForces(f_in_world[0], f_in_world[1], 0., 0., 0., f_in_world[2])
  * 
  *     def __repr__(self) -> str:             # <<<<<<<<<<<<<<
  *         return "{} Object".format(type(self).__name__)
  * 
  */
-  __pyx_t_3 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 188, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 197, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  if (PyDict_SetItem(__pyx_t_3, __pyx_n_s_return, __pyx_n_s_str) < 0) __PYX_ERR(0, 188, __pyx_L1_error)
-  __pyx_t_4 = __Pyx_CyFunction_New(&__pyx_mdef_7nav_env_5ships_7physics_11ShipPhysics_33__repr__, 0, __pyx_n_s_ShipPhysics___repr, NULL, __pyx_n_s_nav_env_ships_physics, __pyx_d, ((PyObject *)__pyx_codeobj__36)); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 188, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_3, __pyx_n_s_return, __pyx_n_s_str) < 0) __PYX_ERR(0, 197, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_CyFunction_New(&__pyx_mdef_7nav_env_5ships_7physics_11ShipPhysics_33__repr__, 0, __pyx_n_s_ShipPhysics___repr, NULL, __pyx_n_s_nav_env_ships_physics, __pyx_d, ((PyObject *)__pyx_codeobj__36)); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 197, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_CyFunction_SetAnnotationsDict(__pyx_t_4, __pyx_t_3);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  if (__Pyx_SetNameInClass(__pyx_t_2, __pyx_n_s_repr, __pyx_t_4) < 0) __PYX_ERR(0, 188, __pyx_L1_error)
+  if (__Pyx_SetNameInClass(__pyx_t_2, __pyx_n_s_repr, __pyx_t_4) < 0) __PYX_ERR(0, 197, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
 
-  /* "nav_env/ships/physics.pyx":191
+  /* "nav_env/ships/physics.pyx":200
  *         return "{} Object".format(type(self).__name__)
  * 
  *     @property             # <<<<<<<<<<<<<<
  *     def inv_mass_matrix(self) -> np.ndarray:
  *         return self._inv_mass_matrix
  */
-  __pyx_t_4 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 191, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 200, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
-  if (PyDict_SetItem(__pyx_t_4, __pyx_n_s_return, __pyx_kp_s_np_ndarray) < 0) __PYX_ERR(0, 191, __pyx_L1_error)
-  __pyx_t_3 = __Pyx_CyFunction_New(&__pyx_mdef_7nav_env_5ships_7physics_11ShipPhysics_35inv_mass_matrix, 0, __pyx_n_s_ShipPhysics_inv_mass_matrix, NULL, __pyx_n_s_nav_env_ships_physics, __pyx_d, ((PyObject *)__pyx_codeobj__37)); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 191, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_4, __pyx_n_s_return, __pyx_kp_s_np_ndarray) < 0) __PYX_ERR(0, 200, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_CyFunction_New(&__pyx_mdef_7nav_env_5ships_7physics_11ShipPhysics_35inv_mass_matrix, 0, __pyx_n_s_ShipPhysics_inv_mass_matrix, NULL, __pyx_n_s_nav_env_ships_physics, __pyx_d, ((PyObject *)__pyx_codeobj__37)); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 200, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_CyFunction_SetAnnotationsDict(__pyx_t_3, __pyx_t_4);
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  __pyx_t_4 = __Pyx_PyObject_CallOneArg(__pyx_builtin_property, __pyx_t_3); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 191, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyObject_CallOneArg(__pyx_builtin_property, __pyx_t_3); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 200, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  if (__Pyx_SetNameInClass(__pyx_t_2, __pyx_n_s_inv_mass_matrix_2, __pyx_t_4) < 0) __PYX_ERR(0, 191, __pyx_L1_error)
+  if (__Pyx_SetNameInClass(__pyx_t_2, __pyx_n_s_inv_mass_matrix_2, __pyx_t_4) < 0) __PYX_ERR(0, 200, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
 
-  /* "nav_env/ships/physics.pyx":195
+  /* "nav_env/ships/physics.pyx":204
  *         return self._inv_mass_matrix
  * 
  *     @property             # <<<<<<<<<<<<<<
  *     def coriolis_matrix(self) -> Callable:
  *         return self.__get_coriolis_matrix
  */
-  __pyx_t_4 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 195, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 204, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
-  if (PyDict_SetItem(__pyx_t_4, __pyx_n_s_return, __pyx_n_s_Callable) < 0) __PYX_ERR(0, 195, __pyx_L1_error)
-  __pyx_t_3 = __Pyx_CyFunction_New(&__pyx_mdef_7nav_env_5ships_7physics_11ShipPhysics_37coriolis_matrix, 0, __pyx_n_s_ShipPhysics_coriolis_matrix, NULL, __pyx_n_s_nav_env_ships_physics, __pyx_d, ((PyObject *)__pyx_codeobj__38)); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 195, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_4, __pyx_n_s_return, __pyx_n_s_Callable) < 0) __PYX_ERR(0, 204, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_CyFunction_New(&__pyx_mdef_7nav_env_5ships_7physics_11ShipPhysics_37coriolis_matrix, 0, __pyx_n_s_ShipPhysics_coriolis_matrix, NULL, __pyx_n_s_nav_env_ships_physics, __pyx_d, ((PyObject *)__pyx_codeobj__38)); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 204, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_CyFunction_SetAnnotationsDict(__pyx_t_3, __pyx_t_4);
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  __pyx_t_4 = __Pyx_PyObject_CallOneArg(__pyx_builtin_property, __pyx_t_3); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 195, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyObject_CallOneArg(__pyx_builtin_property, __pyx_t_3); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 204, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  if (__Pyx_SetNameInClass(__pyx_t_2, __pyx_n_s_coriolis_matrix, __pyx_t_4) < 0) __PYX_ERR(0, 195, __pyx_L1_error)
+  if (__Pyx_SetNameInClass(__pyx_t_2, __pyx_n_s_coriolis_matrix, __pyx_t_4) < 0) __PYX_ERR(0, 204, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
 
-  /* "nav_env/ships/physics.pyx":199
+  /* "nav_env/ships/physics.pyx":208
  *         return self.__get_coriolis_matrix
  * 
  *     @property             # <<<<<<<<<<<<<<
  *     def coriolis_added_mass_matrix(self) -> Callable:
  *         return self.__get_coriolis_added_matrix
  */
-  __pyx_t_4 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 199, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 208, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
-  if (PyDict_SetItem(__pyx_t_4, __pyx_n_s_return, __pyx_n_s_Callable) < 0) __PYX_ERR(0, 199, __pyx_L1_error)
-  __pyx_t_3 = __Pyx_CyFunction_New(&__pyx_mdef_7nav_env_5ships_7physics_11ShipPhysics_39coriolis_added_mass_matrix, 0, __pyx_n_s_ShipPhysics_coriolis_added_mass, NULL, __pyx_n_s_nav_env_ships_physics, __pyx_d, ((PyObject *)__pyx_codeobj__39)); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 199, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_4, __pyx_n_s_return, __pyx_n_s_Callable) < 0) __PYX_ERR(0, 208, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_CyFunction_New(&__pyx_mdef_7nav_env_5ships_7physics_11ShipPhysics_39coriolis_added_mass_matrix, 0, __pyx_n_s_ShipPhysics_coriolis_added_mass, NULL, __pyx_n_s_nav_env_ships_physics, __pyx_d, ((PyObject *)__pyx_codeobj__39)); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 208, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_CyFunction_SetAnnotationsDict(__pyx_t_3, __pyx_t_4);
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  __pyx_t_4 = __Pyx_PyObject_CallOneArg(__pyx_builtin_property, __pyx_t_3); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 199, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyObject_CallOneArg(__pyx_builtin_property, __pyx_t_3); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 208, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  if (__Pyx_SetNameInClass(__pyx_t_2, __pyx_n_s_coriolis_added_mass_matrix, __pyx_t_4) < 0) __PYX_ERR(0, 199, __pyx_L1_error)
+  if (__Pyx_SetNameInClass(__pyx_t_2, __pyx_n_s_coriolis_added_mass_matrix, __pyx_t_4) < 0) __PYX_ERR(0, 208, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
 
-  /* "nav_env/ships/physics.pyx":203
+  /* "nav_env/ships/physics.pyx":212
  *         return self.__get_coriolis_added_matrix
  * 
  *     @property             # <<<<<<<<<<<<<<
  *     def linear_damping_matrix(self) -> np.ndarray:
  *         return self._linear_damping_matrix
  */
-  __pyx_t_4 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 203, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 212, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
-  if (PyDict_SetItem(__pyx_t_4, __pyx_n_s_return, __pyx_kp_s_np_ndarray) < 0) __PYX_ERR(0, 203, __pyx_L1_error)
-  __pyx_t_3 = __Pyx_CyFunction_New(&__pyx_mdef_7nav_env_5ships_7physics_11ShipPhysics_41linear_damping_matrix, 0, __pyx_n_s_ShipPhysics_linear_damping_matri, NULL, __pyx_n_s_nav_env_ships_physics, __pyx_d, ((PyObject *)__pyx_codeobj__40)); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 203, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_4, __pyx_n_s_return, __pyx_kp_s_np_ndarray) < 0) __PYX_ERR(0, 212, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_CyFunction_New(&__pyx_mdef_7nav_env_5ships_7physics_11ShipPhysics_41linear_damping_matrix, 0, __pyx_n_s_ShipPhysics_linear_damping_matri, NULL, __pyx_n_s_nav_env_ships_physics, __pyx_d, ((PyObject *)__pyx_codeobj__40)); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 212, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_CyFunction_SetAnnotationsDict(__pyx_t_3, __pyx_t_4);
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  __pyx_t_4 = __Pyx_PyObject_CallOneArg(__pyx_builtin_property, __pyx_t_3); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 203, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyObject_CallOneArg(__pyx_builtin_property, __pyx_t_3); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 212, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  if (__Pyx_SetNameInClass(__pyx_t_2, __pyx_n_s_linear_damping_matrix_2, __pyx_t_4) < 0) __PYX_ERR(0, 203, __pyx_L1_error)
+  if (__Pyx_SetNameInClass(__pyx_t_2, __pyx_n_s_linear_damping_matrix_2, __pyx_t_4) < 0) __PYX_ERR(0, 212, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
 
-  /* "nav_env/ships/physics.pyx":207
+  /* "nav_env/ships/physics.pyx":216
  *         return self._linear_damping_matrix
  * 
  *     @property             # <<<<<<<<<<<<<<
  *     def nonlinear_damping_matrix(self) -> Callable:
  *         return self.__get_nonlinear_damping_matrix
  */
-  __pyx_t_4 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 207, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 216, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
-  if (PyDict_SetItem(__pyx_t_4, __pyx_n_s_return, __pyx_n_s_Callable) < 0) __PYX_ERR(0, 207, __pyx_L1_error)
-  __pyx_t_3 = __Pyx_CyFunction_New(&__pyx_mdef_7nav_env_5ships_7physics_11ShipPhysics_43nonlinear_damping_matrix, 0, __pyx_n_s_ShipPhysics_nonlinear_damping_ma, NULL, __pyx_n_s_nav_env_ships_physics, __pyx_d, ((PyObject *)__pyx_codeobj__41)); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 207, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_4, __pyx_n_s_return, __pyx_n_s_Callable) < 0) __PYX_ERR(0, 216, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_CyFunction_New(&__pyx_mdef_7nav_env_5ships_7physics_11ShipPhysics_43nonlinear_damping_matrix, 0, __pyx_n_s_ShipPhysics_nonlinear_damping_ma, NULL, __pyx_n_s_nav_env_ships_physics, __pyx_d, ((PyObject *)__pyx_codeobj__41)); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 216, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_CyFunction_SetAnnotationsDict(__pyx_t_3, __pyx_t_4);
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  __pyx_t_4 = __Pyx_PyObject_CallOneArg(__pyx_builtin_property, __pyx_t_3); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 207, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyObject_CallOneArg(__pyx_builtin_property, __pyx_t_3); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 216, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  if (__Pyx_SetNameInClass(__pyx_t_2, __pyx_n_s_nonlinear_damping_matrix, __pyx_t_4) < 0) __PYX_ERR(0, 207, __pyx_L1_error)
+  if (__Pyx_SetNameInClass(__pyx_t_2, __pyx_n_s_nonlinear_damping_matrix, __pyx_t_4) < 0) __PYX_ERR(0, 216, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
 
-  /* "nav_env/ships/physics.pyx":211
+  /* "nav_env/ships/physics.pyx":220
  *         return self.__get_nonlinear_damping_matrix
  * 
  *     @property             # <<<<<<<<<<<<<<
  *     def rotation_matrix(self) -> Callable:
  *         return self.__get_rotation_matrix
  */
-  __pyx_t_4 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 211, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 220, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
-  if (PyDict_SetItem(__pyx_t_4, __pyx_n_s_return, __pyx_n_s_Callable) < 0) __PYX_ERR(0, 211, __pyx_L1_error)
-  __pyx_t_3 = __Pyx_CyFunction_New(&__pyx_mdef_7nav_env_5ships_7physics_11ShipPhysics_45rotation_matrix, 0, __pyx_n_s_ShipPhysics_rotation_matrix, NULL, __pyx_n_s_nav_env_ships_physics, __pyx_d, ((PyObject *)__pyx_codeobj__42)); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 211, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_4, __pyx_n_s_return, __pyx_n_s_Callable) < 0) __PYX_ERR(0, 220, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_CyFunction_New(&__pyx_mdef_7nav_env_5ships_7physics_11ShipPhysics_45rotation_matrix, 0, __pyx_n_s_ShipPhysics_rotation_matrix, NULL, __pyx_n_s_nav_env_ships_physics, __pyx_d, ((PyObject *)__pyx_codeobj__42)); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 220, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_CyFunction_SetAnnotationsDict(__pyx_t_3, __pyx_t_4);
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  __pyx_t_4 = __Pyx_PyObject_CallOneArg(__pyx_builtin_property, __pyx_t_3); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 211, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyObject_CallOneArg(__pyx_builtin_property, __pyx_t_3); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 220, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  if (__Pyx_SetNameInClass(__pyx_t_2, __pyx_n_s_rotation_matrix, __pyx_t_4) < 0) __PYX_ERR(0, 211, __pyx_L1_error)
+  if (__Pyx_SetNameInClass(__pyx_t_2, __pyx_n_s_rotation_matrix, __pyx_t_4) < 0) __PYX_ERR(0, 220, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
 
-  /* "nav_env/ships/physics.pyx":215
+  /* "nav_env/ships/physics.pyx":224
  *         return self.__get_rotation_matrix
  * 
  *     @property             # <<<<<<<<<<<<<<
  *     def i_z(self) -> float:
  *         return self._i_z
  */
-  __pyx_t_4 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 215, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 224, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
-  if (PyDict_SetItem(__pyx_t_4, __pyx_n_s_return, __pyx_n_s_float) < 0) __PYX_ERR(0, 215, __pyx_L1_error)
-  __pyx_t_3 = __Pyx_CyFunction_New(&__pyx_mdef_7nav_env_5ships_7physics_11ShipPhysics_47i_z, 0, __pyx_n_s_ShipPhysics_i_z, NULL, __pyx_n_s_nav_env_ships_physics, __pyx_d, ((PyObject *)__pyx_codeobj__43)); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 215, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_4, __pyx_n_s_return, __pyx_n_s_float) < 0) __PYX_ERR(0, 224, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_CyFunction_New(&__pyx_mdef_7nav_env_5ships_7physics_11ShipPhysics_47i_z, 0, __pyx_n_s_ShipPhysics_i_z, NULL, __pyx_n_s_nav_env_ships_physics, __pyx_d, ((PyObject *)__pyx_codeobj__43)); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 224, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_CyFunction_SetAnnotationsDict(__pyx_t_3, __pyx_t_4);
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  __pyx_t_4 = __Pyx_PyObject_CallOneArg(__pyx_builtin_property, __pyx_t_3); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 215, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyObject_CallOneArg(__pyx_builtin_property, __pyx_t_3); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 224, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  if (__Pyx_SetNameInClass(__pyx_t_2, __pyx_n_s_i_z_2, __pyx_t_4) < 0) __PYX_ERR(0, 215, __pyx_L1_error)
+  if (__Pyx_SetNameInClass(__pyx_t_2, __pyx_n_s_i_z_2, __pyx_t_4) < 0) __PYX_ERR(0, 224, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
 
-  /* "nav_env/ships/physics.pyx":219
+  /* "nav_env/ships/physics.pyx":228
  *         return self._i_z
  * 
  *     @property             # <<<<<<<<<<<<<<
  *     def mass(self) -> float:
  *         return self._mass
  */
-  __pyx_t_4 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 219, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 228, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
-  if (PyDict_SetItem(__pyx_t_4, __pyx_n_s_return, __pyx_n_s_float) < 0) __PYX_ERR(0, 219, __pyx_L1_error)
-  __pyx_t_3 = __Pyx_CyFunction_New(&__pyx_mdef_7nav_env_5ships_7physics_11ShipPhysics_49mass, 0, __pyx_n_s_ShipPhysics_mass, NULL, __pyx_n_s_nav_env_ships_physics, __pyx_d, ((PyObject *)__pyx_codeobj__44)); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 219, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_4, __pyx_n_s_return, __pyx_n_s_float) < 0) __PYX_ERR(0, 228, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_CyFunction_New(&__pyx_mdef_7nav_env_5ships_7physics_11ShipPhysics_49mass, 0, __pyx_n_s_ShipPhysics_mass, NULL, __pyx_n_s_nav_env_ships_physics, __pyx_d, ((PyObject *)__pyx_codeobj__44)); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 228, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_CyFunction_SetAnnotationsDict(__pyx_t_3, __pyx_t_4);
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  __pyx_t_4 = __Pyx_PyObject_CallOneArg(__pyx_builtin_property, __pyx_t_3); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 219, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyObject_CallOneArg(__pyx_builtin_property, __pyx_t_3); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 228, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  if (__Pyx_SetNameInClass(__pyx_t_2, __pyx_n_s_mass, __pyx_t_4) < 0) __PYX_ERR(0, 219, __pyx_L1_error)
+  if (__Pyx_SetNameInClass(__pyx_t_2, __pyx_n_s_mass, __pyx_t_4) < 0) __PYX_ERR(0, 228, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
 
-  /* "nav_env/ships/physics.pyx":223
+  /* "nav_env/ships/physics.pyx":232
  *         return self._mass
  * 
  *     @property             # <<<<<<<<<<<<<<
  *     def x_du(self) -> float:
  *         return self._x_du
  */
-  __pyx_t_4 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 223, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 232, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
-  if (PyDict_SetItem(__pyx_t_4, __pyx_n_s_return, __pyx_n_s_float) < 0) __PYX_ERR(0, 223, __pyx_L1_error)
-  __pyx_t_3 = __Pyx_CyFunction_New(&__pyx_mdef_7nav_env_5ships_7physics_11ShipPhysics_51x_du, 0, __pyx_n_s_ShipPhysics_x_du, NULL, __pyx_n_s_nav_env_ships_physics, __pyx_d, ((PyObject *)__pyx_codeobj__45)); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 223, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_4, __pyx_n_s_return, __pyx_n_s_float) < 0) __PYX_ERR(0, 232, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_CyFunction_New(&__pyx_mdef_7nav_env_5ships_7physics_11ShipPhysics_51x_du, 0, __pyx_n_s_ShipPhysics_x_du, NULL, __pyx_n_s_nav_env_ships_physics, __pyx_d, ((PyObject *)__pyx_codeobj__45)); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 232, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_CyFunction_SetAnnotationsDict(__pyx_t_3, __pyx_t_4);
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  __pyx_t_4 = __Pyx_PyObject_CallOneArg(__pyx_builtin_property, __pyx_t_3); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 223, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyObject_CallOneArg(__pyx_builtin_property, __pyx_t_3); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 232, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  if (__Pyx_SetNameInClass(__pyx_t_2, __pyx_n_s_x_du_2, __pyx_t_4) < 0) __PYX_ERR(0, 223, __pyx_L1_error)
+  if (__Pyx_SetNameInClass(__pyx_t_2, __pyx_n_s_x_du_2, __pyx_t_4) < 0) __PYX_ERR(0, 232, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
 
-  /* "nav_env/ships/physics.pyx":227
+  /* "nav_env/ships/physics.pyx":236
  *         return self._x_du
  * 
  *     @property             # <<<<<<<<<<<<<<
  *     def y_dv(self) -> float:
  *         return self._y_dv
  */
-  __pyx_t_4 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 227, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 236, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
-  if (PyDict_SetItem(__pyx_t_4, __pyx_n_s_return, __pyx_n_s_float) < 0) __PYX_ERR(0, 227, __pyx_L1_error)
-  __pyx_t_3 = __Pyx_CyFunction_New(&__pyx_mdef_7nav_env_5ships_7physics_11ShipPhysics_53y_dv, 0, __pyx_n_s_ShipPhysics_y_dv, NULL, __pyx_n_s_nav_env_ships_physics, __pyx_d, ((PyObject *)__pyx_codeobj__46)); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 227, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_4, __pyx_n_s_return, __pyx_n_s_float) < 0) __PYX_ERR(0, 236, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_CyFunction_New(&__pyx_mdef_7nav_env_5ships_7physics_11ShipPhysics_53y_dv, 0, __pyx_n_s_ShipPhysics_y_dv, NULL, __pyx_n_s_nav_env_ships_physics, __pyx_d, ((PyObject *)__pyx_codeobj__46)); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 236, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_CyFunction_SetAnnotationsDict(__pyx_t_3, __pyx_t_4);
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  __pyx_t_4 = __Pyx_PyObject_CallOneArg(__pyx_builtin_property, __pyx_t_3); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 227, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyObject_CallOneArg(__pyx_builtin_property, __pyx_t_3); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 236, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  if (__Pyx_SetNameInClass(__pyx_t_2, __pyx_n_s_y_dv_2, __pyx_t_4) < 0) __PYX_ERR(0, 227, __pyx_L1_error)
+  if (__Pyx_SetNameInClass(__pyx_t_2, __pyx_n_s_y_dv_2, __pyx_t_4) < 0) __PYX_ERR(0, 236, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
 
-  /* "nav_env/ships/physics.pyx":231
+  /* "nav_env/ships/physics.pyx":240
  *         return self._y_dv
  * 
  *     @property             # <<<<<<<<<<<<<<
  *     def n_dr(self) -> float:
  *         return self._n_dr
  */
-  __pyx_t_4 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 231, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 240, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
-  if (PyDict_SetItem(__pyx_t_4, __pyx_n_s_return, __pyx_n_s_float) < 0) __PYX_ERR(0, 231, __pyx_L1_error)
-  __pyx_t_3 = __Pyx_CyFunction_New(&__pyx_mdef_7nav_env_5ships_7physics_11ShipPhysics_55n_dr, 0, __pyx_n_s_ShipPhysics_n_dr, NULL, __pyx_n_s_nav_env_ships_physics, __pyx_d, ((PyObject *)__pyx_codeobj__47)); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 231, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_4, __pyx_n_s_return, __pyx_n_s_float) < 0) __PYX_ERR(0, 240, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_CyFunction_New(&__pyx_mdef_7nav_env_5ships_7physics_11ShipPhysics_55n_dr, 0, __pyx_n_s_ShipPhysics_n_dr, NULL, __pyx_n_s_nav_env_ships_physics, __pyx_d, ((PyObject *)__pyx_codeobj__47)); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 240, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_CyFunction_SetAnnotationsDict(__pyx_t_3, __pyx_t_4);
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  __pyx_t_4 = __Pyx_PyObject_CallOneArg(__pyx_builtin_property, __pyx_t_3); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 231, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyObject_CallOneArg(__pyx_builtin_property, __pyx_t_3); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 240, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  if (__Pyx_SetNameInClass(__pyx_t_2, __pyx_n_s_n_dr_2, __pyx_t_4) < 0) __PYX_ERR(0, 231, __pyx_L1_error)
+  if (__Pyx_SetNameInClass(__pyx_t_2, __pyx_n_s_n_dr_2, __pyx_t_4) < 0) __PYX_ERR(0, 240, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
 
-  /* "nav_env/ships/physics.pyx":235
+  /* "nav_env/ships/physics.pyx":244
  *         return self._n_dr
  * 
  *     @property             # <<<<<<<<<<<<<<
  *     def t_surge(self) -> float:
  *         return self._t_surge
  */
-  __pyx_t_4 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 235, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 244, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
-  if (PyDict_SetItem(__pyx_t_4, __pyx_n_s_return, __pyx_n_s_float) < 0) __PYX_ERR(0, 235, __pyx_L1_error)
-  __pyx_t_3 = __Pyx_CyFunction_New(&__pyx_mdef_7nav_env_5ships_7physics_11ShipPhysics_57t_surge, 0, __pyx_n_s_ShipPhysics_t_surge, NULL, __pyx_n_s_nav_env_ships_physics, __pyx_d, ((PyObject *)__pyx_codeobj__48)); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 235, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_4, __pyx_n_s_return, __pyx_n_s_float) < 0) __PYX_ERR(0, 244, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_CyFunction_New(&__pyx_mdef_7nav_env_5ships_7physics_11ShipPhysics_57t_surge, 0, __pyx_n_s_ShipPhysics_t_surge, NULL, __pyx_n_s_nav_env_ships_physics, __pyx_d, ((PyObject *)__pyx_codeobj__48)); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 244, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_CyFunction_SetAnnotationsDict(__pyx_t_3, __pyx_t_4);
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  __pyx_t_4 = __Pyx_PyObject_CallOneArg(__pyx_builtin_property, __pyx_t_3); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 235, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyObject_CallOneArg(__pyx_builtin_property, __pyx_t_3); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 244, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  if (__Pyx_SetNameInClass(__pyx_t_2, __pyx_n_s_t_surge_2, __pyx_t_4) < 0) __PYX_ERR(0, 235, __pyx_L1_error)
+  if (__Pyx_SetNameInClass(__pyx_t_2, __pyx_n_s_t_surge_2, __pyx_t_4) < 0) __PYX_ERR(0, 244, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
 
-  /* "nav_env/ships/physics.pyx":239
+  /* "nav_env/ships/physics.pyx":248
  *         return self._t_surge
  * 
  *     @property             # <<<<<<<<<<<<<<
  *     def t_sway(self) -> float:
  *         return self._t_sway
  */
-  __pyx_t_4 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 239, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 248, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
-  if (PyDict_SetItem(__pyx_t_4, __pyx_n_s_return, __pyx_n_s_float) < 0) __PYX_ERR(0, 239, __pyx_L1_error)
-  __pyx_t_3 = __Pyx_CyFunction_New(&__pyx_mdef_7nav_env_5ships_7physics_11ShipPhysics_59t_sway, 0, __pyx_n_s_ShipPhysics_t_sway, NULL, __pyx_n_s_nav_env_ships_physics, __pyx_d, ((PyObject *)__pyx_codeobj__49)); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 239, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_4, __pyx_n_s_return, __pyx_n_s_float) < 0) __PYX_ERR(0, 248, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_CyFunction_New(&__pyx_mdef_7nav_env_5ships_7physics_11ShipPhysics_59t_sway, 0, __pyx_n_s_ShipPhysics_t_sway, NULL, __pyx_n_s_nav_env_ships_physics, __pyx_d, ((PyObject *)__pyx_codeobj__49)); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 248, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_CyFunction_SetAnnotationsDict(__pyx_t_3, __pyx_t_4);
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  __pyx_t_4 = __Pyx_PyObject_CallOneArg(__pyx_builtin_property, __pyx_t_3); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 239, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyObject_CallOneArg(__pyx_builtin_property, __pyx_t_3); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 248, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  if (__Pyx_SetNameInClass(__pyx_t_2, __pyx_n_s_t_sway_2, __pyx_t_4) < 0) __PYX_ERR(0, 239, __pyx_L1_error)
+  if (__Pyx_SetNameInClass(__pyx_t_2, __pyx_n_s_t_sway_2, __pyx_t_4) < 0) __PYX_ERR(0, 248, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
 
-  /* "nav_env/ships/physics.pyx":243
+  /* "nav_env/ships/physics.pyx":252
  *         return self._t_sway
  * 
  *     @property             # <<<<<<<<<<<<<<
  *     def t_yaw(self) -> float:
  *         return self._t_yaw
  */
-  __pyx_t_4 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 243, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 252, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
-  if (PyDict_SetItem(__pyx_t_4, __pyx_n_s_return, __pyx_n_s_float) < 0) __PYX_ERR(0, 243, __pyx_L1_error)
-  __pyx_t_3 = __Pyx_CyFunction_New(&__pyx_mdef_7nav_env_5ships_7physics_11ShipPhysics_61t_yaw, 0, __pyx_n_s_ShipPhysics_t_yaw, NULL, __pyx_n_s_nav_env_ships_physics, __pyx_d, ((PyObject *)__pyx_codeobj__50)); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 243, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_4, __pyx_n_s_return, __pyx_n_s_float) < 0) __PYX_ERR(0, 252, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_CyFunction_New(&__pyx_mdef_7nav_env_5ships_7physics_11ShipPhysics_61t_yaw, 0, __pyx_n_s_ShipPhysics_t_yaw, NULL, __pyx_n_s_nav_env_ships_physics, __pyx_d, ((PyObject *)__pyx_codeobj__50)); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 252, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_CyFunction_SetAnnotationsDict(__pyx_t_3, __pyx_t_4);
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  __pyx_t_4 = __Pyx_PyObject_CallOneArg(__pyx_builtin_property, __pyx_t_3); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 243, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyObject_CallOneArg(__pyx_builtin_property, __pyx_t_3); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 252, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  if (__Pyx_SetNameInClass(__pyx_t_2, __pyx_n_s_t_yaw_2, __pyx_t_4) < 0) __PYX_ERR(0, 243, __pyx_L1_error)
+  if (__Pyx_SetNameInClass(__pyx_t_2, __pyx_n_s_t_yaw_2, __pyx_t_4) < 0) __PYX_ERR(0, 252, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
 
-  /* "nav_env/ships/physics.pyx":247
+  /* "nav_env/ships/physics.pyx":256
  *         return self._t_yaw
  * 
  *     @property             # <<<<<<<<<<<<<<
  *     def ku(self) -> float:
  *         return self._ku
  */
-  __pyx_t_4 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 247, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 256, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
-  if (PyDict_SetItem(__pyx_t_4, __pyx_n_s_return, __pyx_n_s_float) < 0) __PYX_ERR(0, 247, __pyx_L1_error)
-  __pyx_t_3 = __Pyx_CyFunction_New(&__pyx_mdef_7nav_env_5ships_7physics_11ShipPhysics_63ku, 0, __pyx_n_s_ShipPhysics_ku, NULL, __pyx_n_s_nav_env_ships_physics, __pyx_d, ((PyObject *)__pyx_codeobj__51)); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 247, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_4, __pyx_n_s_return, __pyx_n_s_float) < 0) __PYX_ERR(0, 256, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_CyFunction_New(&__pyx_mdef_7nav_env_5ships_7physics_11ShipPhysics_63ku, 0, __pyx_n_s_ShipPhysics_ku, NULL, __pyx_n_s_nav_env_ships_physics, __pyx_d, ((PyObject *)__pyx_codeobj__51)); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 256, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_CyFunction_SetAnnotationsDict(__pyx_t_3, __pyx_t_4);
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  __pyx_t_4 = __Pyx_PyObject_CallOneArg(__pyx_builtin_property, __pyx_t_3); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 247, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyObject_CallOneArg(__pyx_builtin_property, __pyx_t_3); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 256, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  if (__Pyx_SetNameInClass(__pyx_t_2, __pyx_n_s_ku_2, __pyx_t_4) < 0) __PYX_ERR(0, 247, __pyx_L1_error)
+  if (__Pyx_SetNameInClass(__pyx_t_2, __pyx_n_s_ku_2, __pyx_t_4) < 0) __PYX_ERR(0, 256, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
 
-  /* "nav_env/ships/physics.pyx":251
+  /* "nav_env/ships/physics.pyx":260
  *         return self._ku
  * 
  *     @property             # <<<<<<<<<<<<<<
  *     def kv(self) -> float:
  *         return self._kv
  */
-  __pyx_t_4 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 251, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 260, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
-  if (PyDict_SetItem(__pyx_t_4, __pyx_n_s_return, __pyx_n_s_float) < 0) __PYX_ERR(0, 251, __pyx_L1_error)
-  __pyx_t_3 = __Pyx_CyFunction_New(&__pyx_mdef_7nav_env_5ships_7physics_11ShipPhysics_65kv, 0, __pyx_n_s_ShipPhysics_kv, NULL, __pyx_n_s_nav_env_ships_physics, __pyx_d, ((PyObject *)__pyx_codeobj__52)); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 251, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_4, __pyx_n_s_return, __pyx_n_s_float) < 0) __PYX_ERR(0, 260, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_CyFunction_New(&__pyx_mdef_7nav_env_5ships_7physics_11ShipPhysics_65kv, 0, __pyx_n_s_ShipPhysics_kv, NULL, __pyx_n_s_nav_env_ships_physics, __pyx_d, ((PyObject *)__pyx_codeobj__52)); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 260, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_CyFunction_SetAnnotationsDict(__pyx_t_3, __pyx_t_4);
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  __pyx_t_4 = __Pyx_PyObject_CallOneArg(__pyx_builtin_property, __pyx_t_3); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 251, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyObject_CallOneArg(__pyx_builtin_property, __pyx_t_3); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 260, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  if (__Pyx_SetNameInClass(__pyx_t_2, __pyx_n_s_kv_2, __pyx_t_4) < 0) __PYX_ERR(0, 251, __pyx_L1_error)
+  if (__Pyx_SetNameInClass(__pyx_t_2, __pyx_n_s_kv_2, __pyx_t_4) < 0) __PYX_ERR(0, 260, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
 
-  /* "nav_env/ships/physics.pyx":255
+  /* "nav_env/ships/physics.pyx":264
  *         return self._kv
  * 
  *     @property             # <<<<<<<<<<<<<<
  *     def kr(self) -> float:
  *         return self._kr
  */
-  __pyx_t_4 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 255, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 264, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
-  if (PyDict_SetItem(__pyx_t_4, __pyx_n_s_return, __pyx_n_s_float) < 0) __PYX_ERR(0, 255, __pyx_L1_error)
-  __pyx_t_3 = __Pyx_CyFunction_New(&__pyx_mdef_7nav_env_5ships_7physics_11ShipPhysics_67kr, 0, __pyx_n_s_ShipPhysics_kr, NULL, __pyx_n_s_nav_env_ships_physics, __pyx_d, ((PyObject *)__pyx_codeobj__53)); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 255, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_4, __pyx_n_s_return, __pyx_n_s_float) < 0) __PYX_ERR(0, 264, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_CyFunction_New(&__pyx_mdef_7nav_env_5ships_7physics_11ShipPhysics_67kr, 0, __pyx_n_s_ShipPhysics_kr, NULL, __pyx_n_s_nav_env_ships_physics, __pyx_d, ((PyObject *)__pyx_codeobj__53)); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 264, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_CyFunction_SetAnnotationsDict(__pyx_t_3, __pyx_t_4);
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  __pyx_t_4 = __Pyx_PyObject_CallOneArg(__pyx_builtin_property, __pyx_t_3); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 255, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyObject_CallOneArg(__pyx_builtin_property, __pyx_t_3); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 264, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  if (__Pyx_SetNameInClass(__pyx_t_2, __pyx_n_s_kr_2, __pyx_t_4) < 0) __PYX_ERR(0, 255, __pyx_L1_error)
+  if (__Pyx_SetNameInClass(__pyx_t_2, __pyx_n_s_kr_2, __pyx_t_4) < 0) __PYX_ERR(0, 264, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
 
-  /* "nav_env/ships/physics.pyx":259
+  /* "nav_env/ships/physics.pyx":268
  *         return self._kr
  * 
  *     @property             # <<<<<<<<<<<<<<
  *     def params(self) -> ShipPhysicalParams:
  *         return self._params
  */
-  __pyx_t_4 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 259, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 268, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
-  if (PyDict_SetItem(__pyx_t_4, __pyx_n_s_return, __pyx_n_s_ShipPhysicalParams) < 0) __PYX_ERR(0, 259, __pyx_L1_error)
-  __pyx_t_3 = __Pyx_CyFunction_New(&__pyx_mdef_7nav_env_5ships_7physics_11ShipPhysics_69params, 0, __pyx_n_s_ShipPhysics_params, NULL, __pyx_n_s_nav_env_ships_physics, __pyx_d, ((PyObject *)__pyx_codeobj__54)); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 259, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_4, __pyx_n_s_return, __pyx_n_s_ShipPhysicalParams) < 0) __PYX_ERR(0, 268, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_CyFunction_New(&__pyx_mdef_7nav_env_5ships_7physics_11ShipPhysics_69params, 0, __pyx_n_s_ShipPhysics_params, NULL, __pyx_n_s_nav_env_ships_physics, __pyx_d, ((PyObject *)__pyx_codeobj__54)); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 268, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_CyFunction_SetAnnotationsDict(__pyx_t_3, __pyx_t_4);
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  __pyx_t_4 = __Pyx_PyObject_CallOneArg(__pyx_builtin_property, __pyx_t_3); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 259, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyObject_CallOneArg(__pyx_builtin_property, __pyx_t_3); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 268, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  if (__Pyx_SetNameInClass(__pyx_t_2, __pyx_n_s_params_2, __pyx_t_4) < 0) __PYX_ERR(0, 259, __pyx_L1_error)
+  if (__Pyx_SetNameInClass(__pyx_t_2, __pyx_n_s_params_2, __pyx_t_4) < 0) __PYX_ERR(0, 268, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
 
-  /* "nav_env/ships/physics.pyx":263
+  /* "nav_env/ships/physics.pyx":272
  *         return self._params
  * 
  *     @property             # <<<<<<<<<<<<<<
  *     def x_g(self) -> float:
  *         return self._x_g
  */
-  __pyx_t_4 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 263, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 272, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
-  if (PyDict_SetItem(__pyx_t_4, __pyx_n_s_return, __pyx_n_s_float) < 0) __PYX_ERR(0, 263, __pyx_L1_error)
-  __pyx_t_3 = __Pyx_CyFunction_New(&__pyx_mdef_7nav_env_5ships_7physics_11ShipPhysics_71x_g, 0, __pyx_n_s_ShipPhysics_x_g, NULL, __pyx_n_s_nav_env_ships_physics, __pyx_d, ((PyObject *)__pyx_codeobj__55)); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 263, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_4, __pyx_n_s_return, __pyx_n_s_float) < 0) __PYX_ERR(0, 272, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_CyFunction_New(&__pyx_mdef_7nav_env_5ships_7physics_11ShipPhysics_71x_g, 0, __pyx_n_s_ShipPhysics_x_g, NULL, __pyx_n_s_nav_env_ships_physics, __pyx_d, ((PyObject *)__pyx_codeobj__55)); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 272, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_CyFunction_SetAnnotationsDict(__pyx_t_3, __pyx_t_4);
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  __pyx_t_4 = __Pyx_PyObject_CallOneArg(__pyx_builtin_property, __pyx_t_3); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 263, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyObject_CallOneArg(__pyx_builtin_property, __pyx_t_3); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 272, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  if (__Pyx_SetNameInClass(__pyx_t_2, __pyx_n_s_x_g, __pyx_t_4) < 0) __PYX_ERR(0, 263, __pyx_L1_error)
+  if (__Pyx_SetNameInClass(__pyx_t_2, __pyx_n_s_x_g, __pyx_t_4) < 0) __PYX_ERR(0, 272, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
 
-  /* "nav_env/ships/physics.pyx":267
+  /* "nav_env/ships/physics.pyx":276
  *         return self._x_g
  * 
  *     @property             # <<<<<<<<<<<<<<
  *     def length(self) -> float:
  *         return self._length
  */
-  __pyx_t_4 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 267, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 276, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
-  if (PyDict_SetItem(__pyx_t_4, __pyx_n_s_return, __pyx_n_s_float) < 0) __PYX_ERR(0, 267, __pyx_L1_error)
-  __pyx_t_3 = __Pyx_CyFunction_New(&__pyx_mdef_7nav_env_5ships_7physics_11ShipPhysics_73length, 0, __pyx_n_s_ShipPhysics_length, NULL, __pyx_n_s_nav_env_ships_physics, __pyx_d, ((PyObject *)__pyx_codeobj__56)); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 267, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_4, __pyx_n_s_return, __pyx_n_s_float) < 0) __PYX_ERR(0, 276, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_CyFunction_New(&__pyx_mdef_7nav_env_5ships_7physics_11ShipPhysics_73length, 0, __pyx_n_s_ShipPhysics_length, NULL, __pyx_n_s_nav_env_ships_physics, __pyx_d, ((PyObject *)__pyx_codeobj__56)); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 276, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_CyFunction_SetAnnotationsDict(__pyx_t_3, __pyx_t_4);
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  __pyx_t_4 = __Pyx_PyObject_CallOneArg(__pyx_builtin_property, __pyx_t_3); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 267, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyObject_CallOneArg(__pyx_builtin_property, __pyx_t_3); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 276, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  if (__Pyx_SetNameInClass(__pyx_t_2, __pyx_n_s_length_2, __pyx_t_4) < 0) __PYX_ERR(0, 267, __pyx_L1_error)
+  if (__Pyx_SetNameInClass(__pyx_t_2, __pyx_n_s_length_2, __pyx_t_4) < 0) __PYX_ERR(0, 276, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
 
-  /* "nav_env/ships/physics.pyx":271
+  /* "nav_env/ships/physics.pyx":280
  *         return self._length
  * 
  *     @property             # <<<<<<<<<<<<<<
  *     def width(self) -> float:
  *         return self._width
  */
-  __pyx_t_4 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 271, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 280, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
-  if (PyDict_SetItem(__pyx_t_4, __pyx_n_s_return, __pyx_n_s_float) < 0) __PYX_ERR(0, 271, __pyx_L1_error)
-  __pyx_t_3 = __Pyx_CyFunction_New(&__pyx_mdef_7nav_env_5ships_7physics_11ShipPhysics_75width, 0, __pyx_n_s_ShipPhysics_width, NULL, __pyx_n_s_nav_env_ships_physics, __pyx_d, ((PyObject *)__pyx_codeobj__57)); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 271, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_4, __pyx_n_s_return, __pyx_n_s_float) < 0) __PYX_ERR(0, 280, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_CyFunction_New(&__pyx_mdef_7nav_env_5ships_7physics_11ShipPhysics_75width, 0, __pyx_n_s_ShipPhysics_width, NULL, __pyx_n_s_nav_env_ships_physics, __pyx_d, ((PyObject *)__pyx_codeobj__57)); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 280, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_CyFunction_SetAnnotationsDict(__pyx_t_3, __pyx_t_4);
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  __pyx_t_4 = __Pyx_PyObject_CallOneArg(__pyx_builtin_property, __pyx_t_3); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 271, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyObject_CallOneArg(__pyx_builtin_property, __pyx_t_3); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 280, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  if (__Pyx_SetNameInClass(__pyx_t_2, __pyx_n_s_width_2, __pyx_t_4) < 0) __PYX_ERR(0, 271, __pyx_L1_error)
+  if (__Pyx_SetNameInClass(__pyx_t_2, __pyx_n_s_width_2, __pyx_t_4) < 0) __PYX_ERR(0, 280, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
 
-  /* "nav_env/ships/physics.pyx":275
+  /* "nav_env/ships/physics.pyx":284
  *         return self._width
  * 
  *     @property             # <<<<<<<<<<<<<<
  *     def proj_area_front(self) -> float:
  *         return self._proj_area_front
  */
-  __pyx_t_4 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 275, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 284, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
-  if (PyDict_SetItem(__pyx_t_4, __pyx_n_s_return, __pyx_n_s_float) < 0) __PYX_ERR(0, 275, __pyx_L1_error)
-  __pyx_t_3 = __Pyx_CyFunction_New(&__pyx_mdef_7nav_env_5ships_7physics_11ShipPhysics_77proj_area_front, 0, __pyx_n_s_ShipPhysics_proj_area_front, NULL, __pyx_n_s_nav_env_ships_physics, __pyx_d, ((PyObject *)__pyx_codeobj__58)); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 275, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_4, __pyx_n_s_return, __pyx_n_s_float) < 0) __PYX_ERR(0, 284, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_CyFunction_New(&__pyx_mdef_7nav_env_5ships_7physics_11ShipPhysics_77proj_area_front, 0, __pyx_n_s_ShipPhysics_proj_area_front, NULL, __pyx_n_s_nav_env_ships_physics, __pyx_d, ((PyObject *)__pyx_codeobj__58)); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 284, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_CyFunction_SetAnnotationsDict(__pyx_t_3, __pyx_t_4);
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  __pyx_t_4 = __Pyx_PyObject_CallOneArg(__pyx_builtin_property, __pyx_t_3); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 275, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyObject_CallOneArg(__pyx_builtin_property, __pyx_t_3); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 284, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  if (__Pyx_SetNameInClass(__pyx_t_2, __pyx_n_s_proj_area_front_2, __pyx_t_4) < 0) __PYX_ERR(0, 275, __pyx_L1_error)
+  if (__Pyx_SetNameInClass(__pyx_t_2, __pyx_n_s_proj_area_front_2, __pyx_t_4) < 0) __PYX_ERR(0, 284, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
 
-  /* "nav_env/ships/physics.pyx":279
+  /* "nav_env/ships/physics.pyx":288
  *         return self._proj_area_front
  * 
  *     @property             # <<<<<<<<<<<<<<
  *     def proj_area_side(self) -> float:
  *         return self._proj_area_side
  */
-  __pyx_t_4 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 279, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 288, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
-  if (PyDict_SetItem(__pyx_t_4, __pyx_n_s_return, __pyx_n_s_float) < 0) __PYX_ERR(0, 279, __pyx_L1_error)
-  __pyx_t_3 = __Pyx_CyFunction_New(&__pyx_mdef_7nav_env_5ships_7physics_11ShipPhysics_79proj_area_side, 0, __pyx_n_s_ShipPhysics_proj_area_side, NULL, __pyx_n_s_nav_env_ships_physics, __pyx_d, ((PyObject *)__pyx_codeobj__59)); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 279, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_4, __pyx_n_s_return, __pyx_n_s_float) < 0) __PYX_ERR(0, 288, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_CyFunction_New(&__pyx_mdef_7nav_env_5ships_7physics_11ShipPhysics_79proj_area_side, 0, __pyx_n_s_ShipPhysics_proj_area_side, NULL, __pyx_n_s_nav_env_ships_physics, __pyx_d, ((PyObject *)__pyx_codeobj__59)); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 288, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_CyFunction_SetAnnotationsDict(__pyx_t_3, __pyx_t_4);
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  __pyx_t_4 = __Pyx_PyObject_CallOneArg(__pyx_builtin_property, __pyx_t_3); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 279, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyObject_CallOneArg(__pyx_builtin_property, __pyx_t_3); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 288, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  if (__Pyx_SetNameInClass(__pyx_t_2, __pyx_n_s_proj_area_side_2, __pyx_t_4) < 0) __PYX_ERR(0, 279, __pyx_L1_error)
+  if (__Pyx_SetNameInClass(__pyx_t_2, __pyx_n_s_proj_area_side_2, __pyx_t_4) < 0) __PYX_ERR(0, 288, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
 
-  /* "nav_env/ships/physics.pyx":283
+  /* "nav_env/ships/physics.pyx":292
  *         return self._proj_area_side
  * 
  *     @property             # <<<<<<<<<<<<<<
  *     def rho_a(self) -> float:
  *         return self._rho_a
  */
-  __pyx_t_4 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 283, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 292, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
-  if (PyDict_SetItem(__pyx_t_4, __pyx_n_s_return, __pyx_n_s_float) < 0) __PYX_ERR(0, 283, __pyx_L1_error)
-  __pyx_t_3 = __Pyx_CyFunction_New(&__pyx_mdef_7nav_env_5ships_7physics_11ShipPhysics_81rho_a, 0, __pyx_n_s_ShipPhysics_rho_a, NULL, __pyx_n_s_nav_env_ships_physics, __pyx_d, ((PyObject *)__pyx_codeobj__60)); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 283, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_4, __pyx_n_s_return, __pyx_n_s_float) < 0) __PYX_ERR(0, 292, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_CyFunction_New(&__pyx_mdef_7nav_env_5ships_7physics_11ShipPhysics_81rho_a, 0, __pyx_n_s_ShipPhysics_rho_a, NULL, __pyx_n_s_nav_env_ships_physics, __pyx_d, ((PyObject *)__pyx_codeobj__60)); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 292, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_CyFunction_SetAnnotationsDict(__pyx_t_3, __pyx_t_4);
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  __pyx_t_4 = __Pyx_PyObject_CallOneArg(__pyx_builtin_property, __pyx_t_3); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 283, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyObject_CallOneArg(__pyx_builtin_property, __pyx_t_3); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 292, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  if (__Pyx_SetNameInClass(__pyx_t_2, __pyx_n_s_rho_a_2, __pyx_t_4) < 0) __PYX_ERR(0, 283, __pyx_L1_error)
+  if (__Pyx_SetNameInClass(__pyx_t_2, __pyx_n_s_rho_a_2, __pyx_t_4) < 0) __PYX_ERR(0, 292, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
 
   /* "nav_env/ships/physics.pyx":9

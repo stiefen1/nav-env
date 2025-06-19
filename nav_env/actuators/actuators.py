@@ -1,6 +1,9 @@
 from abc import ABC, abstractmethod
-from nav_env.control.command import GeneralizedForces, AzimuthThrusterCommand, ThrusterCommand, Command
+from nav_env.control.command import GeneralizedForces, AzimuthThrusterCommand, ThrusterCommand, Command, AzimuthThrusterSpeedCommand
 from math import pi, cos, sin
+from typing import Union
+import casadi as cd
+import numpy as np
 
 class Actuator(ABC):
     def __init__(self,
@@ -58,6 +61,11 @@ class Actuator(ABC):
         self._u_rate_min = u_rate_min
         self._u_rate_max = u_rate_max
 
+    def sample_within_bounds(self, as_list:bool=False) -> list:
+        """Sample a random control command within bounds"""
+        sample_as_list =np.random.uniform(self._u_min, self._u_max).tolist()
+        return sample_as_list if as_list else self.valid_command(*sample_as_list) 
+
     def __repr__(self):
         return f"{type(self).__name__} object at {self.xy}, {self.angle_deg} deg."
     
@@ -98,6 +106,10 @@ class Actuator(ABC):
     @property
     def u_min(self) -> tuple:
         return self._u_min
+    
+    @property
+    def u_mean(self) -> tuple:
+        return tuple([0.5*(ui_max + ui_min) for (ui_min, ui_max) in zip(self._u_min, self._u_max)])
     
     @property
     def f_min(self) -> float:
@@ -244,7 +256,7 @@ class AzimuthThruster(Actuator):
                  speed_0:float=0.0, # Initial speed, i.e. speed at t=0
                  alpha_rate_max:float=float('inf'),
                  v_rate_max:float=float('inf'),
-                 c_t:float=2.2,
+                 c_t:float=2.2, # *60,
                  **kwargs):
         super().__init__(
             xy,
@@ -262,37 +274,86 @@ class AzimuthThruster(Actuator):
         self._alpha: float = alpha_0 # We don't add it to angle here, this value must be interpreted as "angle w.r.t initial angle"
         self._speed: float = speed_0
         self._ct: float = c_t # Force vs speed coefficient
-
-    def __dynamics__(self, command:AzimuthThrusterCommand, *args, **kwargs) -> GeneralizedForces:
+    
+    def __dynamics__(self, command:Union[AzimuthThrusterCommand,tuple], *args, do_clip:bool=True, use_casadi:bool=False, output_type:str='force', **kwargs) -> GeneralizedForces:
         """
         command: (angle in degrees, speed) --> The input command are always assuming 0 is aligned with heading
+
+        do_clip, output_type, tuple for command are just here to be able to integrate this actuator as part of an NMPC formulation
+
+        The complexity of this method is mainly due to its potential use with casadi
         """
-        assert type(command) == self.valid_command, f"Input command must be an instance of {self.valid_command} but is an {type(command)} object"
+        assert type(command) in [self.valid_command, tuple], f"Input command must be an instance of {self.valid_command} or a tuple but is an {type(command)} object"
+
+        # If use_casadi flag is True, disable clip as constraints must be included in the optimization formulation and casadi's min max would need some refactoring to be integrated as cos,sin
+        do_clip = False if use_casadi else do_clip
+
+        if type(command) == self.valid_command:
+            angle = command.angle
+            speed = command.speed
+        else:
+            angle = command[0]
+            speed = command[1]
+
+        if use_casadi:
+            self.cos = cd.cos
+            self.sin = cd.sin
+        else:
+            self.cos = cos
+            self.sin = sin
 
         # Computing new angle
-        actual_angle_in_ship_frame = self._alpha + self.angle_deg
-        desired_rate_alpha = (command.angle - actual_angle_in_ship_frame)/self._dt # Compute desired angle rate
-        rate_alpha_clipped = clip(desired_rate_alpha, self._u_rate_min[0], self._u_rate_max[0]) # Clip angle rate to satisfy constraints
-        alpha_deg = self._alpha + rate_alpha_clipped * self._dt # Compute new angle
-        self._alpha = clip(alpha_deg, self._u_min[0], self._u_max[0]) # Clip angle to satisfy constraints
+        rate_alpha = self.get_rate_alpha(angle, do_clip=do_clip)
+        self._alpha = self.get_alpha(rate_alpha, do_clip=do_clip)
 
         # Computing new speed
-        desired_acc = (command.speed - self._speed)/self._dt # Compute desired acceleration (speed rate)
-        acc_clipped = clip(desired_acc, self._u_rate_min[1], self._u_rate_max[1]) # Clip acceleration to satisfy constraints
-        speed = self._speed + acc_clipped * self._dt # Compute new speed
-        self._speed = clip(speed, self._u_min[1], self._u_max[1]) # Clip speed to satisfy constraints
+        acc = self.get_acc(speed, do_clip=do_clip)
+        self._speed = self.get_speed(acc, do_clip=do_clip)
 
         # Compute resulting force
-        Ftot = self._ct * self._speed**2 # Compute total force
-        Ftot_clipped = clip(Ftot, self._f_min, self._f_max) # Clip force to satisfy constraints -> [f_min, f_max]
+        Ftot = self.get_Ftot(do_clip=do_clip)
 
         # Project force in x, y and torque
         tot_angle = (self._alpha + self.angle_deg)*pi/180.0
-        Fx = Ftot_clipped * cos(tot_angle)
-        Fy = -Ftot_clipped * sin(tot_angle)
-        Nz = Fx * self._xy[1] - Fy * self._xy[0]
-        return GeneralizedForces(f_x=Fx, f_y=Fy, tau_z=Nz)
+        
+        # Project total force
+        Fx = Ftot * self.cos(tot_angle)
+        Fy = -Ftot * self.sin(tot_angle)
+        Nz = -Fx * self._xy[1] + Fy * self._xy[0]
+        force = GeneralizedForces(f_x=Fx, f_y=Fy, tau_z=Nz)
+        return force if output_type == 'force' else force.to_numpy()
     
+    def get_rate_alpha(self, alpha:float, do_clip:bool=True) -> float:
+        actual_angle_in_ship_frame = self._alpha + self.angle_deg
+        rate_alpha = (alpha - actual_angle_in_ship_frame)/self._dt # Compute desired angle rate
+        if do_clip:
+            rate_alpha = clip(rate_alpha, self._u_rate_min[0], self._u_rate_max[0]) # Clip angle rate to satisfy constraints
+        return rate_alpha
+    
+    def get_alpha(self, rate_alpha:float, do_clip:bool=True) -> float:
+        alpha_deg = self._alpha + rate_alpha * self._dt # Compute new angle
+        if do_clip:
+            alpha_deg = clip(alpha_deg, self._u_min[0], self._u_max[0]) # Clip angle to satisfy constraints
+        return alpha_deg
+    
+    def get_acc(self, speed:float, do_clip:bool=True) -> float:
+        acc = (speed - self._speed)/self._dt # Compute desired acceleration (speed rate)
+        if do_clip:
+            acc = clip(acc, self._u_rate_min[1], self._u_rate_max[1]) # Clip acceleration to satisfy constraints
+        return acc
+    
+    def get_speed(self, acc:float, do_clip:bool=True) -> float:
+        speed = self._speed + acc * self._dt # Compute new speed
+        if do_clip:
+            speed = clip(speed, self._u_min[1], self._u_max[1]) # Clip speed to satisfy constraints
+        return speed
+    
+    def get_Ftot(self, do_clip:bool=True) -> float:
+        Ftot = self._ct * self._speed**2 # Compute total force
+        if do_clip:
+            Ftot = clip(Ftot, self._f_min, self._f_max) # Clip force to satisfy constraints -> [f_min, f_max]
+        return Ftot
+
     @property
     def alpha_min(self) -> float:
         return self._u_min[0]
@@ -312,6 +373,158 @@ class AzimuthThruster(Actuator):
     @property
     def valid_command(self):
         return AzimuthThrusterCommand
+    
+class AzimuthThrusterWithSpeed(Actuator):
+    """
+    any tuple containing information regarding a command is always made of (angle, speed)
+    """
+    def __init__(self,
+                 xy:tuple,
+                 angle:float, # Orientation when thruster is at its reference position
+                 azimuth_rate_range:tuple, # RADIANS / SECONDS
+                 v_range:tuple,
+                 dt:float,
+                 *args,
+                 f_min:float=-float('inf'),
+                 f_max:float=float('inf'),
+                 alpha_0:float=0.0, # Orientation w.r.t. initial orientation -> alpha at t=0
+                 azimuth_rate_0:float=0.0, # azimuth rate at t=0
+                 speed_0:float=0.0, # Initial speed, i.e. speed at t=0
+                 azimuth_acc_max:float=float('inf'),
+                 v_rate_max:float=float('inf'),
+                 c_t:float=2.2, # *60,
+                 **kwargs):
+        super().__init__(
+            xy,
+            angle,
+            (azimuth_rate_range[0], v_range[0]),
+            (azimuth_rate_range[1], v_range[1]),
+            f_min,
+            f_max,
+            dt,
+            *args,
+            u_rate_min=(-azimuth_acc_max, -v_rate_max),
+            u_rate_max=(azimuth_acc_max, v_rate_max),
+            **kwargs
+        )
+        self._alpha: float = alpha_0 # We don't add it to angle here, this value must be interpreted as "angle w.r.t initial angle"
+        self._azimuth_rate: float = azimuth_rate_0 # AZIMUTH RATE IS IN RADIANS / SEC
+        self._speed: float = speed_0
+        self._ct: float = c_t # Force vs speed coefficient
+    
+    def __dynamics__(self, command:Union[AzimuthThrusterSpeedCommand,tuple], *args, do_clip:bool=True, use_casadi:bool=False, output_type:str='force', **kwargs) -> GeneralizedForces:
+        """
+        command: (angle in degrees, speed) --> The input command are always assuming 0 is aligned with heading
+
+        do_clip, output_type, tuple for command are just here to be able to integrate this actuator as part of an NMPC formulation
+
+        The complexity of this method is mainly due to its potential use with casadi
+        """
+        assert type(command) in [self.valid_command, tuple], f"Input command must be an instance of {self.valid_command} or a tuple but is an {type(command)} object"
+
+        # If use_casadi flag is True, disable clip as constraints must be included in the optimization formulation and casadi's min max would need some refactoring to be integrated as cos,sin
+        do_clip = False if use_casadi else do_clip
+
+        if type(command) == self.valid_command:
+            # print(command)
+            desired_azimuth_rate = command.azimuth_rate
+            propeller_speed = command.propeller_speed
+        else:
+            desired_azimuth_rate = command[0]
+            propeller_speed = command[1]
+
+        if use_casadi:
+            self.cos = cd.cos
+            self.sin = cd.sin
+        else:
+            self.cos = cos
+            self.sin = sin
+
+        # Computing new angle
+        # rate_alpha = self.get_rate_alpha(angle, do_clip=do_clip)
+        # self._alpha = self.get_alpha(rate_alpha, do_clip=do_clip)
+        # print("0: ", float(self._alpha), float(self._azimuth_rate), float(pi), float(self._dt))
+        self._alpha += self._azimuth_rate * 180/pi * self._dt # Integrate alpha
+        azimuth_acc = self.get_azimuth_acc(desired_azimuth_rate, do_clip=do_clip)
+        self._azimuth_rate = self.get_azimuth_rate(azimuth_acc, do_clip=do_clip) # Integrate azimuth acceleration
+        # print("rate+alpha: ", float(self._azimuth_rate), float(self._alpha), float(self._angle_deg))
+        
+        # Computing new speed
+        propeller_acc = self.get_acc(propeller_speed, do_clip=do_clip)
+        self._speed = self.get_speed(propeller_acc, do_clip=do_clip)
+        # print(self._speed)
+
+        # Compute resulting force
+        Ftot = self.get_Ftot(do_clip=do_clip)
+        # print("Ftot: ", Ftot)
+
+        # Project force in x, y and torque
+        tot_angle_rad = (self._alpha + self.angle_deg)*pi/180.0
+        
+        # Project total force
+        Fx = Ftot * self.cos(tot_angle_rad)
+        Fy = -Ftot * self.sin(tot_angle_rad)
+        Nz = -Fx * self._xy[1] + Fy * self._xy[0]
+        force = GeneralizedForces(f_x=Fx, f_y=Fy, tau_z=Nz)
+        
+        return force if output_type == 'force' else force.to_numpy()
+    
+    def get_azimuth_acc(self, desired_azimuth_rate:float, do_clip:bool=True) -> float:
+        # print("1.1: ", float(desired_azimuth_rate), float(self._azimuth_rate), self._dt)
+        desired_azimuth_acc = (desired_azimuth_rate - self._azimuth_rate)/self._dt # Compute desired azimuth acceleration
+        if do_clip:
+            azimuth_acc = clip(desired_azimuth_acc, self._u_rate_min[0], self._u_rate_max[0]) # Clip azimuth acceleration to satisfy constraints
+            return azimuth_acc
+        else:
+            return desired_azimuth_acc
+        
+    def get_azimuth_rate(self, azimuth_acc:float, do_clip:bool=True) -> float:
+        # print("2.1: ", float(azimuth_acc), do_clip)
+        azimuth_rate = self._azimuth_rate + azimuth_acc * self._dt
+        if do_clip:
+            azimuth_rate = clip(azimuth_rate, self._u_min[0], self._u_max[0])
+        # print("2.2: ", azimuth_rate, self._u_min[0], self._u_max[0])
+        return azimuth_rate
+
+    
+    def get_acc(self, speed:float, do_clip:bool=True) -> float:
+        acc = (speed - self._speed)/self._dt # Compute desired acceleration (speed rate)
+        if do_clip:
+            acc = clip(acc, self._u_rate_min[1], self._u_rate_max[1]) # Clip acceleration to satisfy constraints
+        return acc
+    
+    def get_speed(self, acc:float, do_clip:bool=True) -> float:
+        speed = self._speed + acc * self._dt # Compute new speed
+        if do_clip:
+            speed = clip(speed, self._u_min[1], self._u_max[1]) # Clip speed to satisfy constraints
+        return speed
+    
+    def get_Ftot(self, do_clip:bool=True) -> float:
+        Ftot = self._ct * self._speed**2 # Compute total force
+        if do_clip:
+            Ftot = clip(Ftot, self._f_min, self._f_max) # Clip force to satisfy constraints -> [f_min, f_max]
+        return Ftot
+
+    @property
+    def alpha_min(self) -> float:
+        return self._u_min[0]
+    
+    @property
+    def alpha_max(self) -> float:
+        return self._u_max[0]
+    
+    @property
+    def v_min(self) -> float:
+        return self._u_min[1]
+    
+    @property
+    def v_max(self) -> float:
+        return self._u_max[1]
+    
+    @property
+    def valid_command(self):
+        return AzimuthThrusterSpeedCommand
+    
     
 class Thruster(AzimuthThruster):
     """

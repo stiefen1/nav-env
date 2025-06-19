@@ -34,7 +34,7 @@ class LOS(GuidanceBase):
         pass
 
     @abstractmethod
-    def get(self, state:States3, *args, **kwargs) -> States3:
+    def get(self, state:States3, *args, **kwargs) -> tuple[States3, dict]:
         pass
 
 class LOSLookAhead(LOS):
@@ -58,12 +58,12 @@ class LOSLookAhead(LOS):
         convert_unit = 1 if degree else np.pi/180.0
         return convert_unit*LOS_lookahead(x, y, prev_wpt, self.current_waypoint, *args, kp=self._kp, **kwargs)
     
-    def get(self, state:States3, *args, **kwargs) -> States3:
+    def get(self, state:States3, *args, **kwargs) -> tuple[States3, dict]:
         psi_des_deg:float = self.get_desired_heading(*state.xy, degree=True) 
-        return States3(psi_deg=psi_des_deg, x_dot=self._desired_speed) # x_dot est interprété comme la norme de la vitesse du bateau
+        return States3(psi_deg=psi_des_deg, x_dot=self._desired_speed), {} # x_dot est interprété comme la norme de la vitesse du bateau
     
 
-class LOSLoopEnclosure(GuidanceBase):
+class LOSLoopEnclosure(LOS):
     def __init__(self, waypoints: Waypoints, radius:float, *args, current_wpt_idx:int=0, radius_of_acceptance:float=50, desired_speed:float=5.0, **kwargs):
         super().__init__(waypoints=waypoints, current_wpt_idx=current_wpt_idx, radius_of_acceptance=radius_of_acceptance, desired_speed=desired_speed, *args, **kwargs)
         self._radius = radius
@@ -75,9 +75,9 @@ class LOSLoopEnclosure(GuidanceBase):
         convert_unit = 1 if degree else np.pi/180.0
         return convert_unit*LOS_enclosure(x, y, prev_wpt, self.current_waypoint, *args, R=self._radius, **kwargs)
     
-    def get(self, state:States3, *args, **kwargs) -> States3:
+    def get(self, state:States3, *args, **kwargs) -> tuple[States3, dict]:
         psi_des_deg:float = self.get_desired_heading(*state.xy, degree=True) 
-        return States3(psi_deg=psi_des_deg, x_dot=self._desired_speed) # x_dot est interprété comme la norme de la vitesse du bateau
+        return States3(psi_deg=psi_des_deg, x_dot=self._desired_speed), {} # x_dot est interprété comme la norme de la vitesse du bateau
 
 def LOS_enclosure(x, y, w_prev, w_next, *args, R:float=50, **kwargs):
     dwx = w_next[0] - w_prev[0]

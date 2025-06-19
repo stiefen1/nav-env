@@ -3,7 +3,7 @@ from nav_env.control.command import GeneralizedForces
 from nav_env.wind.wind_vector import WindVector
 from nav_env.water.water_vector import WaterVector
 from nav_env.ships.params import ShipPhysicalParams, PATH_TO_DEFAULT_NEW_JSON
-import numpy as np
+import numpy as np, casadi as cd
 from typing import Callable
 
 class SimpleShipPhysics:
@@ -18,17 +18,21 @@ class SimpleShipPhysics:
         self._inv_mass_matrix = self.__get_inv_mass_matrix()
         self._linear_damping_matrix = self.__get_linear_damping_matrix()
         self._actuators = self.__get_actuators()
+        # print("IZ ", self._i_z)
+        
 
     def __get_actuators(self) -> list:
         thrusters = self._params.actuators["thrusters"]
         rudders = self._params.actuators["rudders"]
         azimuth_thrusters = self._params.actuators["azimuth_thrusters"]
-        print(thrusters)
 
     def __get_moment_of_inertia_about_z(self) -> float:
-        l = self._params.dimensions['length']
-        w = self._params.dimensions['width']
-        return  self._mass * (l**2 + w**2) / 12
+        if 'iz' in self._params.inertia.keys():
+            return self._params.inertia['iz']
+        else:
+            l = self._params.dimensions['length']
+            w = self._params.dimensions['width']
+            return  self._mass * (l**2 + w**2) / 12
     
     def __get_added_mass(self) -> tuple[float, float, float]:
         x_du = self._mass * self._params.added_mass_coefficient['surge']
@@ -38,8 +42,14 @@ class SimpleShipPhysics:
     
     def __get_dimensions_and_projection(self) -> tuple[float, float, float, float]:
         dimensions = self._params.dimensions
-        proj_area_front = dimensions['width'] * dimensions['h_front']
-        proj_area_side = dimensions['length'] * dimensions['h_side']
+        if 'proj_area_front' in dimensions.keys():
+            proj_area_front = dimensions['proj_area_front']
+        else:
+            proj_area_front = dimensions['width'] * dimensions['h_front']
+        if 'proj_area_lateral' in dimensions.keys():
+            proj_area_side = dimensions['proj_area_lateral']
+        else:
+            proj_area_side = dimensions['length'] * dimensions['h_side']
         return dimensions['length'], dimensions['width'], proj_area_front, proj_area_side
 
     
@@ -68,8 +78,8 @@ class SimpleShipPhysics:
     
     def __get_rotation_matrix(self, psi_rad, dim:int=3) -> np.ndarray:
         return np.array([
-            [-np.sin(psi_rad), np.cos(psi_rad), 0.],
-            [np.cos(psi_rad), np.sin(psi_rad), 0.],
+            [-self.sin(psi_rad), self.cos(psi_rad), 0.],
+            [self.cos(psi_rad), self.sin(psi_rad), 0.],
             [0., 0., -1.]
         ])[0:dim, 0:dim] # Transpose or not, it doesn't change anything!!! This transformation is correct!
     
@@ -77,12 +87,15 @@ class SimpleShipPhysics:
         """
         Get the wind force acting on the ship, in the ship frame.
         """
+        if wind.intensity <= 0.0:
+            return GeneralizedForces()
+        
         beta_w = -wind.direction # Wind direction is given in the world frame
         psi = -yaw # Yaw angle is given in the world frame
 
         # Compute wind speed in ship frame
-        vx_in_ship = wind.speed * np.cos(psi-beta_w)
-        vy_in_ship = -wind.speed * np.sin(psi-beta_w)
+        vx_in_ship = wind.speed * self.cos(psi-beta_w)
+        vy_in_ship = -wind.speed * self.sin(psi-beta_w)
 
         # Compute relative speed in ship frame
         u_rw = vx_in_ship - x_dot
@@ -91,17 +104,18 @@ class SimpleShipPhysics:
         # gamma_rw = -np.arctan2(v_rw, u_rw) # Wind direction w.r.t yaw angle in ship frame
         gamma_rw = psi - beta_w - np.pi
         wind_rw2 = u_rw ** 2 + v_rw ** 2
-        c_x = -self._cx * np.cos(gamma_rw) # TODO: Check if this is correct, originally it was c_x = -self._cx * np.cos(gamma_rw)
-        c_y = self._cy * np.sin(gamma_rw)
-        c_n = self._cn * np.sin(2 * gamma_rw)
+        c_x = -self._cx * self.cos(gamma_rw) # TODO: Check if this is correct, originally it was c_x = -self._cx * np.cos(gamma_rw)
+        c_y = self._cy * self.sin(gamma_rw)
+        c_n = self._cn * self.sin(2 * gamma_rw)
         # print(f"beta_w: {beta_w*180/np.pi:.2f} | psi: {psi*180/np.pi:.2f} | vx_in_ship: {vx_in_ship:.2f}, vy_in_ship: {vy_in_ship:.2f} | v_rw: {v_rw:.2f}, u_rw: {u_rw:.2f} | gamma_rw: {gamma_rw*180/np.pi:.2f} | wind_rw2: {wind_rw2:.2f} | c_x: {c_x:.2f}, c_y: {c_y:.2f}, c_n: {c_n:.2f}")
         # print(f"wind: {(wind.direction)*180/np.pi:.2f} | angle: {angle*180/np.pi:.2f} | yaw: {yaw*180/np.pi:.2f} | uw: {uw:.2f}, vw: {vw:.2f} | u_rw: {u_rw:.2f}, v_rw: {v_rw:.2f} | gamma_rw: {gamma_rw*180/np.pi:.2f} | wind_rw2: {wind_rw2:.2f} | c_x: {c_x:.2f}, c_y: {c_y:.2f}, c_n: {c_n:.2f}")
         tau_coeff = 0.5 * self._rho_a * wind_rw2
         tau_u = tau_coeff * c_x * self._proj_area_front
         tau_v = tau_coeff * c_y * self._proj_area_side
         tau_n = tau_coeff * c_n * self._proj_area_side * self._length
+        # print("tau_v: ", tau_v)
         # print(f"w: {wind.direction:.2f}, {wind.speed:.2f} | xy_dot: {x_dot:.2f}, {y_dot:.2f} | yaw: {yaw:.2f} | uv_rw: {u_rw:.2f}, {v_rw:.2f} | tau: {tau_u:.2f}, {tau_v:.2f}, {tau_n:.2f}")
-        return GeneralizedForces(float(tau_u), float(tau_v), 0., 0., 0., float(tau_n))
+        return GeneralizedForces(tau_u, tau_v, 0., 0., 0., tau_n)
     
     def get_water_force(self, water:WaterVector, x_dot:float, y_dot:float, yaw:float) -> GeneralizedForces:
         """
@@ -114,14 +128,33 @@ class SimpleShipPhysics:
                              wind:WindVector=WindVector((0., 0.), vector=(0., 0.)),
                              water:WaterVector=WaterVector((0., 0.), vector=(0., 0.)),
                              control_forces:GeneralizedForces=GeneralizedForces(),
-                             external_forces:GeneralizedForces=GeneralizedForces()
+                             external_forces:GeneralizedForces=GeneralizedForces(),
+                             input_uvr_in_ship_frame:bool=False,
+                             get_uvr_dot_in_ship_frame:bool=False,
+                             get_uvr_in_ship_frame:bool=False,
+                             use_casadi:bool=False
                              ) -> tuple[TimeDerivatives3, GeneralizedForces]:
         """
         All inputs are in the world frame.
         """
+
+        if use_casadi:
+            self.cos = cd.cos
+            self.sin = cd.sin
+            self.matmul = cd.mtimes
+            self.dot = cd.dot
+        else:
+            self.cos = np.cos
+            self.sin = np.sin
+            self.matmul = np.matmul
+            self.dot = np.dot
+
         R2d = self.__get_rotation_matrix(states.psi_rad, dim=2)
         R3d = self.__get_rotation_matrix(states.psi_rad, dim=3)
-        pose_dot_in_ship_frame = np.dot(R3d, states.vel)
+        if input_uvr_in_ship_frame:
+            pose_dot_in_ship_frame = np.array(states.vel)
+        else:
+            pose_dot_in_ship_frame = self.matmul(R3d, np.array(states.vel))
 
         states_in_ship_frame = States3(0., 0., 0., *pose_dot_in_ship_frame)
 
@@ -131,29 +164,63 @@ class SimpleShipPhysics:
         total_force_in_ship_frame:GeneralizedForces = wind_force + water_force + control_forces + external_forces # There is a wind force always acting on the ship
 
         # Transform water current velocity to ship frame
-        current_vel_in_ship_frame = R2d @ water.velocity
+        current_vel_in_ship_frame = self.matmul(R2d, water.velocity)
         u_r = states_in_ship_frame.x_dot - current_vel_in_ship_frame[0] # relative speed in surge w.r.t water
         v_r = states_in_ship_frame.y_dot - current_vel_in_ship_frame[1] # relative speed in sway w.r.t water
-        vel_relative_to_current_in_ship_frame = np.array([u_r, v_r, states_in_ship_frame.psi_dot_rad])
+        if use_casadi:
+            vel_relative_to_current_in_ship_frame = cd.vertcat(u_r, v_r, states_in_ship_frame.psi_dot_rad)
+        else:
+            vel_relative_to_current_in_ship_frame = np.array([u_r, v_r, states_in_ship_frame.psi_dot_rad])
 
         # Compute matrices linked to the ship dynamics
         Dl = self._linear_damping_matrix
 
-        f3 = -(Dl @ vel_relative_to_current_in_ship_frame)
-        f5 = np.array(total_force_in_ship_frame.uvn)
+        f3 = -self.matmul(Dl, vel_relative_to_current_in_ship_frame)
+        if use_casadi:
+            f5 = cd.vertcat(*total_force_in_ship_frame.uvn)
+        else:
+            f5 = np.array(total_force_in_ship_frame.uvn)
+
+        # print("F5: ", f5)
 
         # Sum all forces acting on the ship
         f = f3 + f5
 
         # Compute the acceleration in the ship frame
-        acc = self._inv_mass_matrix @ f
+        acc = self.matmul(self._inv_mass_matrix, f)
 
         # Transform the acceleration / forces back to the world frame
-        f_in_world = R3d @ f
-        acc_in_world_frame = R3d @ acc
+        f_in_world = self.matmul(R3d, f)
+        
+        if get_uvr_in_ship_frame:
+            uvr = self.matmul(R3d.T, pose_dot_in_ship_frame)
+        else:
+            uvr = pose_dot_in_ship_frame
+            
+        if get_uvr_dot_in_ship_frame:
+            if use_casadi:
+                return TimeDerivatives3(uvr[0], uvr[1], uvr[2], acc[0], acc[1], acc[2]), GeneralizedForces(f_in_world[0], f_in_world[1], 0., 0., 0., f_in_world[2])
+            else:
+                return TimeDerivatives3(uvr[0], uvr[1], uvr[2], float(acc[0]), float(acc[1]), float(acc[2])), GeneralizedForces(f_in_world[0], f_in_world[1], 0., 0., 0., f_in_world[2])
+        acc_in_world_frame = self.matmul(R3d, acc)
+        return TimeDerivatives3(uvr[0], uvr[1], uvr[2], float(acc_in_world_frame[0]), float(acc_in_world_frame[1]), float(acc_in_world_frame[2])), GeneralizedForces(f_in_world[0], f_in_world[1], 0., 0., 0., f_in_world[2])
 
-        # TODO: Make the resulting forces plottable
-        return TimeDerivatives3(states.x_dot, states.y_dot, states.psi_dot_deg, float(acc_in_world_frame[0]), float(acc_in_world_frame[1]), float(acc_in_world_frame[2])), GeneralizedForces(f_in_world[0], f_in_world[1], 0., 0., 0., f_in_world[2])
+    # def model(
+    #         self,
+    #         x:np.ndarray,
+    #         u:np.ndarray,
+    #     ) -> tuple[TimeDerivatives3]:
+    #     derivatives, _ = self.get_time_derivatives_and_forces(
+    #         States3([float(xi) for xi in x]),
+    #         wind,
+    #         water,
+    #         control_forces,
+    #         external_forces,
+    #     )
+
+    #     if output_type is 'numpy':
+
+
 
     def __repr__(self) -> str:
         return "{} Object".format(type(self).__name__)
@@ -243,6 +310,8 @@ def test():
     wind = WindVector((0., 0.), vector=(1., 0.))
 
     print(ship_physics.get_time_derivatives_and_forces(states, wind))
+
+    
 
 if __name__ == "__main__":
     test()

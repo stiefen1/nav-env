@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-import numpy as np
+import numpy as np, casadi as cd
 from abc import abstractmethod, ABC
 import matplotlib.pyplot as plt
 import pygame
@@ -145,6 +145,16 @@ class BaseStateVector(ABC):
         else:
             raise TypeError(f"Index must be a string or an integer not {type(index).__name__}")
         
+    def to_numpy(self) -> np.ndarray:
+        return np.array(self.to_list())
+    
+    def to_list(self) -> list:
+        return list(self.__dict__.values())
+    
+    def to_casadi(self) -> cd.SX:
+        return cd.vertcat(*self.to_list())
+    
+
     @property    
     def keys(self) -> list:
         return list(self.__dict__.keys())
@@ -156,6 +166,7 @@ class BaseStateVector(ABC):
     @property
     def dim(self) -> int:
         return len(self.__dict__)
+    
 
 
 class States(BaseStateVector): # We use states space representation \dot{x} = f(x, u)
@@ -227,6 +238,7 @@ def test():
 
     x = States(x=2, y=3, yaw=4)
     y = States(x=2, y=4, yaw=2)
+    print("Numpy: ", x.to_numpy())
     print(x==y)
     print(x<=y)
     print(x>y)

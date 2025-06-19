@@ -46,6 +46,35 @@ class AzimuthThrusterCommand(Command):
     def speed(self) -> float:
         return self['speed']
     
+class AzimuthThrusterSpeedCommand(Command):
+    def __init__(self, azimuth_rate:float=0.0, propeller_speed:float=0.0):
+        """
+        Here the command uses 
+        """
+        super().__init__(azimuth_rate=azimuth_rate, propeller_speed=propeller_speed)
+
+    @staticmethod
+    def inf() -> "AzimuthThrusterSpeedCommand":
+        return AzimuthThrusterSpeedCommand(
+            azimuth_rate=float('inf'),
+            propeller_speed=float('inf')
+        )
+    
+    @staticmethod
+    def zero() -> "AzimuthThrusterSpeedCommand":
+        return AzimuthThrusterSpeedCommand(
+            azimuth_rate=0.0,
+            propeller_speed=0.0
+        )
+    
+    @property
+    def azimuth_rate(self) -> float:
+        return self['azimuth_rate']
+    
+    @property
+    def propeller_speed(self) -> float:
+        return self['propeller_speed']
+    
 class ThrusterCommand(AzimuthThrusterCommand):
     def __init__(self, speed:float=0.0):
         super().__init__(speed=speed)
