@@ -5,12 +5,15 @@ if __name__ == '__main__':
     from nav_env.viz.matplotlib_screen import MatplotlibScreen as Screen
     # from nav_env.viz.pygame_screen import PyGameScreen as Screen
     from nav_env.environment.environment import NavigationEnvironment as Env
-    from nav_env.ships.ship import *
-    from nav_env.ships.states import *
+    from nav_env.ships.ship import Ship, SimpleShip
+    from nav_env.ships.states import States3
     from nav_env.wind.wind_source import UniformWindSource
-    from nav_env.obstacles.obstacles import *
+    from nav_env.obstacles.obstacles import Circle, Ellipse, Obstacle, MovingObstacle
+    from nav_env.simulation.integration import Euler
     from nav_env.risk.monitor import RiskMonitor
     from nav_env.ships.simplified_physics import SimpleShipPhysics
+    from nav_env.actuators.actuators import AzimuthThruster
+    import numpy as np
 
 
     # Simulation parameters
@@ -34,6 +37,21 @@ if __name__ == '__main__':
     ship3 = Ship(States3(10., -100., -30., 0., 0., 0.), integrator=Euler(dt), name="Ship3", domain=Circle(0, 0, 50))
     ship4 = Ship(States3(250., -200., 0., 0., 0., 60.), integrator=Euler(dt), name="Ship4")
     ship5 = Ship(States3(250., 250., 80., -100., -100., 10.), integrator=Euler(dt), name="Ship5", domain=Ellipse(0, 0, 100, 50))
+
+
+    ship0 = Ship(
+        States3(-200., -250., -40., 20., 30., 0.), 
+        physics=SimpleShipPhysics(), 
+        actuators=[
+            AzimuthThruster((-20, 0), 0, (-45, 45), (0, 100), dt),
+            AzimuthThruster((20, 0), 0, (-45, 45), (0, 100), dt)
+        ],
+        integrator=Euler(dt), 
+        name="OS1", 
+        domain_margin_wrt_enveloppe=30
+    )#, domain=Ellipse(0, 0, 100, 50, -20, 30))
+
+    print("MODEL OUTPUT: ", ship0.model(np.array([-200., -250., -40., 10., 20., 0.]), np.array([0, 100, 0, 100])))
 
     # Wind
     uniform_wind = UniformWindSource(-15, 15)

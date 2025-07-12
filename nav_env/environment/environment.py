@@ -82,6 +82,23 @@ class NavigationEnvironment:
         ax.set_ylim((lim[0][1], lim[1][1]))
         return ax
     
+    def plot_at_idx(self, idx:int, x_lim:tuple, y_lim:tuple, *args, ax=None, **kwargs):
+        if ax is None:
+            _, ax = plt.subplots()
+
+        self._shore.plot(ax=ax)
+        self._obstacles.plot(ax=ax)
+        self._wind_source.quiver(((x_lim[0], y_lim[0]), (x_lim[1], y_lim[1])), ax=ax, nx=5, ny=5, facecolor='grey', alpha=0.3, **kwargs)
+        for own_ship in self._own_ships:
+            own_ship.get_envelope_from_logs_at_idx(idx).plot(ax=ax)
+            own_ship.get_domain_from_logs_at_idx(idx).plot(ax=ax)
+        for target_ship in self._target_ships:
+            target_ship.get_envelope_from_logs_at_idx(idx).plot(ax=ax)
+            target_ship.get_domain_from_logs_at_idx(idx).plot(ax=ax)
+        ax.set_xlim(x_lim)
+        ax.set_ylim(y_lim)
+        return ax
+    
     def draw(self, screen, own_ships_physics:dict={'enveloppe':1}, target_ships_physics:dict={'enveloppe':1}, scale=1, **kwargs):
         """
         Draw the environment for pygame.
@@ -92,6 +109,19 @@ class NavigationEnvironment:
         self._target_ships.draw(screen, params=target_ships_physics, scale=scale, **kwargs)
         # self._wind_source.draw(screen, **kwargs)
         # self._water_source.draw(screen, **kwargs)
+
+    # def plot_at_time(self, t:float, lim:tuple, *args, ax=None, own_ships_physics:dict={'enveloppe':1}, target_ships_physics:dict={'enveloppe':1}, obstacles_params:dict={'enveloppe':1}, **kwargs):
+    #     if ax is None:
+    #         _, ax = plt.subplots()
+    #     self._shore.plot(ax=ax, **kwargs)
+    #     self._own_ships.plot_at_time(ax=ax, params=own_ships_physics, **kwargs)
+    #     # self._own_ships[0].enveloppe_fn_from_current_state(10).plot(ax=ax, **kwargs)
+    #     self._target_ships.plot_at_time(ax=ax, params=target_ships_physics, **kwargs)
+    #     self._obstacles.plot_at_time(ax=ax, params=obstacles_params, **kwargs)
+    #     self._wind_source.quiver(lim, ax=ax, nx=5, ny=5, facecolor='grey', alpha=0.3, **kwargs)
+    #     # self._water_source.plot(ax=ax, **kwargs)
+    #     ax.set_xlim((lim[0][0], lim[1][0]))
+    #     ax.set_ylim((lim[0][1], lim[1][1]))
     
     def __repr__(self):
         return f"NavigationEnvironment({len(self._obstacles)} obstacles, {self._wind_source})"

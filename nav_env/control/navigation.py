@@ -2,6 +2,7 @@ from abc import ABC, abstractmethod
 from typing import Any
 from nav_env.ships.states import States3
 import numpy as np
+from nav_env.sensors.collection import SensorCollection
 
 class NavigationBase(ABC):
     def __init__(self, *args, **kwargs):
@@ -19,9 +20,10 @@ class Navigation(NavigationBase):
         super().__init__(*args, **kwargs)
 
     def observe(self, ship, *args, **kwargs) -> States3:
+        sensors:SensorCollection = ship.sensors
+        measurements = sensors.get()
         R3d = ship._physics.rotation_matrix(ship.states.psi_rad, dim=3)
         pose_dot_in_ship_frame = np.dot(R3d, ship.states.vel)
-        # print(pose_dot_in_ship_frame)
         return States3(
             x=ship.states.x,
             y=ship.states.y,
@@ -31,8 +33,10 @@ class Navigation(NavigationBase):
             psi_dot_deg=pose_dot_in_ship_frame[2]*180/np.pi)
     
 def test() -> None:
+    from nav_env.ships.ship import Ship
     nav = Navigation()
-    obs = nav.observe(States3())
+    ship = Ship()
+    obs = nav.observe(ship)
     print(obs)
 
 if __name__ == "__main__":

@@ -1,5 +1,6 @@
 from nav_env.control.states import States, TimeDerivatives
 from math import pi
+import numpy as np
 
 class States2(States):
     def __init__(self, x:float=0., y:float=0., x_dot:float=0., y_dot:float=0.):
@@ -65,8 +66,14 @@ class States2(States):
     def vel(self) -> tuple[float, float]:
         return self.x_dot, self.y_dot
 class States3(States):
-    def __init__(self, x:float=0., y:float=0., psi_deg:float=0., x_dot:float=0., y_dot:float=0., psi_dot_deg:float=0.):
+    def __init__(self, x:float=0., y:float=0., psi_deg:float=0., x_dot:float=0., y_dot:float=0., psi_dot_deg:float=0., u:float=None, v:float=None, r:float=None):
         super().__init__(x=x, y=y, psi_deg=psi_deg, x_dot=x_dot, y_dot=y_dot, psi_dot_deg=psi_dot_deg)
+        if u is not None or v is not None or r is not None:
+            u = u or 0.0
+            v = v or 0.0
+            r = r or 0.0
+            self._update_on_new_uvr(u, v, r)
+            
 
     def plot(self, *args, ax=None, **kwargs):
         """
@@ -83,7 +90,36 @@ class States3(States):
     def __iter__(self):
         for value in self.__dict__.values():
             yield value
+
+    def get_rotation_matrix(self) -> np.ndarray:
+        return np.array([
+            [-np.sin(self.psi_rad), np.cos(self.psi_rad), 0.],
+            [np.cos(self.psi_rad), np.sin(self.psi_rad), 0.],
+            [0., 0., -1.]
+        ])
+    
+    def _update_on_new_uvr(self, u:float, v:float, r:float) -> None:
+        xypsi_dot = self.get_rotation_matrix().T @ np.array([u, v, r]).T
+        self.x_dot = float(xypsi_dot[0])
+        self.y_dot = float(xypsi_dot[1])
+        self.psi_dot_rad = float(xypsi_dot[2])
+
+    @property
+    def uvr(self) -> tuple:
+        uvr = self.get_rotation_matrix() @ np.array(self.vel).T
+        return tuple(uvr.tolist())
         
+    @property
+    def u(self) -> float:
+        return self.uvr[0]
+    
+    @property
+    def v(self) -> float:
+        return self.uvr[1]
+    
+    @property
+    def r(self) -> float:
+        return self.uvr[2]
 
     @property
     def x(self) -> float:
@@ -108,6 +144,10 @@ class States3(States):
     @property
     def pose(self) -> tuple[float, float, float]:
         return self.x, self.y, self.psi_rad
+    
+    @property
+    def pose_deg(self) -> tuple[float, float, float]:
+        return self.x, self.y, self.psi_deg
 
     ####### psi is stored as degrees #######
     @property

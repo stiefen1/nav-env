@@ -4,6 +4,7 @@ from seacharts.enc import ENC
 import matplotlib.pyplot as plt
 from shapely import intersects, Polygon, difference, intersection, MultiPolygon
 from typing import Union
+# from PathPlanning.Search_based_Planning.Search_2D.env import Env
 
 DEPTH_TYPE = Union[int, list[int]]
 
@@ -45,7 +46,7 @@ class Map(ObstacleCollection):
             sx, sy = self.enc.size
             center_focus = (xo + sx/2, yo+sy/2)
         
-        print(size_focus, center_focus)
+        # print(size_focus, center_focus)
 
         lx_focus, ly_focus = size_focus
         x0_focus, y0_focus = center_focus
@@ -89,9 +90,48 @@ class Map(ObstacleCollection):
 
         return ax
     
+    def get_grid_cell_environment(self, nx:int=101, ny:int=None, size=None, center=None, depth:DEPTH_TYPE=0):
+        """
+        size = (sx, sy)
+        center = (cx, cy)
+        --------------
+        |            |
+        |  (cx,cy)   |sy
+        |            |
+        --------------
+              sx
+        """
+        ny = ny or nx
+        size = size or self.enc.size 
+        center = center or self.enc.center
+        if center is None:
+            # meaning both center self.enc.center are None -> We have to compute it from self.enc.origin & self.enc.size
+            x0, y0 = self.enc.origin
+            center = (x0 + size[0], y0 + size[1])
+        
+        return self.get_obstacle_collection_in_window_from_enc(
+            center=center,
+            size=size,
+            depth=depth
+        ).get_obs_as_grid_cell(nx, ny, size, center)                
+    
     @property
     def available_depth_data(self) -> list[int]:
         return list(self.enc.seabed.keys())
+    
+    @property
+    def center(self) -> tuple:
+        return self.enc.center
+    
+    @property
+    def size(self) -> tuple:
+        return self.enc.size
+    
+    @property
+    def origin(self) -> tuple:
+        return self.enc.origin
+    
+    
 
 def test() -> None:
     import sys, os, matplotlib.pyplot as plt
@@ -123,6 +163,53 @@ def test_S57() -> None:
     obs.plot()
     plt.show()
 
+def test_a_star() -> None:
+    """ONLY RUNNABLE THROUGH PSO-OPT LIBRARY"""
+    import sys, os, matplotlib.pyplot as plt
+    from PathPlanning.Search_based_Planning.Search_2D.Astar import AStar
+    from PathPlanning.Search_based_Planning.Search_2D.Dijkstra import Dijkstra
+    from PathPlanning.Search_based_Planning.Search_2D import plotting
+    from nav_env.control.path import Waypoints
+
+    NX, NY = 201, 201
+    center=(350000, 6.04e6)
+    size=(25e3, 0.02e6)
+    start=(350000, 6032000)
+    goal=(342220, 6049000)
+
+    root_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '../..'))
+    sys.path.insert(0, root_path)
+
+    config_path = os.path.join('examples', 'config', 'config_sc4.yaml')
+    shore = Map(config_path, depth=[100, 3, -5, 1, 2])
+    # obstacles = shore.get_grid_cell_environment(nx=NX, ny=NY, center=center, size=size)
+    obs = shore.get_obstacle_collection_in_window_from_enc(center=center, size=size)
+    obs.buffer(400, join_style='mitre')
+    
+    # Convert obstacles into grid cell format
+    grid_cells = obs.get_obs_as_grid_cell(NX, NY, size, center)
+
+    # Instantiate Env, which can be used with PathPlanning
+    env = Env(x_range=NX, y_range=NY, obstacles=grid_cells, center=center, size=size)
+    
+    # Convert start and goal into node coordinate system
+    start = env.node_from_true_coord(*start)
+    goal = env.node_from_true_coord(*goal)
+
+    # Instantiate Algorithm
+    alg = Dijkstra(start, goal, "euclidean", environment=env) # AStar
+    
+    # Run Astar and convert result into Waypoints object
+    path, visited = alg.searching()
+    path = Waypoints([env.true_coord_from_node(*wp) for wp in path]).resample(20)
+    path.interpolate()
+    ax = obs.buffer(-400, join_style='mitre').plot()
+    path.scatter(ax=ax, c='r')
+    plt.show()
+    
+    # plot.animation(path, visited, "A*")  # animation
+
 if __name__=="__main__":
-    test()
+    # test()
     test_S57()
+    # test_a_star()

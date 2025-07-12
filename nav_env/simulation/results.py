@@ -22,7 +22,6 @@ sim.results.plot()
 
 from nav_env.environment.environment import NavigationEnvironment
 from nav_env.risk.monitor import RiskMonitor
-import time
 import pandas as pd
 
 class SimulationRecord:
@@ -89,10 +88,11 @@ class SimulationRecord:
                 dict_for_own_ship_i[own_ship_i.name]['states'].update({state:[]})
             self._own_ships_data.update(dict_for_own_ship_i)            
         
-        print(self._own_ships_data)
-
     def __call__(self) -> None:
         self._times.append(self._env.t)
+        self.record_own_ships_states_and_risks()
+    
+    def record_own_ships_states_and_risks(self) -> None:
         risks = self._monitor.monitor_now(self._env)
         for i, own_ship_i in enumerate(self._env.own_ships):
             for key in own_ship_i.states.keys:
@@ -100,9 +100,6 @@ class SimulationRecord:
             for j, key in enumerate(self._monitor.legend()):
                 self._own_ships_data[own_ship_i.name]['risks'][key].append(risks[i][j])
 
-
-        ship_0_data = self._own_ships_data[self._env.own_ships[0].name]
-        print(f"({self._times[-1]:.2f}) x: {ship_0_data['states']['x'][-1]:.2f} {list(ship_0_data['risks'].keys())[0]}: {list(ship_0_data['risks'].values())[0][-1]} ")
 
     def __getitem__(self, idx:str):
         return self._own_ships_data[idx]

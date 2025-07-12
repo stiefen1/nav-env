@@ -89,7 +89,10 @@ def get_direction_intensity_from_vector(vector: np.ndarray | tuple, angle_ref: f
     """
     vector: np.ndarray = convert_any_to_numpy(vector)
     intensity = float(np.linalg.norm(vector))
-    direction = (atan2(vector[1], vector[0]) - angle_ref) % (2*pi)
+    if intensity > 0:
+        direction = (atan2(vector[1], vector[0]) - angle_ref) % (2*pi)
+    else:
+        direction = 0
     return direction, intensity
 
 def get_vector_from_direction_intensity(direction: float, intensity: float, angle_ref: float = DEFAULT_ANGLE_REFERENCE) -> np.ndarray:

@@ -1,8 +1,10 @@
 from nav_env.obstacles.obstacles import Obstacle, MovingObstacle
 import matplotlib.pyplot as plt
-import networkx as nx
+import networkx as nx, os
 from copy import deepcopy
 from shapely import intersection, Polygon, MultiPolygon
+from alive_progress import alive_bar
+
 
 class ObstacleCollection:
     def __init__(self, obstacles: list[Obstacle] = []):
@@ -80,6 +82,40 @@ class ObstacleCollection:
             new_obs = Obstacle(obs.convex_hull().get_xy_as_list())
             new_obstacles.append(new_obs)
         return ObstacleCollection(new_obstacles)
+    
+    def get_obs_as_grid_cell(self, nx:int, ny:int, size:tuple, center:tuple):
+        """
+        TO BE USED WITH THE PathPlanning library
+
+        size = (sx, sy)
+        center = (cx, cy)
+        --------------
+        |            |
+        |  (cx,cy)   |sy
+        |            |
+        --------------
+              sx
+        """
+        sx, sy = size
+        center = center
+        cx, cy = center
+        x0, y0 = cx-sx/2, cy-sy/2
+        dx, dy = sx/nx, sy/ny
+        
+        obs = set()
+        for i in range(-1, nx+1):
+            x_left = x0 + i*dx
+            x_right = x0 + (i+1)*dx
+            for j in range(-1, ny+1):
+                if i == -1 or i == nx or j == -1 or j == ny: # Add frame around the scene
+                    obs.add((i, j))
+                y_down = y0 + j*dy
+                y_up = y0 + (j+1)*dy
+                pixel = Obstacle([(x_left, y_down), (x_left, y_up), (x_right, y_up), (x_right, y_down)])
+                if self.intersects(pixel):
+                    obs.add((i, j))
+
+        return obs
 
     def buffer(self, distance:float, **kwargs) -> "ObstacleCollection":
         """
@@ -92,6 +128,15 @@ class ObstacleCollection:
         Get the intersection of the obstacles with another geometry.
         """
         return [obs.intersection(other, **kwargs) for obs in self._obstacles]
+    
+    def intersects(self, other, **kwargs) -> bool:
+        """
+        Get the intersection of the obstacles with another geometry.
+        """
+        for obs in self._obstacles:
+            if obs.intersects(other, **kwargs):
+                return True
+        return False
     
     def translate(self, x:float, y:float) -> "ObstacleCollection":
         """
@@ -312,13 +357,20 @@ def get_graph_of_connected_obstacles(obstacles: ObstacleCollection, min_distance
     """
     graph = nx.Graph()
     graph.add_nodes_from(range(len(obstacles)))
-    for i in range(1, len(obstacles)):
-        obs_i = obstacles[i]
-        for j in range(i):
-            obs_j = obstacles[j]
-            d = obs_i.distance(obs_j)
-            if d < min_distance:
-                graph.add_edge(i, j)
+    if os.name == 'nt':
+            os.system('cls')
+    else:
+        os.system('clear')
+    print(f"Building graph of connected obstacles..")
+    with alive_bar(len(obstacles)) as bar:
+        for i in range(1, len(obstacles)):
+            obs_i = obstacles[i]
+            for j in range(i):
+                obs_j = obstacles[j]
+                d = obs_i.distance(obs_j)
+                if d < min_distance:
+                    graph.add_edge(i, j)
+            bar()
     return graph
 
 def get_convex_hull_of_union_of_connected_obstacles_as_list(graph: nx.Graph, obstacles) -> list[set]:

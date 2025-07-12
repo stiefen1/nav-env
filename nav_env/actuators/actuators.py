@@ -4,6 +4,7 @@ from math import pi, cos, sin
 from typing import Union
 import casadi as cd
 import numpy as np
+import warnings
 
 class Actuator(ABC):
     def __init__(self,
@@ -60,6 +61,14 @@ class Actuator(ABC):
         self._dt = dt
         self._u_rate_min = u_rate_min
         self._u_rate_max = u_rate_max
+        self._logs = np.zeros((0, self.nu))
+        self._last_command = None
+
+    def save(self) -> None:
+        if self._last_command is not None:
+            self._logs = np.append(self._logs, self._last_command.to_numpy().reshape(1, self.nu), axis=0)
+        else:
+            warnings.warn(f"Last command of {self} is None - save aborted")
 
     def sample_within_bounds(self, as_list:bool=False) -> list:
         """Sample a random control command within bounds"""
@@ -78,6 +87,7 @@ class Actuator(ABC):
         it is limited)
         """
         assert type(command) == self.valid_command, f"Input command must be an instance of {self.valid_command} but is an {type(command)} object"
+        self._last_command = command
         return self.__dynamics__(command, *args, v_r=v_r, **kwargs)
 
     @abstractmethod
@@ -90,6 +100,9 @@ class Actuator(ABC):
         it is limited)
         """
         return GeneralizedForces()
+    
+    def u_at_min_power(self) -> tuple:
+        return tuple([0.0] * len(self._u_min))
         
     @property
     def nu(self) -> int:
@@ -106,6 +119,14 @@ class Actuator(ABC):
     @property
     def u_min(self) -> tuple:
         return self._u_min
+    
+    @property
+    def u_rate_max(self) -> tuple:
+        return self._u_rate_max
+    
+    @property
+    def u_rate_min(self) -> tuple:
+        return self._u_rate_min
     
     @property
     def u_mean(self) -> tuple:
@@ -252,7 +273,7 @@ class AzimuthThruster(Actuator):
                  *args,
                  f_min:float=-float('inf'),
                  f_max:float=float('inf'),
-                 alpha_0:float=0.0, # Orientation w.r.t. initial orientation -> alpha at t=0
+                 alpha_0:float=0.0, # Orientation w.r.t. initial orientation -> alpha at t=0 in degrees
                  speed_0:float=0.0, # Initial speed, i.e. speed at t=0
                  alpha_rate_max:float=float('inf'),
                  v_rate_max:float=float('inf'),
@@ -323,6 +344,9 @@ class AzimuthThruster(Actuator):
         force = GeneralizedForces(f_x=Fx, f_y=Fy, tau_z=Nz)
         return force if output_type == 'force' else force.to_numpy()
     
+    def u_at_min_power(self) -> tuple:
+        return (None, 0.0)
+    
     def get_rate_alpha(self, alpha:float, do_clip:bool=True) -> float:
         actual_angle_in_ship_frame = self._alpha + self.angle_deg
         rate_alpha = (alpha - actual_angle_in_ship_frame)/self._dt # Compute desired angle rate
@@ -353,6 +377,7 @@ class AzimuthThruster(Actuator):
         if do_clip:
             Ftot = clip(Ftot, self._f_min, self._f_max) # Clip force to satisfy constraints -> [f_min, f_max]
         return Ftot
+    
 
     @property
     def alpha_min(self) -> float:

@@ -2,6 +2,7 @@ from nav_env.actuators.actuators import Actuator, Rudder, Thruster, AzimuthThrus
 from nav_env.control.command import GeneralizedForces, Command
 from math import pi
 from typing import Iterable, Union
+import numpy as np, warnings
 
 class ActuatorCollection:
     def __init__(self, actuators:list[Actuator], *args, **kwargs):
@@ -16,6 +17,10 @@ class ActuatorCollection:
             else:
                 samples.append(sample)
         return samples
+
+    def save(self) -> None:
+        for a in self._actuators:
+            a.save()
 
     def append(self, actuator:Actuator) -> None:
         assert isinstance(actuator, Actuator), f"Obstacle must be an instance of Actuator not {type(actuator)}"
@@ -53,9 +58,39 @@ class ActuatorCollection:
         for obs in self._actuators:
             yield obs
 
-    def to_list(self) -> list:
+    def tolist(self) -> list:
         return self._actuators
+    
+    def is_empty(self) -> bool:
+        return len(self._actuators) == 0
+    
+    def u_at_min_power(self) -> tuple:
+        us_at_min_power = []
+        for a in self._actuators:
+            us_at_min_power += list(a.u_at_min_power())
+        return tuple(us_at_min_power)
+    
+    def get_weight_and_u_pref_for_power_minimimzation(self, W:np.ndarray=None) -> tuple[np.ndarray, np.ndarray]:
+        """
+        Returns W and input command u_pref that minimizes power consumption, to be used in a cost function similar to:
+        min ||Qs|| + 0.5 * (u-u_pref)'W(u-u_pref)
 
+        Every Actuator object has a u_at_min_power value which can be anything, including None
+        In such case, it means that there is no prefered value for u.
+            --> Set u_pref = 0.0 (or anything you want)
+            --> Set W = 0.0 for the desired value 
+        """
+        u_pref_raw = self.u_at_min_power()
+        u_pref = []
+        W = np.eye(self.nu) if W is None else W
+        for i, u_pref_i in enumerate(u_pref_raw):
+            if u_pref_i is None:
+                W[i, i] = W[i, i] * 1e-6
+                u_pref.append(0.0)
+                continue
+            u_pref.append(u_pref_i)
+        return W, np.array(u_pref).reshape((self.nu, 1))
+            
     # def __getattr__(self, name):
     #     list_of_attributes = []
     #     for a in self._actuators:
@@ -109,6 +144,27 @@ class ActuatorCollection:
         for a in self:
             u_mean += list(a.u_mean)
         return tuple(u_mean)
+    
+    @property
+    def u_rate_min(self) -> tuple:
+        u_rate_min = []
+        for a in self:
+            u_rate_min += list(a.u_rate_min)
+        return tuple(u_rate_min)
+    
+    @property
+    def u_rate_max(self) -> tuple:
+        u_rate_max = []
+        for a in self:
+            u_rate_max += list(a.u_rate_max)
+        return tuple(u_rate_max)
+    
+    @property
+    def dt(self) -> float:
+        for a in self:
+            return a.dt
+        warnings.warn(f"No dt value available because no actuator available. Returning None..")
+        return None
     
 def get_all_objects_of_type_in_iterable(list_of_obj, obj_type) -> list:
     out = []

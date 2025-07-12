@@ -8,6 +8,7 @@ from nav_env.control.states import DeltaStates
 from copy import deepcopy
 from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 import numpy as np
+from math import pi
 
 DEFAULT_INTEGRATION_STEP = 0.1
 class Obstacle(GeometryWrapper):
@@ -51,6 +52,14 @@ class Obstacle(GeometryWrapper):
         z = [z]*len(self.xy[0])
         ax.plot(*self.xy, z, *args, **kwargs)
         return ax
+    
+    def project_on_spatio_temporal_plane(self, spatio_temporal_plane) -> "Obstacle":
+        obs = deepcopy(self)
+        if type(obs) is Obstacle:
+            # Convert obstacle into MovingObstacle with zero speed
+            obs = MovingObstacle(pose_fn=lambda t: States3(), xy=obs.get_xy_as_list(), id=obs.id)
+        intersection = spatio_temporal_plane.project_on_euclidean(obs)
+        return Obstacle(intersection)
     
     @property
     def id(self) -> int:
@@ -170,16 +179,18 @@ class MovingObstacle(Obstacle):
         self._t = t0
         self._dt = dt or DEFAULT_INTEGRATION_STEP
         self._name = name
+        self._logs = {"times": np.zeros((0, 1)), "states": np.zeros((0, 6))}
         
         # Domain of the obstacle
         if domain is None:
-            initial_centroid = self.centroid
+            self.initial_centroid = self.centroid
             self._domain:Obstacle = Obstacle(polygon=self._geometry).buffer(domain_margin_wrt_enveloppe, join_style='mitre')
             new_centroid = self._domain.centroid
-            self._domain.translate_inplace(initial_centroid[0] - new_centroid[0], initial_centroid[1] - new_centroid[1])
+            self._domain.translate_inplace(self.initial_centroid[0] - new_centroid[0], self.initial_centroid[1] - new_centroid[1])
         else:
             assert isinstance(domain, Obstacle), f"Expected Obstacle got {type(domain).__name__}"
             self._domain = domain
+            self.initial_centroid = self._domain.centroid
 
         # Initial geometry, could be avoided but it makes the things simpler
         self._initial_geometry = self._geometry
@@ -201,6 +212,50 @@ class MovingObstacle(Obstacle):
         prev_center = self.centroid
         self.rotate_and_translate_inplace(ds.x, ds.y, ds.psi_deg) # Change geometry (enveloppe)
         self._domain.rotate_and_translate_inplace(ds.x, ds.y, ds.psi_deg, origin=prev_center) # Change geometry (enveloppe)
+        self.save()
+
+    def save(self) -> None:
+        self.save_time()
+        self.save_state()
+
+    def save_time(self) -> None:
+        self._logs["times"] = np.append(self._logs["times"], np.array(self._t).reshape(1, 1), axis=0)
+
+    def save_state(self) -> None:
+        self._logs["states"] = np.append(self._logs["states"], np.array([*self._states.pose, *self._states.uvr]).reshape(1, 6), axis=0)
+    
+    def get_envelope_from_logs_at_idx(self, idx:int) -> Obstacle:
+        initial_centroid = self.initial_centroid
+        dx = (
+            self._logs["states"][idx, 0],
+            self._logs["states"][idx, 1],
+            180*(self._logs["states"][idx, 2])/pi
+        )
+
+        new_envelope = Obstacle(polygon=self._initial_geometry).rotate_and_translate(*dx, origin=initial_centroid)
+        return new_envelope
+
+    def get_domain_from_logs_at_idx(self, idx:int) -> Obstacle:
+        initial_centroid = self._initial_domain.centroid
+        dx = (
+            self._logs["states"][idx, 0],
+            self._logs["states"][idx, 1],
+            180*(self._logs["states"][idx, 2])/pi
+        )
+
+        new_domain = self._initial_domain.rotate_and_translate(*dx, origin=initial_centroid)
+        return new_domain
+
+    # def get_geometry_from_logs_at_t(self, idx:int) -> Obstacle:
+    #     initial_centroid = self._initial_geometry.centroid
+    #     dx = (
+    #         self._logs["states"][idx, 0] - self._initial_states.x,
+    #         self._logs["states"][idx, 1] - self._initial_states.y,
+    #         self._logs["states"][idx, 2] - self._initial_states.psi_rad
+    #     )
+    #     # self.rotate_and_translate_inplace(dx[0], dx[1], dx[2], use_radians=True)
+    #     new_geometry = self._initial_domain.rotate_and_translate(dx[0], dx[1], dx[2], origin=initial_centroid, use_radians=True)
+    #     return Obstacle(new_domain.xy)
 
     def reset(self) -> None:
         """
@@ -258,52 +313,52 @@ class MovingObstacle(Obstacle):
 
         return ax
     
-    def plot3_polyhedron_with_uncertainties(self, t:float, interval:dict, *args, ax=None, **kwargs):
-        """
-        Plot the obstacle in 3D while interval of confidence for both speed intensity and direction (in degrees)
-        """
-        if ax is None:
-            _, ax = plt.subplots(subplot_kw={'projection': '3d'})
+    # def plot3_polyhedron_with_uncertainties(self, t:float, interval:dict, *args, ax=None, **kwargs):
+    #     """
+    #     Plot the obstacle in 3D while interval of confidence for both speed intensity and direction (in degrees)
+    #     """
+    #     if ax is None:
+    #         _, ax = plt.subplots(subplot_kw={'projection': '3d'})
 
-        # Get uncertainties as an interval of confidence, i.e. we assume v \in [v_min, v_max] and alpha \in [alpha_min, alpha_max]   
-        dv, dalpha  = 0., 0.
-        if 'speed' in interval.keys():
-            dv = interval['speed']
-        if 'direction' in interval.keys():
-            dalpha = 3.14159/180 * interval['direction'] # alpha in radians
-        alpha0 = self._initial_states.psi_rad
-        R = lambda a: np.array([[np.cos(a), -np.sin(a)], [np.sin(a), np.cos(a)]])
-        p_of_t = np.array([*self._pose_fn(t).xy]).T
-        p0 = np.array([*self._pose_fn(self._t0).xy]).T
-        n = np.array([-np.sin(alpha0), np.cos(alpha0)]).T
-        xy_0 = self.xy
-        z_0 = [self._t0]*len(xy_0[0])
+    #     # Get uncertainties as an interval of confidence, i.e. we assume v \in [v_min, v_max] and alpha \in [alpha_min, alpha_max]   
+    #     dv, dalpha  = 0., 0.
+    #     if 'speed' in interval.keys():
+    #         dv = interval['speed']
+    #     if 'direction' in interval.keys():
+    #         dalpha = 3.14159/180 * interval['direction'] # alpha in radians
+    #     alpha0 = self._initial_states.psi_rad
+    #     R = lambda a: np.array([[np.cos(a), -np.sin(a)], [np.sin(a), np.cos(a)]])
+    #     p_of_t = np.array([*self._pose_fn(t).xy]).T
+    #     p0 = np.array([*self._pose_fn(self._t0).xy]).T
+    #     n = np.array([-np.sin(alpha0), np.cos(alpha0)]).T
+    #     xy_0 = self.xy
+    #     z_0 = [self._t0]*len(xy_0[0])
         
-        boundaries = [(-dv, -dalpha), (-dv, dalpha), (dv, dalpha), (dv, -dalpha)]
-        for dv_i, dalpha_i in boundaries:
-            p_i = R(dalpha_i) @ (p_of_t - p0 + n * dv_i * t) + p0
-            states_i = States3(p_i[0], p_i[1], (alpha0+dalpha_i)*180/np.pi)
-            xy_i = Obstacle(polygon=self._initial_geometry).rotate_and_translate(states_i.x, states_i.y, states_i.psi_deg).xy
-            z_i = [t]*len(xy_i[0])
+    #     boundaries = [(-dv, -dalpha), (-dv, dalpha), (dv, dalpha), (dv, -dalpha)]
+    #     for dv_i, dalpha_i in boundaries:
+    #         p_i = R(dalpha_i) @ (p_of_t - p0 + n * dv_i * t) + p0
+    #         states_i = States3(p_i[0], p_i[1], (alpha0+dalpha_i)*180/np.pi)
+    #         xy_i = Obstacle(polygon=self._initial_geometry).rotate_and_translate(states_i.x, states_i.y, states_i.psi_deg).xy
+    #         z_i = [t]*len(xy_i[0])
         
-            for j, (xyz_0j, xyz_ij) in enumerate(zip(zip(xy_0[0], xy_0[1], z_0), zip(xy_i[0], xy_i[1], z_i))):
-                if j==0:
-                    xyz0_prev = xyz_0j
-                    xyzf_prev = xyz_ij
-                    continue
+    #         for j, (xyz_0j, xyz_ij) in enumerate(zip(zip(xy_0[0], xy_0[1], z_0), zip(xy_i[0], xy_i[1], z_i))):
+    #             if j==0:
+    #                 xyz0_prev = xyz_0j
+    #                 xyzf_prev = xyz_ij
+    #                 continue
 
-                polygon = Poly3DCollection([[xyz0_prev, xyz_0j, xyz_ij, xyzf_prev, xyz0_prev]], *args, **kwargs)
-                ax.add_collection(polygon)
+    #             polygon = Poly3DCollection([[xyz0_prev, xyz_0j, xyz_ij, xyzf_prev, xyz0_prev]], *args, **kwargs)
+    #             ax.add_collection(polygon)
 
-                xyz0_prev = xyz_0j
-                xyzf_prev = xyz_ij
+    #             xyz0_prev = xyz_0j
+    #             xyzf_prev = xyz_ij
 
-            polygon_i = Poly3DCollection([list(zip(xy_i[0], xy_i[1], z_i))], *args, **kwargs)
-            ax.add_collection(polygon_i)
+    #         polygon_i = Poly3DCollection([list(zip(xy_i[0], xy_i[1], z_i))], *args, **kwargs)
+    #         ax.add_collection(polygon_i)
 
-        polygon_at_t0 = Poly3DCollection([list(zip(xy_0[0], xy_0[1], z_0))], *args, **kwargs)
-        ax.add_collection(polygon_at_t0)
-        return ax
+    #     polygon_at_t0 = Poly3DCollection([list(zip(xy_0[0], xy_0[1], z_0))], *args, **kwargs)
+    #     ax.add_collection(polygon_at_t0)
+    #     return ax
 
     
     def plot3_polyhedron(self, t0:float, tf:float, *args, ax=None, **kwargs):
@@ -397,6 +452,72 @@ class MovingObstacle(Obstacle):
                           current_state.y_dot,
                           current_state.psi_dot_deg)
     
+    def linear_prediction_from_current_state(self, t:float) -> States3:
+        current_state = self._states
+        return States3(current_state.x + current_state.x_dot * t,
+                          current_state.y + current_state.y_dot * t,
+                          current_state.psi_deg,
+                          current_state.x_dot,
+                          current_state.y_dot,
+                          0.0)
+    
+    def linear_prediction_from_current_state_given_u_and_psi(self, t:float, u_d:float, psi_d:float) -> States3:
+        current_state = self._states
+        x_dot, y_dot = self.from_ship_to_world_frame(States3(x_dot=u_d), psi_d).xy_dot
+        return States3(current_state.x + x_dot * t,
+                          current_state.y + y_dot * t,
+                          psi_d,
+                          x_dot,
+                          y_dot,
+                          0)
+    
+    def pose_fn_from_current_state_given_u_and_psi(self, t:float, u_d:float, psi_d:float):
+        """
+        Primarily to be used with SB-MPC to generate scenarios based on linear approximation of own ship
+        given two parameters; formward speed and heading
+        """
+        
+        current_state = self._states
+        ### We have to make x_dot, y_dot consistent with u_d and psi_d, assuming v_d = 0
+        # Convert u_d, v_d into world frame
+        x_dot, y_dot = self.from_ship_to_world_frame(States3(x_dot=u_d), psi_d).xy_dot
+        return States3(current_state.x + x_dot * t,
+                          current_state.y + y_dot * t,
+                          psi_d,
+                          x_dot,
+                          y_dot,
+                          0)
+
+    def from_world_to_ship_frame(self, states_in_world_frame:States3) -> States3:
+        xypsi_dot = states_in_world_frame.to_numpy()[3:6]
+        uvr = self.get_rotation_matrix(states_in_world_frame.psi_rad) @ xypsi_dot.T
+        states_in_ship_frame = States3(*states_in_world_frame.pose_deg)
+        states_in_ship_frame.x_dot = uvr[0]
+        states_in_ship_frame.y_dot = uvr[1]
+        states_in_ship_frame.psi_dot_deg = uvr[2]
+        return states_in_ship_frame
+
+    def from_ship_to_world_frame(self, states_in_ship_frame:States3, psi_rad:float) -> States3:
+        uvr = states_in_ship_frame.to_numpy()[3:6]
+        xypsi_dot = self.get_rotation_matrix(psi_rad).T @ uvr.T
+        states_in_world_frame = States3(*states_in_ship_frame.pose_deg)
+        states_in_world_frame.x_dot = xypsi_dot[0]
+        states_in_world_frame.y_dot = xypsi_dot[1]
+        states_in_world_frame.psi_dot_deg = xypsi_dot[2]
+        return states_in_world_frame
+
+    def get_rotation_matrix(self, psi_rad) -> np.ndarray:
+        return np.array([
+            [-np.sin(psi_rad), np.cos(psi_rad), 0.],
+            [np.cos(psi_rad), np.sin(psi_rad), 0.],
+            [0., 0., -1.]
+        ])
+    
+    # @property
+    # def uvr(self) -> tuple:
+    #     xypsi_dot = self.states.to_numpy()[3:6]
+    #     return tuple((self.get_rotation_matrix(self.states.psi_rad) @ xypsi_dot.T).tolist())
+
     def enveloppe_fn_from_current_state(self, t:float) -> Obstacle:
         """
         Compute the enveloppe at time t from the current states.
@@ -404,6 +525,22 @@ class MovingObstacle(Obstacle):
         states_at_t = self.pose_fn_from_current_state(t)
         return Obstacle(polygon=self._initial_geometry).rotate_and_translate(states_at_t.x, states_at_t.y, states_at_t.psi_deg)
     
+    def enveloppe_fn_from_current_state_given_u_and_psi(self, t:float, u_d:float, psi_d:float) -> Obstacle:
+        """
+        Compute the enveloppe at time t from the current states.
+        """
+        states_at_t = self.pose_fn_from_current_state(t)
+        return Obstacle(polygon=self._initial_geometry).rotate_and_translate(states_at_t.x, states_at_t.y, states_at_t.psi_deg)
+    
+    def enveloppe_fn_from_linear_prediction(self, t:float) -> Obstacle:
+        states_at_t = self.linear_prediction_from_current_state(t)
+        return Obstacle(polygon=self._initial_geometry).rotate_and_translate(states_at_t.x, states_at_t.y, states_at_t.psi_deg)
+    
+    def enveloppe_fn_from_linear_prediction_given_u_and_psi(self, t:float, u_d:float, psi_d:float) -> Obstacle:
+        states_at_t = self.linear_prediction_from_current_state_given_u_and_psi(t, u_d, psi_d)
+        return Obstacle(polygon=self._initial_geometry).rotate_and_translate(states_at_t.x, states_at_t.y, states_at_t.psi_deg)
+    
+
     def domain_fn_from_current_state(self, t:float) -> Obstacle:
         """
         Compute the domain at time t from the current states.
@@ -433,6 +570,10 @@ class MovingObstacle(Obstacle):
     @states.setter
     def states(self, value:States3) -> None:
         self._states = value
+    
+    @property
+    def states_in_ship_frame(self) -> States3:
+        return self.from_world_to_ship_frame(self._states)
     
     @property
     def name(self) -> str:

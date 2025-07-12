@@ -1,15 +1,17 @@
-from nav_env.control.controller import ControllerBase
+from nav_env.control.controller import Controller
 from nav_env.ships.states import States3
 from nav_env.control.command import GeneralizedForces
 import numpy as np
-from typing import Any
+from typing import Any, Callable
+from nav_env.utils.math_functions import wrap_angle_to_pmpi_degrees
 
 
-class PID(ControllerBase):
+class PID(Controller):
     """
     Control law is u = -(kp*e+kd*dedt+ki*I)
     """
-    def __init__(self, kp, ki=None, kd=None, dt:float=None, anti_windup:tuple=None):
+    def __init__(self, kp, *args, ki=None, kd=None, dt:float=None, anti_windup:tuple=None, **kwargs):
+        super().__init__(*args, **kwargs)
         self._dt = dt if dt is not None else 1
         self._kp:np.ndarray = gain_as_matrix(kp)
         self._ki:np.ndarray = gain_as_matrix(ki) if ki is not None else np.zeros_like(self._kp)
@@ -28,7 +30,12 @@ class PID(ControllerBase):
         self.reset()
 
 
-    def get(self, x, xd) -> Any:
+    def __get__(self, x, xd, sat_fn:Callable=lambda xin: xin) -> Any:
+        """
+        sat_fn aims at limiting the error, especially when states involves angles. For example if x-xd is an angle error, 
+        it might be necessary to make sur this error remains in [-pi, pi] to avoid agressive manoveurs (e.g. ship making
+        a full turn on itself instead of slightly modifying its course) 
+        """
         # Convert to numpy array if siso
         if isinstance(x, float) or isinstance(x, int):
             x = np.array([x])
@@ -50,7 +57,8 @@ class PID(ControllerBase):
         assert x.shape[0] == self._nx and x.shape[1] == 1, f"x must have shape ({self._nx}, 1) but has shape {x.shape}"
         assert xd.shape[0] == self._nx and xd.shape[1] == 1, f"xd must have shape ({self._nx}, 1) but has shape {xd.shape}"
         
-        e = x-xd # Error
+        
+        e = sat_fn(x-xd) # Error
         dedt = (e - self._prev_e)/self._dt # Derivative of the error
         self._prev_e = e
         self._integral = np.clip(self._integral + e * self._dt, -self._anti_windup, self._anti_windup) # Integral with antiwindup
@@ -63,20 +71,23 @@ class PID(ControllerBase):
     
 
 class HeadingAndSpeedController(PID):
-    def __init__(self, pid_gains_heading:tuple, pid_gains_speed:tuple, dt:float=None, anti_windup:tuple=None):
+    def __init__(self, pid_gains_heading:tuple, pid_gains_speed:tuple, *args, dt:float=None, anti_windup:tuple=None, **kwargs):
         assert len(pid_gains_heading) == 3, f"pid_gains_heading must have length 3, not {len(pid_gains_heading)}"
         assert len(pid_gains_speed) == 3, f"pid_gains_speed must have length 3, not {len(pid_gains_speed)}"
-        kp = (pid_gains_heading[0], pid_gains_speed[0])
-        ki = (pid_gains_heading[1], pid_gains_speed[1])
-        kd = (pid_gains_heading[2], pid_gains_speed[2])
-        super().__init__(kp, ki=ki, kd=kd, dt=dt, anti_windup=anti_windup)
+        kp = (-pid_gains_heading[0], pid_gains_speed[0])
+        ki = (-pid_gains_heading[1], pid_gains_speed[1])
+        kd = (-pid_gains_heading[2], pid_gains_speed[2])
+        self.last_commanded_force = None
+        super().__init__(kp, *args, ki=ki, kd=kd, dt=dt, anti_windup=anti_windup, **kwargs)
 
-    def get(self, x:States3, xd:States3) -> GeneralizedForces:
+    def __get__(self, x:States3, xd:States3, *args, **kwargs) -> GeneralizedForces:
         x = np.array([x.psi_deg, x.x_dot])
         xd = np.array([xd.psi_deg, xd.x_dot])
-        u = super().get(x, xd)
-        # print("x, xd: ", x, xd)
+        u = super().__get__(x, xd, sat_fn=lambda h_and_s: np.array((wrap_angle_to_pmpi_degrees(h_and_s[0]), h_and_s[1])))
+        self.last_commanded_force = GeneralizedForces(f_x=u[1, 0], tau_z=u[0, 0])
         return GeneralizedForces(f_x=u[1, 0], tau_z=u[0, 0])
+
+
 
 def gain_as_matrix(k:Any) -> np.ndarray:
     if isinstance(k, np.ndarray):

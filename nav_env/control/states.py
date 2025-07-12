@@ -146,13 +146,13 @@ class BaseStateVector(ABC):
             raise TypeError(f"Index must be a string or an integer not {type(index).__name__}")
         
     def to_numpy(self) -> np.ndarray:
-        return np.array(self.to_list())
+        return np.array(self.tolist())
     
-    def to_list(self) -> list:
+    def tolist(self) -> list:
         return list(self.__dict__.values())
     
     def to_casadi(self) -> cd.SX:
-        return cd.vertcat(*self.to_list())
+        return cd.vertcat(*self.tolist())
     
 
     @property    

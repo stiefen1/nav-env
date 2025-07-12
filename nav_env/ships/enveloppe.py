@@ -65,3 +65,9 @@ class ShipEnveloppe(Obstacle):
     @property
     def ratio(self) -> float:
         return self._ratio
+    
+if __name__ == "__main__":
+    import matplotlib.pyplot as plt
+    envelope = ShipEnveloppe()
+    ax = envelope.plot()
+    plt.show()

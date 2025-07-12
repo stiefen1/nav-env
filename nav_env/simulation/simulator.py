@@ -1,11 +1,14 @@
 from nav_env.environment.environment import NavigationEnvironment
 from nav_env.risk.monitor import RiskMonitor
 from nav_env.simulation.results import SimulationRecord
+from alive_progress import alive_bar
+import os, matplotlib.pyplot as plt
 
 class Simulator:
     def __init__(self, env:NavigationEnvironment, monitor:RiskMonitor=None):
         self._env = env
         self._record = SimulationRecord(env, monitor=monitor)
+        self.times = None
 
     def run(self,
             tf:float=10,
@@ -14,15 +17,48 @@ class Simulator:
             **kwargs
             ):
         self._env.dt = dt
-        print(f"Initial time: {self._env.t:.2f}")
+        N = int(tf//self._env.dt)
+        self.times = []
 
-        while self._env.t <= tf:
-            if record_results_dt is not None and (self._env.t % record_results_dt < 0.99*self._env.dt):
-                self._record()
+        if os.name == 'nt':
+            os.system('cls')
+        else:
+            os.system('clear')
+
+        print("\nSimulation in progress..")
+        with alive_bar(N) as bar:
+            while self._env.t <= tf:
+                if record_results_dt is not None and (self._env.t % record_results_dt < 0.99*self._env.dt):
+                    self._record()
+                
+                self._env.step()
+                self.times.append(self._env.t)
+                bar()
+
+    def replay(self, x_lim:tuple, y_lim:tuple, *args, t0=-float('inf'), tf=float('inf'), ax=None, speed:float=1.0, **kwargs) -> None:
+        assert self.times is not None, f"You must run your simulation once before trying to replay it."
+        
+        if ax is None:
+            _, ax = plt.subplots()
+
+        # Start replay
+        # speed_count = 1.0
+        for i, t in enumerate(self.times):
+            if t < t0 or t > tf:
+                continue
+            # if speed_count < speed:
+            #     speed_count += 1.0
+            #     continue
             
-            self._env.step()
-
-        # print(self._record._own_ships_data)
+            ax.cla()   
+            ax = self._env.plot_at_idx(i, x_lim, y_lim, ax=ax)
+            ax.set_title(f"t = {t:.2f}")
+            plt.pause(self._env.dt/speed)
+            # speed_count = 1.0
+            
+        plt.waitforbuttonpress(timeout=100)
+        plt.close()
+            
 
     @property
     def record(self) -> SimulationRecord:
@@ -71,6 +107,9 @@ def test():
     sim = Simulator(env=env, monitor=monitor)
     # sim = Simulator(NavigationEnvironment(own_ships=[ship1, ship2], wind_source=wind_source, shore=[obs], dt=0.5), monitor=RiskMonitor([TTG]))
     sim.run(tf=40, record_results_dt=2)
+
+    sim.replay(x_lim=(-1000, 1000), y_lim=(-1000, 1000), t0=10, tf=25, speed=3)
+
     ax = env.shore.plot()
     os1.plot(ax=ax, params={'enveloppe':1, 'domain':1})
     ax.scatter(sim.record['OS1']['states']['x'], sim.record['OS1']['states']['y'], c=sim.record['OS1']['risks']['TTG'])

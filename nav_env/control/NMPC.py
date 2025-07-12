@@ -1,4 +1,4 @@
-from nav_env.control.controller import ControllerBase, Command
+from nav_env.control.controller import Controller, Command
 from nav_env.control.states import States
 import casadi as cd, numpy as np
 from typing import Callable, Any, Union
@@ -10,8 +10,10 @@ from nav_env.simulation.integration import Integrator, Euler
 import warnings
 from copy import deepcopy
 
+# TODO: Implement NMPC controller from this paper: MPC-based Mid-level Collision Avoidance for ASVs using Nonlinear Programming (https://ntnuopen.ntnu.no/ntnu-xmlui/bitstream/handle/11250/2479486/CCTA17_0172_FI.pdf?sequence=2)
 
-class NMPC(ControllerBase):
+WINDX = 0
+class NMPC(Controller):
     def __init__(
             self,
             lagrange:Callable,
@@ -165,7 +167,7 @@ class NMPC(ControllerBase):
             return None
         return tuple(self.Uopt[0:self.nu, 0].tolist())
 
-class NMPCPathTracking(ControllerBase):
+class NMPCPathTracking(Controller):
     """
     Design according to "Risk-BasedModelPredictiveControl for Autonomous Ship Emergency Management" by Simon Blindheim et al: https://www.sciencedirect.com/science/article/pii/S2405896320318681
     Key characteristics:
@@ -203,9 +205,10 @@ class NMPCPathTracking(ControllerBase):
             horizon:int=20
 
     ) -> None:
+        super().__init__(actuators=actuators)
         self.route = route
         self.physics = physics
-        self.actuators = actuators if isinstance(actuators, ActuatorCollection) else ActuatorCollection(actuators)
+        # self.actuators = actuators if isinstance(actuators, ActuatorCollection) else ActuatorCollection(actuators)
         self.weights = weights
         # self.s_ref = speed_ref
         # self.a_step = alpha_step
@@ -260,8 +263,8 @@ class NMPCPathTracking(ControllerBase):
         # Init stage cost lambdas
         self.xi_stage_cost = lambda x_k, alpha_k, alpha_k_prev, alpha_step, beta_k, route=self.route: cd.mtimes(kappa[None, :], cd.vertcat(
             cd.dot(route.r(alpha_k) - x_k[0:2], route.r(alpha_k) - x_k[0:2]),
-            (alpha_k - alpha_k_prev - alpha_step)**2,
-            beta_k # + 1e4*x_k[4]**2
+            x_k[4]**2 + 0.05*x_k[5]**2,# (alpha_k - alpha_k_prev - alpha_step)**2,
+            beta_k#  + 1e2*x_k[4]**2
         ))
         self.epsilon_stage_cost_part_A = lambda u_k: cd.mtimes(cd.mtimes(cd.transpose(u_k), Lambda), u_k)
         self.epsilon_stage_cost_part_B = lambda u_k, u_k_prev: cd.mtimes(cd.mtimes(cd.transpose(u_k - u_k_prev), Delta), (u_k - u_k_prev))
@@ -269,8 +272,8 @@ class NMPCPathTracking(ControllerBase):
     def _set_state_and_actuator_bounds(self) -> None:
         self.lbu = [cd.DM(ui) for ui in self.actuators.u_min]
         self.ubu = [cd.DM(ui) for ui in self.actuators.u_max]
-        self.lbx = [-cd.inf, -cd.inf, -cd.inf, cd.DM(0.0), cd.DM(-0.2), -cd.inf] # self.nx * [-cd.inf]
-        self.ubx = [cd.inf, cd.inf, cd.inf, cd.inf, cd.DM(0.2), cd.inf] # self.nx * [cd.inf]
+        self.lbx = [-cd.inf, -cd.inf, -cd.inf, cd.DM(0.0), cd.DM(-1), -cd.inf] # self.nx * [-cd.inf]
+        self.ubx = [cd.inf, cd.inf, cd.inf, cd.inf, cd.DM(1), cd.inf] # self.nx * [cd.inf]
 
     def _vertcat_decision_variables_and_bounds(self) -> None:
         self.DV = cd.vertcat( # Decision Variables
@@ -343,12 +346,16 @@ class NMPCPathTracking(ControllerBase):
             self.LBG.extend([cd.DM(0.0)])
             self.UBG.extend([cd.DM(0.0)])
 
-    def _set_alpha_and_beta_bounds(self) -> None:
+    def _set_alpha_and_beta_bounds(self, alpha_step:float) -> None:
         self.LBB = (self.horizon) * [cd.DM(0.0)]
         self.UBB = (self.horizon) * [cd.inf]
-        self.LBA = (self.horizon+1) * [cd.DM(self._alpha_0)]
-        self.UBA = (self.horizon+1) * [cd.DM(1.0)]
-
+        self.LBA = []
+        self.UBA = []
+        for k in range(self.horizon+1):
+            self.LBA.append(cd.DM(self._alpha_0 + k*alpha_step))
+            self.UBA.append(cd.DM(self._alpha_0 + (k+1)*alpha_step))
+        # self.LBA = (self.horizon+1) * [cd.DM(self._alpha_0)]
+        # self.UBA = (self.horizon+1) * [cd.DM(1.0)]
 
 
     def _init_nlp(self) -> None:
@@ -363,13 +370,10 @@ class NMPCPathTracking(ControllerBase):
         self._init_optimization_variables() # Declare self.X_sym, self.U_sym, LBG, UBG, LBX, etc..
   
         self._set_speed_constraints() # u**2 + v**2 <= s_ref**2 + beta
-        self._set_alpha_and_beta_bounds() # 1 >= alpha >= 0 AND beta >= 0
+        
         self._set_state_and_command_bounds()
 
         self._set_epsilon_cost()
-
-        # Concatenate all decision variables in DV, LBDV, UBDV
-        self._vertcat_decision_variables_and_bounds()
 
         # Initial solutions are None until we call the get() method
         self.Xopt = None
@@ -387,6 +391,10 @@ class NMPCPathTracking(ControllerBase):
         """
         s_ref = x_des.x_dot # u (speed in surge)
         alpha_step = self.dt * s_ref / self.route.d_tot
+
+        # Concatenate all decision variables in DV, LBDV, UBDV
+        self._set_alpha_and_beta_bounds(alpha_step=alpha_step) # 1 >= alpha >= 0 AND beta >= 0
+        self._vertcat_decision_variables_and_bounds()
 
         # Set dynamic constraints given wind perturbation
         self._set_dynamics_constraints(wind) # The reason why we do it here is because we want to be adaptive to wind variations -> Maybe include wind as DV and constraint it for optimized online performance
@@ -420,11 +428,11 @@ class NMPCPathTracking(ControllerBase):
         self.LBG.extend([cd.DM(0.0)])
         self.UBG.extend([cd.DM(0.0)])
     
-    def get(self, states:States3, desired_states:States3, *args, initial_guess: Waypoints=None, wind: WindVector=None, **kwargs) -> ActuatorCollection:
+    def __get__(self, states:States3, desired_states:States3, *args, initial_guess: Waypoints=None, wind: WindVector=None, **kwargs) -> ActuatorCollection:
         """
         states is in ship frame (obtained from gnc)
         """
-        wind = wind or WindVector(states.xy, vector=(0., 0.))
+        wind = wind or WindVector(states.xy, vector=(WINDX, 0.))
         self._set_constraints_before_optimization(states, desired_states, wind, *args, **kwargs) # alpha_0 IS FIRST 0 AND THEN WE UPDATE IT AFTER EACH TIME-STEP SINCE IT IS ONE OF THE NLP's OUTPUT
         if initial_guess is None:
             X0 = self.get_initial_guess(states, desired_states, wind, *args, **kwargs)
@@ -455,10 +463,10 @@ class NMPCPathTracking(ControllerBase):
         alpha_step = self.dt * s_ref / self.route.d_tot
 
         ### Initial guess for x and u
-        x_guess = [*x0.to_list()]
+        x_guess = [*x0.tolist()]
         u_guess = []
         x = x0
-        print("Initial guess: ")
+        # print("Initial guess: ")
         self.copy_of_actuators = deepcopy(self.actuators)
         for k in range(self.horizon):
             if self.Uopt is None or k>= self.horizon-1:
@@ -467,7 +475,7 @@ class NMPCPathTracking(ControllerBase):
                 u:list = self.Uopt[:, k+1].tolist()
             x:States3 = self.model(x, u, wind, use_casadi=False)
 
-            x_guess += x.to_list()
+            x_guess += x.tolist()
             u_guess += u
 
         ### Initial guess for beta
@@ -487,7 +495,7 @@ class NMPCPathTracking(ControllerBase):
         return x_guess + u_guess + beta_guess + alpha_guess + s_ref_guess
 
     def _solve_nlp(self, initial_guess, options:dict={'ipopt.print_level':0, 'print_time':False, 'ipopt.linear_solver': 'mumps', 'ipopt.max_iter':300}) -> None:
-        print(self.DV.size(), self.acc_cost.size(), self.G_sym.size(), len(initial_guess), self.LBDV.size(), self.UBDV.size(), len(self.LBG), len(self.UBG))
+        # print(self.DV.size(), self.acc_cost.size(), self.G_sym.size(), len(initial_guess), self.LBDV.size(), self.UBDV.size(), len(self.LBG), len(self.UBG))
         
         nlp = {
             "x": self.DV,
@@ -525,7 +533,7 @@ class NMPCPathTracking(ControllerBase):
 
 
         self._alpha_0 = float(arr[-self.horizon-1]) # Retrieve next alpha for next iteration
-        print("new alpha zero: ", self._alpha_0)
+        # print("new alpha zero: ", self._alpha_0)
         # print("Xopt: ", self.Xopt)
         # print("Uopt: ", self.Uopt)
         # print("Aopt: ", self.Aopt)
@@ -840,19 +848,13 @@ def test_path() -> None:
     from nav_env.actuators.actuators import AzimuthThrusterWithSpeed
     from nav_env.control.guidance import PathProgressionAndSpeedGuidance
     from nav_env.environment.environment import NavigationEnvironment
+    from nav_env.wind.wind_source import UniformWindSource
     from math import pi, cos, sin
 
-    dt = 10.0
+    dt = 5.0
+    INTERPOLATION = 'linear' # 'bspline'
 
-    # wpts = WP([
-    #     (0, 0),
-    #     (600, 700),
-    #     (1250, 950),
-    #     (1500, 1500),
-    #     (3000, 3000)
-    # ])
-
-    R = 3000
+    R = 1000
     cx, cy = R, 0
     wpts = WP([
         (R*cos(pi)+cx, R*sin(pi)+cy),
@@ -861,20 +863,7 @@ def test_path() -> None:
         (R*cos(pi/4)+cx, R*sin(pi/4)+cy),
         (R*cos(0)+cx, R*sin(0)+cy),
         (R*cos(-pi/4)+cx, R*sin(-pi/4)+cy)
-    ])
-
-
-    print(f"alpha_step: {25/wpts.d_tot}")
-
-    # LES AZIMUTH THRUSTER DOIVENT UTILISER LA VITESSE DE L'AZIMUTH THRUSTER
-    # actuators = [
-    #             AzimuthThruster(
-    #                 (33, 0), 0, (-120, 120), (0, 300), dt
-    #             ),
-    #             AzimuthThruster(
-    #                 (-33, 0), 0, (-120, 120), (0, 300), dt
-    #             )
-    #         ]
+    ], interp=INTERPOLATION)
 
     max_rate_rpm = 2 # = 2 * 2pi rad/min = 2 * 2pi / 60 rad/sec
     max_rate_rad_sec = max_rate_rpm * 2 * pi / 60
@@ -886,64 +875,36 @@ def test_path() -> None:
                     (-33, 0), 0, (-max_rate_rad_sec, max_rate_rad_sec), (0, 300), dt
                 )
             ]
-    
-    # actuators = [
-    #         AzimuthThruster(
-    #             (-33, 0), 0, (-120, 120), (0, 100), dt
-    #         )
-    #     ]
 
     path_to_params = os.path.join('nav_env', 'ships', 'blindheim_risk_2020.json')
 
     own_ship = Ship(
-        states=States3(x=wpts[0][0], y=wpts[0][1], x_dot=0, y_dot=2, psi_deg=0),
+        states=States3(x=wpts[0][0], y=wpts[0][1], x_dot=0.5, y_dot=2.7, psi_deg=-20),
         physics=phy.ShipPhysics(path_to_params),
         actuators=actuators,
         guidance=PathProgressionAndSpeedGuidance(
-            wpts, 2
+            wpts, 3
         ),
         controller=NMPCPathTracking(
             route=wpts,
             physics=SimpleShipPhysics(path_to_params),
             actuators=actuators,
             weights={
-                "kappa": 1e0*np.array([100, 1e6, 1]).T,
+                "kappa": 1*np.array([20, 5e4, 1]).T,
                 # "Lambda": 0e-2*np.diag([0, 1]),
                 # "Delta": 0e-2*np.diag([1e-2, 1])
-                "Lambda": 0*np.diag([100, 1, 100, 1]),
-                "Delta": 0e6*np.diag([1, 1, 1, 1])
+                "Lambda": 1*np.diag([5e1, 5e-3, 5e1, 5e-3]), # a_rate, speed, a_rate, speed
+                "Delta": 1*np.diag([2e2, 1e5, 2e2, 1e5])
             },
-            horizon=20,
+            horizon=40,
             dt=dt
         )
     )
 
-    print("IZ: ", own_ship._physics._i_z)
-
-    # os._gnc._controller._set_constraints_before_optimization(States3(), States3(x_dot=3.0), WindVector((0., 0.), vector=(0., 0.)))
-    # print(os._gnc._controller.get_initial_guess(States3(), States3(x_dot=3.0), WindVector((0., 0.), vector=(0., 0.))))
-
-
-
-    # print("get:")
-    # print(os._gnc._controller.get(States3(x_dot=2.5), States3(x_dot=2.5)))
-
-
-
-
-
-    # ACTUELLEMENT ON EST PAS TROP MAL MAIS:
-    # 
-    #
-    # IL FAUT CHECKER QU'EST CE QUI CLOCHE AVEC LE DERNIER TIMESTEP -> LES COMMANDES, BETA, ETC.. SONT TRES DIFFERENTS DU RESTE!!
-    # EST CE QU'ON A DES CONTRAINTES / COST QUI NE VONT PAS JUSQU'AU BOUT DE L'HORIZON ?
-    #
-    #
-
-
     env = NavigationEnvironment(
         own_ships=[own_ship],
-        dt=dt
+        dt=dt,
+        wind_source=UniformWindSource(WINDX, 0)
     )
 
 
@@ -952,7 +913,7 @@ def test_path() -> None:
     plt.show(block=False)
     x, y = [], []
 
-    tf = 5000
+    tf = 1000
     for t in np.linspace(0, tf, int(tf//dt)):
         ax.cla()
         wpts.scatter(ax=ax, color='black')
@@ -960,7 +921,7 @@ def test_path() -> None:
         ax.set_title(f"{t:.2f}")
         env.step()
         v = np.linalg.norm(own_ship.states.xy_dot)
-        print("speed norm: ", v)
+        # print("speed norm: ", v)
         if t%10 > 0:
             x.append(own_ship.states.x)
             y.append(own_ship.states.y)
@@ -968,34 +929,35 @@ def test_path() -> None:
         env.plot(lim, ax=ax)
         own_ship._gnc._controller.plot_trajectory(ax=ax)
         own_ship._gnc._controller.plot_desired_trajectory_from_optimization(ax=ax)
-        # print("Aopt: ", own_ship._gnc._controller.Aopt)
-        # print("Uopt: ", own_ship._gnc._controller.Uopt)
-        print("Xopt[:, 0]: ", own_ship._gnc._controller.Xopt[:, 0])
-        print("u0: ", own_ship._gnc._controller.u0)
         ax.set_aspect('equal')
         plt.pause(1e-9)
 
-    plt.pause()
+    plt.close()
 
+    plt.figure()
+    plt.title("u(t)")
+    plt.plot(own_ship.logs["times"], np.array(own_ship.logs["states"])[:, 3])
+    plt.ylim([0, 5])
+    plt.show()
+    plt.close()
 
-    
-    # x = np.array([1., -2., 0.])
-    # x_traj = np.ndarray((0, 3))
-    # u_traj = np.ndarray((0, 1))
-    # N = 200 # Simulate system for 100 timestamps
-    # for n in range(N):
-    #     x_traj = np.append(x_traj, x[None], axis=0)
-    #     u = nmpc.get(x, None)
-    #     u_traj = np.append(u_traj, np.array([u]), axis=0)
-    #     x = model(x, u)
-    #     print(x[:, None].shape)
-        
-    # print(nmpc)
-    # plt.plot(x_traj, label=[f"x{i+1}" for i in range(x_traj.shape[1])])
-    # plt.plot(u_traj, label="Command")
-    # plt.legend()
-    # plt.show()
-    # plt.close()
+    plt.figure()
+    plt.title("Propeller speed")
+    plt.plot(own_ship.logs["times"], np.array(own_ship.logs["commands"])[:, 1])
+    # print(np.array(own_ship.logs["commands"]).shape)
+    plt.plot(own_ship.logs["times"], np.array(own_ship.logs["commands"])[:, 3])
+    plt.ylim([0, 320])
+    plt.show()
+    plt.close()
+
+    plt.figure()
+    plt.title("Azimuth rate")
+    plt.plot(own_ship.logs["times"], np.array(own_ship.logs["commands"])[:, 0])
+    # print(np.array(own_ship.logs["commands"]).shape)
+    plt.plot(own_ship.logs["times"], np.array(own_ship.logs["commands"])[:, 2])
+    plt.ylim([-1, 1])
+    plt.show()
+    plt.close()
 
 if __name__=="__main__":
     # test()

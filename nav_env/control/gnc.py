@@ -3,6 +3,8 @@ from nav_env.control.navigation import NavigationBase, Navigation
 from nav_env.control.controller import ControllerBase, Controller
 from nav_env.control.command import Command
 from nav_env.ships.states import States3
+from nav_env.wind.wind_vector import WindVector
+from copy import deepcopy
 
 
 class GNC:
@@ -16,17 +18,28 @@ class GNC:
         self._guidance = guidance or Guidance()
         self._navigation = navigation or Navigation()
         self._controller = controller or Controller()
+        self._desired_state, self._observed_state = None, None
+        self._colav_heading_offset_rad = 0.0
+        self._colav_u_factor = 1.0
 
-    def get(self, ship) -> Command:
-        observed_state:States3 = self._navigation.observe(ship) # State is in ship frame
-        desired_state, info = self._guidance.get(observed_state)
-        return self._controller.get(observed_state, desired_state, **info) # e.g. info can contain initial_guess for NMPC
-    
+    def get(self, ship, wind:WindVector=None) -> Command:
+        self._observed_state:States3 = self._navigation.observe(ship) # State is in ship frame
+        self._desired_state, info = self._guidance.get(self._observed_state)
+        commanded_state = deepcopy(self._desired_state)
+        commanded_state.psi_rad += self._colav_heading_offset_rad
+        commanded_state.x_dot *= self._colav_u_factor
+        return self._controller.get(self._observed_state, commanded_state, wind=wind, **info) # e.g. info can contain initial_guess for NMPC
     
     def reset(self) -> None:
         self._guidance.reset()
         self._navigation.reset()
         self._controller.reset()
+
+    def observation(self) -> States3:
+        return self._observed_state
+    
+    def goal(self) -> States3:
+        return self._desired_state
 
 def test() -> None:
     from nav_env.ships.ship import Ship
@@ -72,7 +85,7 @@ def test() -> None:
             desired_speed=4.
         ),
         controller=HeadingAndSpeedController(
-            pid_gains_heading=(-5e5, 0, -5e6),
+            pid_gains_heading=(5e5, 0, 5e6),
             pid_gains_speed=(8e4, 1e4, 0),
             dt=dt
         ),
@@ -99,11 +112,9 @@ def test() -> None:
         ax.set_title(f"{t:.2f}")
         env.step()
         v = np.linalg.norm(ship.states.xy_dot)
-        print(v)
-        if t%10 > 0:
-            x.append(ship.states.x)
-            y.append(ship.states.y)
-        ax.plot(x, y, '--r')
+        print(f"{t:.0f} | GOAL: ", ship._gnc.goal())
+        # print(v)
+        # ax.plot(ship._logs["states"][:, 0], ship._logs["states"][:, 1], '--r')
         env.plot(lim, ax=ax)
         plt.pause(1e-9)
 

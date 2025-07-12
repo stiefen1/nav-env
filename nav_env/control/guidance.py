@@ -68,6 +68,12 @@ class PathProgressionAndSpeedGuidance(GuidanceBase):
         super().__init__(waypoints=waypoints, current_wpt_idx=0, radius_of_acceptance=50, *args, **kwargs)
 
     def get(self, *args, **kwargs) -> tuple[States3, dict]:
+        """
+        Returns desired speed to be tracked
+        """
         return States3(x_dot=self._speed_ref), {}
+    
+class TrajectoryTrackingGuidance(GuidanceBase):
+    pass
 
     

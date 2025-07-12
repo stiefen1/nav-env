@@ -16,6 +16,7 @@ from nav_env.control.path import Waypoints
 from nav_env.control.guidance import GuidanceBase
 from abc import ABC, abstractmethod
 from nav_env.ships.states import States3
+from nav_env.utils.math_functions import wrap_angle_to_pmpi_degrees
 
 
 class LOS(GuidanceBase):

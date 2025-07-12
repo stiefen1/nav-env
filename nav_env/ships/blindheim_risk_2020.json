@@ -12,7 +12,7 @@
     "inertia": {
         "x_g": 0.0,
         "mass": 1500000,
-        "iz": 9800000000
+        "iz": 980000000
     },
     "mass_over_linear_friction_coefficient": {
         "help": "To be used in the linear damping matrix Dl = diag([mass / linear_friction_surge, mass / linear_friction_sway, inertia_z / linear_friction_yaw])",

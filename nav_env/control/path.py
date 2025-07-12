@@ -7,20 +7,31 @@ from datetime import datetime, timedelta
 from math import atan2, pi
 from typing import Any, Callable
 from seacharts import ENC
+from shapely import Point
 TIME_FORMAT = "%d-%m-%Y %H:%M:%S"
 
 class Waypoints(GeometryWrapper):
-    def __init__(self, waypoints: list = None):
-        self._waypoints = [] if waypoints is None else waypoints
+    def __init__(self, waypoints: list = None, interp:str='linear'):
+        self._waypoints = []
+        for wpt in waypoints:
+            # print("wpt: ", wpt, " ", type(wpt))
+            if isinstance(wpt, Point):
+                self._waypoints.append((wpt.x, wpt.y))
+            elif isinstance(wpt, tuple):
+                self._waypoints.append(wpt)
+            elif isinstance(wpt, list):
+                self._waypoints.append(tuple(wpt))
+            elif isinstance(wpt, np.ndarray):
+                self._waypoints.append(tuple(wpt.tolist()))
+            else:
+                raise TypeError(f"waypoints must be a list of tuple or a list of shapely.Point")
+        # self._waypoints = [] if waypoints is None else waypoints
         super().__init__(xy=self._waypoints, geometry_type=LineString)
         self._alphas = self.get_alphas()
         self._segment_fn = self.get_segment_fn()
         self._segments = self.get_segment()
-        # print([0] + self._alphas)
-        # print(np.array(waypoints, dtype=int).T.shape)
-        # print([[w[0] for w in waypoints], [w[1] for w in waypoints]], [0.0] + self._alphas)
-        self._interp_x = cd.interpolant('rx', 'bspline', [[0.0] + self._alphas], [w[0] for w in waypoints] )
-        self._interp_y = cd.interpolant('ry', 'bspline', [[0.0] + self._alphas], [w[1] for w in waypoints] )
+        self._interp_x = cd.interpolant('rx', interp, [[0.0] + self._alphas], [w[0] for w in self._waypoints] )   # interp in ['linear', 'bspline']
+        self._interp_y = cd.interpolant('ry', interp, [[0.0] + self._alphas], [w[1] for w in self._waypoints] )
         
     def get_alphas(self) -> tuple:
         d = []

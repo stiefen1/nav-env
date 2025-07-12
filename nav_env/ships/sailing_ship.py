@@ -34,13 +34,16 @@ class SailingShip(MovingShip):
                  name:str="SailingShip",
                  mmsi:str=None,
                  fix_heading:bool=True,
+                 du:float=0.0,      # Uncertainty in surge speed
+                 dpsi:float=0.0,    # Uncertainty in psi angle
                  **kwargs
                  ):
         
         """
         If issues with the pose_fn, try to define the function (using def, not lambda) outside of the test() function.
         """
-            
+        warnings.warn(f"SailingShip is deprecated and will be removed, prefer using MovingShip instead")    
+        
         if initial_state is None:
             pass
         elif isinstance(initial_state, tuple) and len(initial_state) == 4:
@@ -69,7 +72,9 @@ class SailingShip(MovingShip):
             dt=dt,
             domain_margin_wrt_enveloppe=domain_margin_wrt_enveloppe,
             name=name,
-            mmsi=mmsi
+            mmsi=mmsi,
+            du=du,
+            dpsi=dpsi
         )
 
     # def plot(self, *args, ax=None, params:dict={'envelsoppe':1}, **kwargs):

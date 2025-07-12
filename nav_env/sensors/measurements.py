@@ -16,11 +16,11 @@ class IMUMeasurement:
 
 @dataclass
 class GNSSMeasurement:
-    north:float = 0.0
-    east:float = 0.0
+    x:float = 0.0
+    y:float = 0.0
 
     def __array__(self) -> np.ndarray:
-        return np.array([self.north, self.east])
+        return np.array([self.x, self.y])
 
 @dataclass
 class BatteryMeasurement:

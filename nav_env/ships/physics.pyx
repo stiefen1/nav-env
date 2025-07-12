@@ -18,6 +18,40 @@ class ShipPhysics:
         self._rho_a, self._cx, self._cy, self._cn = self.__get_wind_coefficients()
         self._inv_mass_matrix = self.__get_inv_mass_matrix()
         self._linear_damping_matrix = self.__get_linear_damping_matrix()
+        self._uvr_dot: tuple = (0., 0., 0.)
+        self._uvr: tuple = (0., 0., 0.)
+
+    @property
+    def u(self) -> float:
+        return self._uvr[0]
+
+    @property
+    def v(self) -> float:
+        return self._uvr[1]
+
+    @property
+    def r(self) -> float:
+        return self._uvr[2]
+
+    @property
+    def uvr(self) -> tuple:
+        return self._uvr
+
+    @property
+    def u_dot(self) -> float:
+        return self._uvr_dot[0]
+
+    @property
+    def v_dot(self) -> float:
+        return self._uvr_dot[1]
+
+    @property
+    def r_dot(self) -> float:
+        return self._uvr_dot[2]
+
+    @property
+    def uvr_dot(self) -> tuple:
+        return self._uvr_dot
 
     def __get_moment_of_inertia_about_z(self) -> float:
         if 'iz' in self._params.inertia.keys():
@@ -148,6 +182,7 @@ class ShipPhysics:
         R2d = self.__get_rotation_matrix(states.psi_rad, dim=2)
         R3d = self.__get_rotation_matrix(states.psi_rad, dim=3)
         pose_dot_in_ship_frame = np.dot(R3d, states.vel)
+        self._uvr = tuple(pose_dot_in_ship_frame.tolist())
 
         states_in_ship_frame = States3(0., 0., 0., *pose_dot_in_ship_frame)
         # print(states_in_ship_frame)
@@ -186,6 +221,7 @@ class ShipPhysics:
 
         # Compute the acceleration in the ship frame
         acc = self._inv_mass_matrix @ f
+        self._uvr_dot = tuple(acc.tolist())
 
         # Transform the acceleration / forces back to the world frame
         f_in_world = R3d @ f
