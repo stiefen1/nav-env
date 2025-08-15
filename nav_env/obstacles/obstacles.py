@@ -139,6 +139,20 @@ class Circle(Ellipse):
         self._radius = value
         self._geometry = affinity.scale(Point(self.center).buffer(1), value, value)
 
+class Rectangle(Obstacle):
+    def __init__(self, x, y, height, width, id:int=None): # 3 -5 2 4
+        self._center = (x, y)
+        self._dim = (width, height)
+        super().__init__(xy=self.get_envelope_coordinates())
+        
+    def get_envelope_coordinates(self) -> list[tuple]:
+        # Compute vertices coordinates
+        v1 = (self._center[0] + self._dim[0]/2 , self._center[1] + self._dim[1] / 2)
+        v2 = (self._center[0] + self._dim[0]/2 , self._center[1] - self._dim[1] / 2)
+        v3 = (self._center[0] - self._dim[0]/2 , self._center[1] - self._dim[1] / 2)
+        v4 = (self._center[0] - self._dim[0]/2 , self._center[1] + self._dim[1] / 2)
+        return [v1, v2, v3, v4]
+
 class MovingObstacle(Obstacle):
     """
     Model an obstacle that changes over time.
@@ -154,12 +168,14 @@ class MovingObstacle(Obstacle):
                  domain:Obstacle=None,
                  domain_margin_wrt_enveloppe:float=0.,
                  name:str="MovingObstacle",
-                 id:int=None):
+                 id:int=None,
+                 start_at:float=0.0
+                 ):
         """
         pose_fn: Callable that returns the pose of the obstacle at a given time as a tuple (x, y, angle).
         """
         super().__init__(xy=xy, polygon=polygon, geometry_type=geometry_type, id=id)
-
+        self.start_at = start_at
         # If a pose_fn is not provided, we use the initial states to compute the pose as x(t) = x0 + v * t
         if pose_fn is not None:
             self._pose_fn = pose_fn
@@ -549,7 +565,10 @@ class MovingObstacle(Obstacle):
         return self._initial_domain.rotate_and_translate(states_at_t.x, states_at_t.y, states_at_t.psi_deg, origin=self._initial_domain.centroid)
     
     def pose_fn(self, t) -> States3:
-        return self._pose_fn(t)
+        if t >= self.start_at:
+            return self._pose_fn(t-self.start_at)
+        else:
+            return self._pose_fn(0)
     
     @property
     def dt(self) -> float:
@@ -695,9 +714,13 @@ def test_union_of_obstacles() -> None:
     o12.plot()
     plt.show()
 
-    
+def test_rectangle() -> None:
+    r = Rectangle(3, -5, 2, 4)
+    r.plot()
+    plt.show()
 
 if __name__ == "__main__":
     # test_basic_obstacle()
     # show_time_varying_obstacle_as_3d()
-    test_union_of_obstacles()
+    # test_union_of_obstacles()
+    test_rectangle()

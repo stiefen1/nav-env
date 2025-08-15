@@ -32,9 +32,10 @@ class MovingShip(MovingObstacle):
                  dt:float=None,
                  id:int=None,
                  mmsi:str=None,
-                 du:float=0.0,      # Uncertainty in surge speed
-                 dpsi:float=0.0,    # Uncertainty in psi angle
+                 du:float=0.0,      # Uncertainty in surge speed (m/s)
+                 dpsi:float=0.0,    # Uncertainty in psi angle (radians)
                  sensors:SensorCollection|list=SensorCollection.empty(),
+                 start_at:float=0.0,
                  **kwargs
                  ):
         
@@ -49,8 +50,8 @@ class MovingShip(MovingObstacle):
         self._mmsi = mmsi
 
         enveloppe = ShipEnveloppe(length=length, width=width, ratio=ratio, **kwargs)
-        self._length = length
-        self._width = width
+        self._length = length or enveloppe.length
+        self._width = width or enveloppe.width
         self.du = du
         self.dpsi = dpsi
         self.sensors = sensors if isinstance(sensors, SensorCollection) else SensorCollection(sensors)
@@ -63,18 +64,22 @@ class MovingShip(MovingObstacle):
             domain=domain,
             domain_margin_wrt_enveloppe=domain_margin_wrt_enveloppe,
             name=name,
-            id=id
+            id=id,
+            start_at=start_at
             )
         
     def plot(self, *args, ax=None, params={'enveloppe':1}, c='r', **kwargs):
         return super().plot(*args, ax=ax, params=params, c=c, **kwargs)
 
-    def plot_traj_to_enc(self, enc:ENC, times:list, colormap:str='viridis', alpha=1., width:float=None, thickness:float=None, edge_style:str | tuple=None, marker_type:str=None) -> None:
-        # Compute colors
-        t_min = min(times)
-        t_max = max(times)
-        norm = mat_colors.Normalize(vmin=t_min, vmax=t_max)
-        cmap = plt.get_cmap(colormap)
+    def plot_traj_to_enc(self, enc:ENC, times:list, colormap:str='viridis', alpha=1., width:float=None, thickness:float=None, edge_style:str | tuple=None, marker_type:str=None, color:str=None) -> None:
+        rgb = mat_colors.to_rgb(color) if color is not None else None
+        
+        if color is None:
+            # Compute colors
+            t_min = min(times)
+            t_max = max(times)
+            norm = mat_colors.Normalize(vmin=t_min, vmax=t_max)
+            cmap = plt.get_cmap(colormap)
 
         t_prev = None
         wpt_prev = None
@@ -86,7 +91,7 @@ class MovingShip(MovingObstacle):
                 continue
             # Get corresponding color
             t_mean = (t+t_prev)/2
-            rgb = cmap(norm(t_mean))[:3]
+            rgb = cmap(norm(t_mean))[:3] if color is None else rgb
             color = mat_colors.to_hex((*rgb, alpha), keep_alpha=True)
             enc.display.draw_line([wpt_prev, wpt], color=color, width=width, thickness=thickness, edge_style=edge_style, marker_type=marker_type)
             t_prev = t
@@ -100,24 +105,28 @@ class MovingShip(MovingObstacle):
         path_to_database:str,
         colormap:str='viridis',
         alpha:float=1.,
+        t0:str='26-08-2024 08:00:00',
         table:str='AisHistory',
         heading_in_seacharts_frame:bool=True,
         clear_table:bool=False,
         scale:float=1.,
-        isolate_timestamps:bool=False
+        isolate_timestamps:bool=False,
+        color:str=None
     ) -> None:
         return TSWPT.from_trajectory_fn(self.pose_fn, times).to_sql(path_to_database=path_to_database,
                                                                   mmsi=int(self.mmsi),
                                                                   timestamps=timestamps,
                                                                   colormap=colormap,
                                                                   alpha=alpha,
+                                                                  t0=t0,
                                                                   table=table,
                                                                   heading_in_seacharts_frame=heading_in_seacharts_frame,
                                                                   clear_table=clear_table,
                                                                   length=self.length,
                                                                   width=self.width,
                                                                   scale=scale,
-                                                                  isolate_timestamps=isolate_timestamps
+                                                                  isolate_timestamps=isolate_timestamps,
+                                                                  color=color
                                                                   )
     
     def robust_polyhedron(self, t:float, *args, **kwargs) -> Obstacle:
@@ -127,6 +136,7 @@ class MovingShip(MovingObstacle):
         psi_rad, psi_deg = self.states.psi_rad, self.states.psi_deg
         dpsi = self.dpsi
         du = self.du
+        t -= self.start_at
 
         # Extract virtual ships used to build robust envelope
         ship1 = self._initial_domain.rotate_and_translate(-(u+du)*sin(psi_rad+dpsi/2)*t, (u+du)*cos(psi_rad+dpsi/2)*t, psi_deg+dpsi*180/pi/2).translate(x, y)

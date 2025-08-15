@@ -56,22 +56,29 @@ class Map(ObstacleCollection):
 
         # Takes first depth_i that is greater or equal to depth
         # for depth_i, seabed in zip(self.enc.seabed.keys(), self.enc.seabed.values()):
+        intersection_window_area = intersection(window_complete, window_focus).area
+
         for depth_i in depth:
             if depth_i in self.enc.seabed.keys():
                 seabed = self.enc.seabed[depth_i]
                 list_of_polygons = list(seabed.geometry.geoms)
                 for polygon in list_of_polygons:
                     multi_diff = intersection(difference(window_complete, polygon), window_focus) # We make sure that the resulting polygon is both part of enc and focus regions
-
+                    print(f"{intersection_window_area:.0f}, {multi_diff.area:.0f}, {multi_diff.area/intersection_window_area:.3f}")
+                    if 0.99*intersection_window_area <= multi_diff.area: # For some reasons, window_focus is sometimes the result of it
+                            continue
+                    
+                    print("accepted")
                     # Difference can lead to multiple polygons. In such case we add them all to the obstacles collection
                     if isinstance(multi_diff, MultiPolygon):
+                        cumsum = 0 
                         for diff in multi_diff.geoms:
+                            cumsum += diff.area
+                            print("sub-diff area: ", diff.area, cumsum)
                             obstacles.append(Obstacle(polygon=diff, depth=depth_i))
-
+                                
                     # If difference is a single polygon, we just add it to the collection
                     elif isinstance(multi_diff, Polygon):
-                        if multi_diff.area == window_focus.area: # For some reasons, window_focus is sometimes the result of it
-                            continue
                         obstacles.append(Obstacle(polygon=multi_diff, depth=depth_i))
             else:
                 print(f"Map - Depth {depth_i}m not found in ENC data - Use .available_depth_data to select an existing depth layer.")

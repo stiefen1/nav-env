@@ -4,6 +4,7 @@ from nav_env.control.controller import ControllerBase, Controller
 from nav_env.control.command import Command
 from nav_env.ships.states import States3
 from nav_env.wind.wind_vector import WindVector
+from nav_env.ships.moving_ship import MovingShip
 from copy import deepcopy
 
 
@@ -22,12 +23,15 @@ class GNC:
         self._colav_heading_offset_rad = 0.0
         self._colav_u_factor = 1.0
 
-    def get(self, ship, wind:WindVector=None) -> Command:
+    def get(self, ship, wind:WindVector=None, target_ships:list[MovingShip]=[], shore:list=[]) -> Command:
         self._observed_state:States3 = self._navigation.observe(ship) # State is in ship frame
-        self._desired_state, info = self._guidance.get(self._observed_state)
+        self._desired_state, info = self._guidance.get(self._observed_state, t=ship._t, target_ships=target_ships, shore=shore)
+        
+        # Must be within guidance
         commanded_state = deepcopy(self._desired_state)
         commanded_state.psi_rad += self._colav_heading_offset_rad
         commanded_state.x_dot *= self._colav_u_factor
+
         return self._controller.get(self._observed_state, commanded_state, wind=wind, **info) # e.g. info can contain initial_guess for NMPC
     
     def reset(self) -> None:
@@ -82,7 +86,8 @@ def test() -> None:
             radius_of_acceptance=100.,
             current_wpt_idx=1,
             kp=3e-4, # 7e-3
-            desired_speed=4.
+            desired_speed=4.,
+            low_pass_filter_params={'cutoff':1e-2, 'sampling_frequency': 1/dt, 'order':20}
         ),
         controller=HeadingAndSpeedController(
             pid_gains_heading=(5e5, 0, 5e6),

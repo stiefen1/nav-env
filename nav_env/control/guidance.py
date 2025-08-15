@@ -3,15 +3,36 @@ import numpy as np
 from nav_env.control.path import Waypoints
 from abc import ABC, abstractmethod
 from nav_env.ships.states import States3
+from nav_env.colav.colav import COLAVBase, COLAV
+from nav_env.ships.moving_ship import MovingShip
 
 class GuidanceBase(ABC):
-    def __init__(self, waypoints: Waypoints, current_wpt_idx:int, radius_of_acceptance:float, *args, **kwargs):
+    def __init__(
+            self,
+            waypoints: Waypoints,
+            current_wpt_idx:int,
+            radius_of_acceptance:float,
+            *args,
+            colav:COLAVBase=None,
+            **kwargs
+        ):
         self._waypoints = waypoints
         self._current_wpt_idx = current_wpt_idx # Current waypoint is the one we just reached
         self._radius_of_acceptance = radius_of_acceptance
+        self.colav = colav or COLAV(0)
+
+    # def init_colav(self, colav:COLAVBase) -> None:
+    #     self._colav = COLAV() if colav is None else colav
+    #     self._colav.guidance = self
+
+    def get(self, state:States3, *args, target_ships:list[MovingShip]=[], **kwargs) -> tuple[States3, dict]:
+        commanded_state, info = self.__get__(state, *args, **kwargs)
+        colav_des_state = self.colav.get(state, commanded_state, target_ships, *args, **kwargs)
+        # print(colav_des_state, commanded_state)
+        return colav_des_state, info
 
     @abstractmethod
-    def get(self, state:States3, *args, **kwargs) -> tuple[States3, dict]:
+    def __get__(self, state:States3, *args, **kwargs) -> tuple[States3, dict]:
         pass
 
     def reset(self) -> None:
@@ -28,7 +49,7 @@ class GuidanceBase(ABC):
             return self._waypoints[0]
     
     def next_waypoint(self):
-        # If we reached the final waypoint do not increment
+        # If current waypoint is the final waypoint do not increment
         if self._current_wpt_idx >= self.n - 1:
             return
         self._current_wpt_idx += 1
@@ -38,7 +59,10 @@ class GuidanceBase(ABC):
         wx, wy = self.current_waypoint
         return ((wx-x)**2 + (wy-y)**2) <= self._radius_of_acceptance**2
     
-
+    def distance_to_final_waypoint(self, x, y) -> bool:
+        wf = self._waypoints[-1]
+        return ((wf[0]-x)**2 + (wf[1]-y)**2)**0.5
+    
     @property
     def n(self) -> int:
         return len(self._waypoints)
@@ -56,7 +80,7 @@ class Guidance(GuidanceBase):
     def __init__(self, waypoints: Waypoints=[], current_wpt_idx:int=0, radius_of_acceptance:float=50., *args, **kwargs):
         super().__init__(waypoints=waypoints, current_wpt_idx=current_wpt_idx, radius_of_acceptance=radius_of_acceptance, *args, **kwargs)
 
-    def get(self, state:States3, *args, **kwargs) -> tuple[States3, dict]:
+    def __get__(self, state:States3, *args, **kwargs) -> tuple[States3, dict]:
         return state, {}
     
 class PathProgressionAndSpeedGuidance(GuidanceBase):
@@ -67,7 +91,7 @@ class PathProgressionAndSpeedGuidance(GuidanceBase):
         self._speed_ref = speed_ref
         super().__init__(waypoints=waypoints, current_wpt_idx=0, radius_of_acceptance=50, *args, **kwargs)
 
-    def get(self, *args, **kwargs) -> tuple[States3, dict]:
+    def __get__(self, *args, **kwargs) -> tuple[States3, dict]:
         """
         Returns desired speed to be tracked
         """

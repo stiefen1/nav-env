@@ -77,13 +77,16 @@ class VectorSource(ABC):
         if 'label' in kwargs.keys():
             label = kwargs['label']
             kwargs.pop('label')
+
         
         x = np.linspace(x_min, x_max, nx)
         y = np.linspace(y_min, y_max, ny)
+        dx = x[1]-x[0]
+        dy = y[1]-y[0]
         for xi in x:
             for yi in y:
                 vec = self((xi, yi))
-                ax.quiver(vec.x, vec.y, vec.vx, vec.vy, label=label, **kwargs)
+                ax.quiver(vec.x+dx/2, vec.y+dy/2, vec.vx, vec.vy, label=label, **kwargs)
                 label = None
         return ax
     

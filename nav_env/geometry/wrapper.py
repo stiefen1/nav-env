@@ -69,7 +69,7 @@ class GeometryWrapper:
     def get_xy_as_list(self) -> list:
         return self.xy_as_list(self.xy)
 
-    def __call__(self) -> LineString:
+    def __call__(self) -> Any:
         return self._geometry
     
     def __repr__(self) -> str:
@@ -214,6 +214,8 @@ class GeometryWrapper:
         try: # For MovingObstacle objects
             # print("#-------------------------Moving Obstacle------------------------------#")
             new._initial_geometry = new._initial_geometry.buffer(distance, **kwargs)
+            new._initial_domain = new._initial_domain.buffer(distance, **kwargs)
+            print(f"buffer initial geometry of {distance}")
         except:
             # print("#-------------------------Static Obstacle------------------------------#")
             new.center_inplace()

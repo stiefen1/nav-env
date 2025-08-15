@@ -18,6 +18,9 @@ class ObstacleCollection:
     def remove(self, obstacle: Obstacle):
         self._obstacles.remove(obstacle)
 
+    def extend(self, obstacles: list[Obstacle]):
+        self._obstacles.extend(obstacles)
+
     def distance_to_obstacles(self, x:float, y:float) -> float:
         """
         Get the distance to the obstacle at a given position.
@@ -116,6 +119,9 @@ class ObstacleCollection:
                     obs.add((i, j))
 
         return obs
+    
+    def __add__(self, other:"ObstacleCollection") -> "ObstacleCollection":
+        return ObstacleCollection(self._obstacles + other._obstacles)
 
     def buffer(self, distance:float, **kwargs) -> "ObstacleCollection":
         """
@@ -151,7 +157,7 @@ class ObstacleCollection:
     def as_list(self) -> list:
         return self._obstacles
 
-    def plot(self, *args, ax=None, text=False, **kwargs):
+    def plot(self, *args, ax=None, text=False, ids:list=None, **kwargs):
         """
         Plot the obstacles.
         """
@@ -160,12 +166,13 @@ class ObstacleCollection:
             _, ax = plt.subplots()
         
         for i, obs in enumerate(self._obstacles):
-            obs.plot(*args, ax=ax, **kwargs)
-            if text:
-                ax.text(*obs.centroid, f'{i}: {str(obs)}')
+            if (ids is None) or (ids is not None and obs.id is not None and obs.id in ids):
+                obs.plot(*args, ax=ax, **kwargs)
+                if text:
+                    ax.text(*obs.centroid, f'{i}: {str(obs)}')
         return ax
     
-    def fill(self, *args, ax=None, text=False, **kwargs):
+    def fill(self, *args, ax=None, text=False, ids:list=None, **kwargs):
         """
         Plot the obstacles.
         """
@@ -174,12 +181,13 @@ class ObstacleCollection:
             _, ax = plt.subplots()
         
         for i, obs in enumerate(self._obstacles):
-            obs.fill(*args, ax=ax, **kwargs)
-            if text:
-                ax.text(*obs.centroid, f'{i}: {str(obs)}')
+            if (ids is None) or (ids is not None and obs.id is not None and obs.id in ids):
+                obs.fill(*args, ax=ax, **kwargs)
+                if text:
+                    ax.text(*obs.centroid, f'{i}: {str(obs)}')
         return ax
 
-    def plot3(self, z:float, *args, ax=None, **kwargs):
+    def plot3(self, z:float, *args, ax=None, ids:list=None, **kwargs):
         """
         Plot the obstacle in 3D.
         """
@@ -187,19 +195,24 @@ class ObstacleCollection:
             _, ax = plt.subplots(subplot_kw={'projection': '3d'})
 
         for obs in self._obstacles:
-            obs.plot3(z, *args, ax=ax, **kwargs)
+            if (ids is None) or (ids is not None and obs.id is not None and obs.id in ids):
+                obs.plot3(z, *args, ax=ax, **kwargs)
 
         return ax
 
-    def draw(self, screen, scale=1, **kwargs):
+    def draw(self, screen, scale=1, ids:list=None, **kwargs):
         """
         Draw the obstacles.
         """
         for obs in self._obstacles:
-            obs.draw(screen, scale=scale)
+            if (ids is None) or (ids is not None and obs.id is not None and obs.id in ids):
+                obs.draw(screen, scale=scale)
 
-    def __getitem__(self, index: int) -> Obstacle:
-        return self._obstacles[index]
+    def __getitem__(self, index: int|slice) -> Obstacle:
+        if isinstance(index, slice):
+            return ObstacleCollection(self._obstacles[index])
+        else:
+            return self._obstacles[index]
     
     def __len__(self) -> int:
         return len(self._obstacles)

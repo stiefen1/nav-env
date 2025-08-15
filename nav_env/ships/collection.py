@@ -11,14 +11,14 @@ class ShipCollection:
         assert isinstance(ships, list), f"Expected list got {type(ships).__name__}"
         self._ships = ships or []
 
-    def step(self, wind:WindSource, water:WaterSource, external_forces:GeneralizedForces=GeneralizedForces()):
+    def step(self, wind:WindSource, water:WaterSource, external_forces:GeneralizedForces=GeneralizedForces(), target_ships:list[MovingShip]=[], shore:list=[]):
         """
         Step all ships.
         """
         for ship in self._ships:
             xy = ship.states.xy
             # print(ship.name, xy)
-            ship.step(wind(xy), water(xy), external_forces=external_forces)
+            ship.step(wind(xy), water(xy), external_forces=external_forces, target_ships=target_ships, shore=shore)
 
     def reset(self):
         """
@@ -78,6 +78,10 @@ class ShipCollection:
 
     def __len__(self):
         return len(self._ships)
+    
+    @property
+    def n(self) -> int:
+        return self.__len__()
     
     def __repr__(self):
         return f"{type(self).__name__}({len(self._ships)} ships)"

@@ -11,14 +11,18 @@ w_t: Target point
 """
 
 from math import atan2, pi, sqrt
-import numpy as np
-from nav_env.control.path import Waypoints
+import numpy as np, matplotlib.pyplot as plt
+from nav_env.control.path import Waypoints, TimeStampedWaypoints
 from nav_env.control.guidance import GuidanceBase
+from nav_env.control.PID import PID
 from abc import ABC, abstractmethod
 from nav_env.ships.states import States3
 from nav_env.utils.math_functions import wrap_angle_to_pmpi_degrees
+import warnings
+from nav_env.estimation.filter import FIR1D, LowPass
+from nav_env.colav.colav import COLAVBase
 
-
+DEFAULT_LOW_PASS_FILTER_PARAMS = {'cutoff':1, 'sampling_frequency':100, 'order':0} # Zero order == No action
 class LOS(GuidanceBase):
     def __init__(self,
                  waypoints: Waypoints,
@@ -26,8 +30,9 @@ class LOS(GuidanceBase):
                  radius_of_acceptance:float=50,
                  desired_speed:float = 5.0,
                  *args,
+                 colav:COLAVBase=None,
                  **kwargs):
-        super().__init__(waypoints=waypoints, current_wpt_idx=current_wpt_idx, radius_of_acceptance=radius_of_acceptance, *args, **kwargs)
+        super().__init__(waypoints=waypoints, current_wpt_idx=current_wpt_idx, radius_of_acceptance=radius_of_acceptance, *args, colav=colav, **kwargs)
         self._desired_speed = desired_speed # Desired forward speed
 
     @abstractmethod
@@ -35,8 +40,22 @@ class LOS(GuidanceBase):
         pass
 
     @abstractmethod
-    def get(self, state:States3, *args, **kwargs) -> tuple[States3, dict]:
+    def __get__(self, state:States3, *args, **kwargs) -> tuple[States3, dict]:
         pass
+
+    def plot(self, xlim:tuple, ylim:tuple, *args, n=(10, 10),  ax=None, width=2e-3, scale=50, **kwargs):
+        if ax is None:
+            _, ax = plt.subplots()
+
+        nx, ny = n
+        X = np.linspace(*xlim, nx)
+        Y = np.linspace(*ylim, ny)
+        for x in X:
+            for y in Y:
+                desired_heading_degree = self.get_desired_heading(x, y, *args, **kwargs)
+                dx, dy = -np.sin(desired_heading_degree), np.cos(desired_heading_degree)
+                ax.quiver(x, y, dx, dy, width=width, scale=scale)
+        return ax
 
 class LOSLookAhead(LOS):
     def __init__(self,
@@ -47,26 +66,31 @@ class LOSLookAhead(LOS):
                  ki:float=0.,
                  desired_speed:float = 5.0,
                  *args,
+                 low_pass_filter_params:dict=None,
+                 colav:COLAVBase=None,
                  **kwargs):
-        super().__init__(waypoints=waypoints, current_wpt_idx=current_wpt_idx, radius_of_acceptance=radius_of_acceptance, desired_speed=desired_speed, *args, **kwargs)
+        super().__init__(waypoints=waypoints, current_wpt_idx=current_wpt_idx, radius_of_acceptance=radius_of_acceptance, desired_speed=desired_speed, *args, colav=colav, **kwargs)
         self._kp = kp
         self._ki = ki
+        low_pass_filter_params = low_pass_filter_params or DEFAULT_LOW_PASS_FILTER_PARAMS
+        self.filter = LowPass(**low_pass_filter_params) 
 
     def get_desired_heading(self, x, y, *args, degree=False, **kwargs):
         if self.within_radius_of_acceptance(x, y):
             self.next_waypoint()
         prev_wpt = self.get_prev_waypoint()
         convert_unit = 1 if degree else np.pi/180.0
-        return convert_unit*LOS_lookahead(x, y, prev_wpt, self.current_waypoint, *args, kp=self._kp, **kwargs)
+        return self.filter(convert_unit*LOS_lookahead(x, y, prev_wpt, self.current_waypoint, *args, kp=self._kp, **kwargs))
     
-    def get(self, state:States3, *args, **kwargs) -> tuple[States3, dict]:
+    def __get__(self, state:States3, *args, **kwargs) -> tuple[States3, dict]:
         psi_des_deg:float = self.get_desired_heading(*state.xy, degree=True) 
+        # print("psi-des-deg: ", psi_des_deg)
+        # print("desired heading: ", psi_des_deg)
         return States3(psi_deg=psi_des_deg, x_dot=self._desired_speed), {} # x_dot est interprété comme la norme de la vitesse du bateau
-    
 
 class LOSLoopEnclosure(LOS):
-    def __init__(self, waypoints: Waypoints, radius:float, *args, current_wpt_idx:int=0, radius_of_acceptance:float=50, desired_speed:float=5.0, **kwargs):
-        super().__init__(waypoints=waypoints, current_wpt_idx=current_wpt_idx, radius_of_acceptance=radius_of_acceptance, desired_speed=desired_speed, *args, **kwargs)
+    def __init__(self, waypoints: Waypoints, radius:float, *args, current_wpt_idx:int=0, radius_of_acceptance:float=50, desired_speed:float=5.0, colav:COLAVBase=None, **kwargs):
+        super().__init__(waypoints=waypoints, current_wpt_idx=current_wpt_idx, radius_of_acceptance=radius_of_acceptance, desired_speed=desired_speed, *args, colav=colav, **kwargs)
         self._radius = radius
 
     def get_desired_heading(self, x, y, *args, degree=False, **kwargs):
@@ -76,9 +100,60 @@ class LOSLoopEnclosure(LOS):
         convert_unit = 1 if degree else np.pi/180.0
         return convert_unit*LOS_enclosure(x, y, prev_wpt, self.current_waypoint, *args, R=self._radius, **kwargs)
     
-    def get(self, state:States3, *args, **kwargs) -> tuple[States3, dict]:
+    def __get__(self, state:States3, *args, **kwargs) -> tuple[States3, dict]:
         psi_des_deg:float = self.get_desired_heading(*state.xy, degree=True) 
         return States3(psi_deg=psi_des_deg, x_dot=self._desired_speed), {} # x_dot est interprété comme la norme de la vitesse du bateau
+
+
+class LOSLookAheadTrajectoryTracking(LOS):
+    def __init__(self,
+                 trajectory: TimeStampedWaypoints,
+                 current_wpt_idx:int=0,
+                 radius_of_acceptance:float=50,
+                 kp_los:tuple=(3.5e-2, 0., 0.),
+                 k_speed:float=(1.0, 0.0, 0.0),
+                 anti_windup_speed:float=50.0,
+                 dt:float=None,
+                 low_pass_filter_heading_params:dict=None,
+                 low_pass_filter_speed_params:dict=None,
+                 colav:COLAVBase=None,
+                 **kwargs):
+        super().__init__(waypoints=trajectory.waypoints, current_wpt_idx=current_wpt_idx, radius_of_acceptance=radius_of_acceptance, desired_speed=None, colav=colav, **kwargs)
+        self._kp_los = kp_los
+        self._speed_pid = PID(kp=k_speed[0], ki=k_speed[1], kd=k_speed[2], anti_windup=anti_windup_speed, dt=dt)
+        self._trajectory = trajectory
+        low_pass_filter_heading_params = low_pass_filter_heading_params or DEFAULT_LOW_PASS_FILTER_PARAMS
+        low_pass_filter_speed_params = low_pass_filter_speed_params or DEFAULT_LOW_PASS_FILTER_PARAMS
+        self.heading_filter = LowPass(**low_pass_filter_heading_params)
+        self.speed_filter = LowPass(**low_pass_filter_speed_params)
+        self._logs = {"projected_distance": np.zeros((0, 1)), "target_waypoint": np.zeros((0, 1))}
+
+    def save(self) -> None:
+        self._logs["projected_distance"] = np.append(self._logs["projected_distance"], np.array(self.distance).reshape(1, 1), axis=0)
+        self._logs["target_waypoint"] = np.append(self._logs["target_waypoint"], np.array([[self.current_idx]]), axis=0)
+
+    def get_desired_heading(self, x, y, *args, degree=False, **kwargs):
+        if self.within_radius_of_acceptance(x, y):
+            self.next_waypoint()
+        prev_wpt = self.get_prev_waypoint()
+        convert_unit = 1 if degree else np.pi/180.0
+        return self.heading_filter(convert_unit*LOS_lookahead(x, y, prev_wpt, self.current_waypoint, *args, kp=self._kp_los, **kwargs))
+    
+    def get_desired_speed(self, x, y, t, *args, **kwargs) -> float:
+        self.distance = self._trajectory.get_signed_distance_from_desired_position(t, x, y)
+        v_ff = self._trajectory.get_desired_speed(t) # Feed forward speed
+        dv = -self._speed_pid.get(states=np.array([self.distance]), desired_states=np.array([0])) # speed correction to compensate position error
+        # print(f"v_ff: {v_ff:.3f}\t| dv: {dv[0, 0]:.3f}\t|\te(t): {self._speed_pid._prev_e[0, 0]:.1f} integral: {self._speed_pid._integral[0, 0]:.1f} de/dt: {self._speed_pid._prev_dedt[0, 0]:.1f}")
+        # print("v_des: ", v_ff, dv, f" = f({distance:.1f})", f"integral: {self._speed_pid._integral[0, 0]:.3f}")
+        return self.speed_filter(v_ff + dv[0, 0])
+
+    def __get__(self, state:States3, t:float, *args, **kwargs) -> tuple[States3, dict]:
+        psi_des_deg:float = self.get_desired_heading(*state.xy, degree=True) 
+        desired_speed:float = self.get_desired_speed(*state.xy, t)
+        # print(f"v: {state.x_dot} \t v_des: {desired_speed}")
+        self.save()
+        return States3(psi_deg=psi_des_deg, x_dot=desired_speed), {} # x_dot est interprété comme la norme de la vitesse du bateau
+    
 
 def LOS_enclosure(x, y, w_prev, w_next, *args, R:float=50, **kwargs):
     dwx = w_next[0] - w_prev[0]
@@ -142,15 +217,18 @@ def LOS_lookahead(x, y, w_prev, w_next, *args, kp:float=3.5e-2, **kwargs):
     p_unit = p / np.linalg.norm(p)
 
     sign = 1
-    if p_unit[1] > w_unit[1]:
+    if p_unit[1] > w_unit[1]: # Check if ship is above segment to follow
         sign = -1
 
-    angle = sign * np.arccos(p_unit.T @ w_unit)
+
+    # print("p, w, p'@w: ", p_unit, w_unit, p_unit.T @ w_unit)
+    angle = np.sign(w_n[0]-w_p[0]) * sign * np.arccos(np.clip(p_unit.T @ w_unit, -1.0, 1.0))
+    # print("angle: ", angle)
     e = (np.linalg.norm(w_n - p) * np.sin(angle)).astype(float)
     psi_r = atan2(kp*e, 1) * 180 / pi
 
     # print(kp*e, psi_p, psi_r)
-
+    # print(psi_p, psi_r)
 
     return psi_p + psi_r
 
@@ -169,8 +247,8 @@ def interactive():
     y = 0.
 
     R = 30
-    w_prev = (-50, -10)
-    w_next = (50, 50)
+    w_prev = (-50, -10) # w_prev = (50, -10) # 
+    w_next = (50, 50) # w_next = (-50, 50) # 
 
     # Figure
     fig = plt.figure()

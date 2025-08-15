@@ -58,7 +58,6 @@ class ShipWithDynamicsBase(MovingShip):
         self._dx = None # Initialize differential to None
         self._accumulated_dx = DeltaStates(0., 0., 0., 0., 0., 0.) # Initialize accumulated differential to 0
         self._generalized_forces = GeneralizedForces() # Initialize generalized forces acting on the ship to 0
-        self._logs = {"times": np.zeros((0, 1)), "states": np.zeros((0, 6))}
 
         if isinstance(actuators, Actuator):
             self._actuators = ActuatorCollection([actuators])
@@ -80,6 +79,8 @@ class ShipWithDynamicsBase(MovingShip):
             id=id,
             sensors=sensors
         )
+
+        self._logs.update({"dx": np.zeros((0, 6))})
 
     def reset(self):
         """
@@ -107,7 +108,7 @@ class ShipWithDynamicsBase(MovingShip):
         if 'forces' in keys:
             self._generalized_forces.draw(screen, self._states.xy, *args, scale=scale, unit_scale=1e-4, color=(0, 0, 0), **kwargs)
 
-    def plot(self, ax=None, params:dict={'enveloppe':1}, **kwargs):
+    def plot(self, ax=None, params:dict={'enveloppe':1, 'actuators':1}, **kwargs):
         """
         Plot the ship. Add 'enveloppe', 'frame', 'acceleration', 'velocity', 'forces' to keys to plot the corresponding elements.
         """
@@ -126,6 +127,8 @@ class ShipWithDynamicsBase(MovingShip):
             self._states.plot(ax=ax, angles='xy', scale_units='xy', scale=1e-1)
         if 'forces' in keys:
             self._generalized_forces.plot(self._states.xy, ax=ax, color='black', angles='xy', scale_units='xy', scale=1e3)
+        if 'actuators' in keys:
+            self._actuators.plot(self._states, ax=ax)
         return ax
     
     def plot_frame(self, ax=None, **kwargs):
@@ -162,13 +165,13 @@ class ShipWithDynamicsBase(MovingShip):
                            screen_size[1] // 2 - scale*y - 100*scale*R[1, 1]),
                            *args, **kwargs)
 
-    def step(self, wind:WindVector, water:WaterVector, external_forces:GeneralizedForces=GeneralizedForces(), update_enveloppe=True):
+    def step(self, wind:WindVector, water:WaterVector, external_forces:GeneralizedForces=GeneralizedForces(), update_enveloppe=True, target_ships:list[MovingShip]=[], shore:list=[]):
         """
         Step the ship.
         """
         ### Command can be either of type GeneralizedForces or list, in such case it is a list of ActuatorCommand.
         ### This list of ActuatorCommand is converted into a GeneralizedForces object and then forwarded to the system
-        command = self._gnc.get(self, wind=wind)
+        command = self._gnc.get(self, wind=wind, target_ships=target_ships, shore=shore)
 
         if isinstance(command, list): # means it is a list of commands
             command_force = self._actuators.dynamics(command) # We keep actuators in ship object as the actuators in a controller may have different states
@@ -206,6 +209,7 @@ class ShipWithDynamicsBase(MovingShip):
         self.actuators.save()
 
     def save_state(self) -> None:
+        self._logs["dx"] = np.append(self._logs["dx"], np.array([self._dx.to_numpy()]).reshape(1, 6), axis=0)
         self._logs["states"] = np.append(self._logs["states"], np.array([*self._states.pose, *self._states.uvr]).reshape(1, 6), axis=0)
 
     def model(self, x:Any, u:Any, use_casadi:bool=True) -> np.ndarray:

@@ -22,28 +22,38 @@ class ControlAllocationBase(ABC):
     """
     def __init__(self, actuators:ActuatorCollection, *args, **kwargs):
         self.actuators = actuators
+        self.reset()
         
 
     # Setup the control allocation problem in any ways
     @abstractmethod
-    def get(self, force:GeneralizedForces, *args, **kwargs) -> Union[list[Command], GeneralizedForces]:
+    def __get__(self, force:GeneralizedForces, *args, **kwargs) -> Union[list[Command], GeneralizedForces]:
         pass
     
     @abstractmethod
-    def reset(self) -> None:
+    def __reset__(self) -> None:
         pass
-    
+
+    def reset(self) -> None:
+        self._logs = {'commands':np.zeros((0, self.actuators.nu))}
+        self.__reset__()
+
+    def get(self, force:Union[GeneralizedForces, list[Command]], *args, **kwargs) -> Union[list[Command], GeneralizedForces]: 
+        commands = self.__get__(force, *args, **kwargs)
+        if isinstance(commands, list):
+            self._logs['commands'] = np.append(self._logs['commands'], np.array([commands]))
+        return commands
+
 class ControlAllocation(ControlAllocationBase):
     def __init__(self, actuators:Union[ActuatorCollection, list]=ActuatorCollection.empty(), *args, **kwargs):
         actuators = actuators if isinstance(actuators, ActuatorCollection) else ActuatorCollection(actuators)
         super().__init__(actuators=actuators, *args, **kwargs)
     
     # Setup the control allocation problem in any ways
-    def get(self, force:Union[GeneralizedForces, list[Command]], *args, **kwargs) -> Union[list[Command], GeneralizedForces]:       
+    def __get__(self, force:Union[GeneralizedForces, list[Command]], *args, **kwargs) -> Union[list[Command], GeneralizedForces]:       
         return force
-
     
-    def reset(self) -> None:
+    def __reset__(self) -> None:
         pass
     
     @staticmethod
@@ -53,11 +63,10 @@ class ControlAllocation(ControlAllocationBase):
 
 class NonlinearControlAllocation(ControlAllocation):
     def __init__(self, actuators:Union[ActuatorCollection, list], *args, Q:np.ndarray=None, **kwargs):
+        self.Q = np.eye(6) if Q is None else Q
         super().__init__(actuators=actuators, *args, **kwargs)
-        self.Q = Q or np.diag(6 * [1.])
-        self.reset()
 
-    def reset(self) -> None:
+    def __reset__(self) -> None:
         self._init_nlp()
 
     def _init_nlp(self) -> None:
@@ -83,7 +92,7 @@ class NonlinearControlAllocation(ControlAllocation):
         arr = solver_out['x'].full().flatten()
         self.Uopt = self.actuators.get_formated_commands(arr.reshape((self.actuators.nu,)).tolist())
 
-    def get(self, force:GeneralizedForces, *args, **kwargs) -> list[Command]:
+    def __get__(self, force:GeneralizedForces, *args, **kwargs) -> list[Command]:
         """
         min (f(u)-f_des)^T@Q@(f(u)-f_des)
          u
@@ -112,7 +121,6 @@ class PowerMinimizerControlAllocation(ControlAllocation):
     C:      Set of feasible changes
     """
     def __init__(self, actuators:Union[ActuatorCollection, list], *args, Q:np.ndarray=None, W:np.ndarray=None, u_prev:tuple=None, **kwargs):
-        super().__init__(actuators=actuators, *args, **kwargs)
         self.Q = np.eye(6)*1e-3 if Q is None else Q # If problem becomes sometimes infeasible, try decrease this weight matrix 
         self.n_forces = self.Q.shape[0]
         
@@ -120,19 +128,19 @@ class PowerMinimizerControlAllocation(ControlAllocation):
         if u_prev is not None:
             u_prev = np.array(u_prev)
         else:
-            u_prev = np.array(self.actuators.u_mean)
-        self.u_prev = u_prev.reshape((self.actuators.nu, 1))
+            u_prev = np.array(actuators.u_mean)
+        self.u_prev = u_prev.reshape((actuators.nu, 1))
 
         # Initialize weights and preferred values of u
-        self.W, self.u_pref = self.actuators.get_weight_and_u_pref_for_power_minimimzation(W=W)
+        self.W, self.u_pref = actuators.get_weight_and_u_pref_for_power_minimimzation(W=W)
 
         # Cost function
         self.cost_fn = lambda u, s, u_pref=self.u_pref, Q=self.Q, W=self.W: cd.mtimes(cd.mtimes(cd.transpose(s), Q), s) + cd.mtimes(cd.mtimes(cd.transpose(u-u_pref), W), (u-u_pref))
         
-        # Reset --> Init NLP
-        self.reset()
+        # includes reset() in base class constructor
+        super().__init__(actuators=actuators, *args, **kwargs)
 
-    def reset(self) -> None:
+    def __reset__(self) -> None:
         self._init_nlp()
 
     def _init_nlp(self) -> None:
@@ -179,11 +187,10 @@ class PowerMinimizerControlAllocation(ControlAllocation):
         uopt = arr[0:self.actuators.nu]
         sopt = arr[self.actuators.nu::]
         self.u_prev = uopt
-        
         self.Uopt = self.actuators.get_formated_commands(uopt.reshape((self.actuators.nu,)).tolist())
-        
 
-    def get(self, force:GeneralizedForces, *args, **kwargs) -> list[Command]:
+    def __get__(self, force:GeneralizedForces, *args, **kwargs) -> list[Command]:
+        # print("Desired force: ", force)
         copy_of_actuators = deepcopy(self.actuators)
         total_force = copy_of_actuators.dynamics(self.U_sym, use_casadi=True, do_clip=False).to_casadi()
         self.G_sym = cd.vertcat(
@@ -193,7 +200,6 @@ class PowerMinimizerControlAllocation(ControlAllocation):
         self.total_cost = self.cost_fn(self.U_sym, self.S_sym)
         self._solve_nlp()
         return self.Uopt  
-
 
 def test() -> None:
     from nav_env.ships.ship import Ship

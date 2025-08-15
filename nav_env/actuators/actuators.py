@@ -2,9 +2,10 @@ from abc import ABC, abstractmethod
 from nav_env.control.command import GeneralizedForces, AzimuthThrusterCommand, ThrusterCommand, Command, AzimuthThrusterSpeedCommand
 from math import pi, cos, sin
 from typing import Union
-import casadi as cd
-import numpy as np
-import warnings
+import warnings, casadi as cd, numpy as np, matplotlib.pyplot as plt
+from nav_env.obstacles.obstacles import Rectangle
+from nav_env.ships.states import States3
+from copy import deepcopy
 
 class Actuator(ABC):
     def __init__(self,
@@ -61,14 +62,19 @@ class Actuator(ABC):
         self._dt = dt
         self._u_rate_min = u_rate_min
         self._u_rate_max = u_rate_max
-        self._logs = np.zeros((0, self.nu))
-        self._last_command = None
+        self._logs = {'commands': np.zeros((0, self.nu)), 'forces': np.zeros((0, 6)), 'power': np.zeros((0, self.nu))}
+        self.last_command:Command = None
+        self.last_forces:GeneralizedForces = None
+        # self.last_power:tuple = None
 
     def save(self) -> None:
-        if self._last_command is not None:
-            self._logs = np.append(self._logs, self._last_command.to_numpy().reshape(1, self.nu), axis=0)
-        else:
-            warnings.warn(f"Last command of {self} is None - save aborted")
+        if self.last_command is not None:
+            self._logs['commands'] = np.append(self._logs['commands'], self.last_command.to_numpy().reshape(1, self.nu), axis=0)
+        if self.last_forces is not None:
+            self._logs['forces'] = np.append(self._logs['forces'], self.last_forces.to_numpy().reshape(1, 6), axis=0)
+        # if self.last_power is not None:
+        #     self._logs['power'] = np.append(self._logs['power'], np.array([self.last_power]), axis=0)
+
 
     def sample_within_bounds(self, as_list:bool=False) -> list:
         """Sample a random control command within bounds"""
@@ -77,6 +83,13 @@ class Actuator(ABC):
 
     def __repr__(self):
         return f"{type(self).__name__} object at {self.xy}, {self.angle_deg} deg."
+    
+    # @abstractmethod
+    # def __power__(self, *args, **kwargs) -> tuple[float]:
+    #     return tuple(self.nu * [0.])
+    
+    # def power(self, *args, **kwargs) -> tuple[float]:
+    #     return self.__power__(*args, **kwargs)
     
     def dynamics(self, command:Command, *args, v_r:tuple=None, **kwargs) -> GeneralizedForces:
         """
@@ -87,8 +100,15 @@ class Actuator(ABC):
         it is limited)
         """
         assert type(command) == self.valid_command, f"Input command must be an instance of {self.valid_command} but is an {type(command)} object"
-        self._last_command = command
-        return self.__dynamics__(command, *args, v_r=v_r, **kwargs)
+        self.last_forces = self.__dynamics__(command, *args, v_r=v_r, **kwargs)
+        # self.last_power = self.power()
+        return self.last_forces
+    
+    def plot(self, states:States3, *args, ax=None, **kwargs):
+        if ax is None:
+            _, ax = plt.subplots()
+        return self.__plot__(ax, states, *args, **kwargs)
+
 
     @abstractmethod
     def __dynamics__(self, command:Command, *args, v_r:tuple=None, **kwargs) -> GeneralizedForces:
@@ -100,6 +120,10 @@ class Actuator(ABC):
         it is limited)
         """
         return GeneralizedForces()
+    
+    @abstractmethod
+    def __plot__(self, ax, states:States3, *args, **kwargs):
+        return ax
     
     def u_at_min_power(self) -> tuple:
         return tuple([0.0] * len(self._u_min))
@@ -199,6 +223,9 @@ class Rudder(Actuator):
         """
         return GeneralizedForces()
     
+    def __plot__(self, ax, states:States3, *args, **kwargs):
+        return super().__plot__(ax, states, *args, **kwargs)
+    
     @property
     def valid_command(self):
         return Command
@@ -226,6 +253,9 @@ class ControlSurface(Actuator):
         command: (control surface's angle)
         """
         return GeneralizedForces()
+    
+    def __plot__(self, ax, states:States3, *args, **kwargs):
+        return super().__plot__(ax, states, *args, **kwargs)
     
     @property
     def valid_command(self):
@@ -255,6 +285,9 @@ class WaterJet(Actuator):
         """
         return GeneralizedForces()
     
+    def __plot__(self, ax, states:States3, *args, **kwargs):
+        return super().__plot__(ax, states, *args, **kwargs)
+    
     @property
     def valid_command(self):
         return Command
@@ -266,15 +299,15 @@ class AzimuthThruster(Actuator):
     """
     def __init__(self,
                  xy:tuple,
-                 angle:float, # Orientation when thruster is at its reference position
+                 angle:float, # Orientation when thruster is at its reference position (in degrees)
                  alpha_range:tuple,
                  v_range:tuple,
                  dt:float,
                  *args,
                  f_min:float=-float('inf'),
                  f_max:float=float('inf'),
-                 alpha_0:float=0.0, # Orientation w.r.t. initial orientation -> alpha at t=0 in degrees
-                 speed_0:float=0.0, # Initial speed, i.e. speed at t=0
+                 alpha_0:float=None, # Orientation w.r.t. initial orientation -> alpha at t=0 in degrees
+                 speed_0:float=None, # Initial speed, i.e. speed at t=0
                  alpha_rate_max:float=float('inf'),
                  v_rate_max:float=float('inf'),
                  c_t:float=2.2, # *60,
@@ -292,10 +325,15 @@ class AzimuthThruster(Actuator):
             u_rate_max=(alpha_rate_max, v_rate_max),
             **kwargs
         )
-        self._alpha: float = alpha_0 # We don't add it to angle here, this value must be interpreted as "angle w.r.t initial angle"
-        self._speed: float = speed_0
+        self._alpha: float = alpha_0 or self.u_mean[0] # We don't add it to angle here, this value must be interpreted as "angle w.r.t initial angle"
+        self._speed: float = speed_0 or self.u_mean[1]
         self._ct: float = c_t # Force vs speed coefficient
-    
+        self._initial_envelope = Rectangle(xy[1], xy[0], height=8, width=4).rotate(angle=angle)
+        self._envelope = deepcopy(self._initial_envelope)
+
+    # def __power__(self, *args, **kwargs) -> tuple[float]:
+    #         return (self._speed**2, self._rate_alpha**2)
+
     def __dynamics__(self, command:Union[AzimuthThrusterCommand,tuple], *args, do_clip:bool=True, use_casadi:bool=False, output_type:str='force', **kwargs) -> GeneralizedForces:
         """
         command: (angle in degrees, speed) --> The input command are always assuming 0 is aligned with heading
@@ -323,26 +361,39 @@ class AzimuthThruster(Actuator):
             self.cos = cos
             self.sin = sin
 
-        # Computing new angle
-        rate_alpha = self.get_rate_alpha(angle, do_clip=do_clip)
-        self._alpha = self.get_alpha(rate_alpha, do_clip=do_clip)
+        # Computing new angle (in degrees)
+        self._rate_alpha = self.get_rate_alpha(angle, do_clip=do_clip)
+        self._alpha = self.get_alpha(self._rate_alpha, do_clip=do_clip)
 
         # Computing new speed
         acc = self.get_acc(speed, do_clip=do_clip)
         self._speed = self.get_speed(acc, do_clip=do_clip)
 
+        # command after saturation
+        self.last_command = self.valid_command(self._alpha, self._speed)
+
+        # Update envelope in ship frame        
+        if not use_casadi:
+            self._envelope = self._initial_envelope.rotate(self._alpha)
+
         # Compute resulting force
-        Ftot = self.get_Ftot(do_clip=do_clip)
+        self.Ftot = self.get_Ftot(do_clip=do_clip)
 
         # Project force in x, y and torque
         tot_angle = (self._alpha + self.angle_deg)*pi/180.0
         
         # Project total force
-        Fx = Ftot * self.cos(tot_angle)
-        Fy = -Ftot * self.sin(tot_angle)
+        Fx = self.Ftot * self.cos(tot_angle)
+        Fy = -self.Ftot * self.sin(tot_angle)
         Nz = -Fx * self._xy[1] + Fy * self._xy[0]
         force = GeneralizedForces(f_x=Fx, f_y=Fy, tau_z=Nz)
         return force if output_type == 'force' else force.to_numpy()
+    
+    def __plot__(self, ax, states:States3, *args, **kwargs):
+        envelope_in_world_frame = self._envelope.rotate(states.psi_deg, origin=(0, 0)).translate(states.x, states.y)
+        envelope_in_world_frame.plot(*args, ax=ax, **kwargs)
+        envelope_in_world_frame.fill(*args, ax=ax, alpha=(self._speed - self._u_min[1])/(self._u_max[1]-self._u_min[1]), **kwargs)
+        return  ax
     
     def u_at_min_power(self) -> tuple:
         return (None, 0.0)
@@ -378,7 +429,6 @@ class AzimuthThruster(Actuator):
             Ftot = clip(Ftot, self._f_min, self._f_max) # Clip force to satisfy constraints -> [f_min, f_max]
         return Ftot
     
-
     @property
     def alpha_min(self) -> float:
         return self._u_min[0]
@@ -437,6 +487,9 @@ class AzimuthThrusterWithSpeed(Actuator):
         self._speed: float = speed_0
         self._ct: float = c_t # Force vs speed coefficient
     
+    def __plot__(self, ax, states:States3, *args, **kwargs):
+        return super().__plot__(ax, states, *args, **kwargs)
+
     def __dynamics__(self, command:Union[AzimuthThrusterSpeedCommand,tuple], *args, do_clip:bool=True, use_casadi:bool=False, output_type:str='force', **kwargs) -> GeneralizedForces:
         """
         command: (angle in degrees, speed) --> The input command are always assuming 0 is aligned with heading
@@ -596,14 +649,19 @@ def test() -> None:
     from nav_env.actuators.actuators import AzimuthThruster, Thruster, Rudder
     
     dt = 1.0
-    a1 = AzimuthThruster((-20, 10), 0, (-360, 360), (-3,3), dt, alpha_rate_max=float('inf'), v_rate_max=float('inf'))
+    a1 = AzimuthThruster((-20, 5), 30, (-360, 360), (-3,3), dt, alpha_rate_max=float('inf'), v_rate_max=float('inf'))
     a2 = Thruster((1., -1.), -5, (1.), (3.), dt)
     a3 = Rudder((-3, 0.), 0, -10, 10, dt, angle_0=-3)
     print(a1, a2, a3)
-    print(a1.dynamics(AzimuthThrusterCommand(-90, 2)))
+    print(a1.dynamics(AzimuthThrusterCommand(30, 2)))
+    
     print(a1._alpha, a1._speed)
     
-    ship = Ship(actuators=[a1, a2, a3])
+    ship = Ship(actuators=[a1, a2, a3], states=States3(10, -20, psi_deg=-30))
+    # ax = a1.plot(ship.states)
+    ax = ship.plot()
+    ax.set_aspect('equal')
+    plt.show()
     print(ship)
 
 if __name__ == "__main__":

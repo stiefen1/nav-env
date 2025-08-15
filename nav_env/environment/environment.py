@@ -2,7 +2,7 @@ from nav_env.ships.collection import ShipCollection
 from nav_env.obstacles.collection import MovingObstacleCollection, ObstacleCollection
 from nav_env.water.water_source import WaterSource
 from nav_env.wind.wind_source import WindSource
-import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt, numpy as np
 from nav_env.control.command import GeneralizedForces
 
 
@@ -51,7 +51,7 @@ class NavigationEnvironment:
         """
         # a ship also contains a controller
         # the environment only applies external conditions such as wind, water, obstacles
-        self._own_ships.step(self._wind_source, self._water_source, external_forces=external_forces)
+        self._own_ships.step(self._wind_source, self._water_source, external_forces=external_forces, target_ships=self._target_ships._ships, shore=self._shore)
         self._target_ships.step(self._wind_source, self._water_source, external_forces=external_forces)
         self._obstacles.step()
         self._t = round(self._t + self._dt, 6)
@@ -64,8 +64,9 @@ class NavigationEnvironment:
         self._target_ships.reset()
         self._obstacles.reset()
         self._t = self._t0
+        # self._logs = {"distance_os_ts": [[np.linalg.norm(ts.states.to_numpy()[0:2] - os.states.to_numpy()[0:2]) for ts in self._target_ships] for os in self._own_ships]}
 
-    def plot(self, lim:tuple, ax=None, own_ships_physics:dict={'enveloppe':1}, target_ships_physics:dict={'enveloppe':1}, obstacles_params:dict={'enveloppe':1}, **kwargs):
+    def plot(self, lim:tuple, ax=None, own_ships_physics:dict={'enveloppe':1, 'actuators':1}, target_ships_physics:dict={'enveloppe':1}, obstacles_params:dict={'enveloppe':1}, **kwargs):
         """
         Plot the environment.
         """
@@ -87,7 +88,7 @@ class NavigationEnvironment:
             _, ax = plt.subplots()
 
         self._shore.plot(ax=ax)
-        self._obstacles.plot(ax=ax)
+        self._obstacles.plot(ax=ax, domain=True)
         self._wind_source.quiver(((x_lim[0], y_lim[0]), (x_lim[1], y_lim[1])), ax=ax, nx=5, ny=5, facecolor='grey', alpha=0.3, **kwargs)
         for own_ship in self._own_ships:
             own_ship.get_envelope_from_logs_at_idx(idx).plot(ax=ax)
@@ -173,6 +174,11 @@ class NavigationEnvironment:
     @property
     def own_ships(self) -> ShipCollection:
         return self._own_ships
+    
+    @own_ships.setter
+    def own_ships(self, value) -> None:
+        self._own_ships = ShipCollection(value if isinstance(value, list) else [value])
+        self.dt = self._own_ships[0].dt
     
     @property
     def target_ships(self) -> ShipCollection:

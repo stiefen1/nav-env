@@ -1,8 +1,9 @@
 from nav_env.actuators.actuators import Actuator, Rudder, Thruster, AzimuthThruster, AzimuthThrusterWithSpeed
 from nav_env.control.command import GeneralizedForces, Command
+from nav_env.ships.states import States3
 from math import pi
 from typing import Iterable, Union
-import numpy as np, warnings
+import numpy as np, warnings, matplotlib.pyplot as plt
 
 class ActuatorCollection:
     def __init__(self, actuators:list[Actuator], *args, **kwargs):
@@ -17,6 +18,13 @@ class ActuatorCollection:
             else:
                 samples.append(sample)
         return samples
+    
+    def plot(self, states:States3, *args, ax=None, **kwargs):
+        if ax is None:
+            _, ax = plt.subplots()
+        for a in self._actuators:
+            ax = a.plot(states, *args, ax=ax, **kwargs)
+        return ax
 
     def save(self) -> None:
         for a in self._actuators:

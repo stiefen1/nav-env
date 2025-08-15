@@ -35,7 +35,7 @@
     "dimensions": {
         "help": "proj_area_... have the priority. h_front and h_side are the height of the front and side of the ship above the waterline. They are used to compute the projected area facing the wind.",
         "length": 75,
-        "width": 16,
+        "width": 17.2,
         "h_front": 8.0,
         "h_side": 8.0,
         "proj_area_front": 110,

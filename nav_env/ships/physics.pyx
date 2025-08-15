@@ -136,6 +136,7 @@ class ShipPhysics:
     def get_wind_force(self, wind:WindVector, x_dot:float, y_dot:float, yaw:float) -> GeneralizedForces:
         """
         Get the wind force acting on the ship, in the ship frame.
+        x_dot, y_dot in ship frame
         """
         beta_w = -wind.direction # Wind direction is given in the world frame
         psi = -yaw # Yaw angle is given in the world frame
