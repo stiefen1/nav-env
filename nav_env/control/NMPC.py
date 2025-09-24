@@ -381,8 +381,9 @@ class NMPCPathTracking(Controller):
 
     def _set_xi_cost(self, alpha_step:float) -> None:
         # Xi cost (path tracking)
+        gamma = 1
         for k in range(1, self.horizon+1):
-            self.acc_cost += self.xi_stage_cost(self.X_sym[(k)*self.nx:(k+1)*self.nx], self.alpha_sym[k], self.alpha_sym[k-1], alpha_step, self.beta_sym[k-1])
+            self.acc_cost += gamma**k * self.xi_stage_cost(self.X_sym[(k)*self.nx:(k+1)*self.nx], self.alpha_sym[k], self.alpha_sym[k-1], alpha_step, self.beta_sym[k-1])
 
     def _set_constraints_before_optimization(self, x0:States3, x_des:States3, wind:WindVector, *args, **kwargs) -> None:
         """

@@ -57,7 +57,10 @@ class GuidanceBase(ABC):
     
     def within_radius_of_acceptance(self, x, y) -> bool:
         wx, wy = self.current_waypoint
-        return ((wx-x)**2 + (wy-y)**2) <= self._radius_of_acceptance**2
+        d2 = ((wx-x)**2 + (wy-y)**2)
+        # print(wx, wy, x, y)
+        # print(d2, self._radius_of_acceptance**2, abs(wx-x), abs(wy-y))
+        return d2 <= self._radius_of_acceptance**2
     
     def distance_to_final_waypoint(self, x, y) -> bool:
         wf = self._waypoints[-1]
@@ -99,5 +102,14 @@ class PathProgressionAndSpeedGuidance(GuidanceBase):
     
 class TrajectoryTrackingGuidance(GuidanceBase):
     pass
+
+class ConstantHeadingAndSpeed(GuidanceBase):
+    def __init__(self, desired_heading_deg:float, desired_speed:float, *args, **kwargs):
+        super().__init__(None, None, None, *args, **kwargs)
+        self.desired_heading_deg = desired_heading_deg
+        self.desired_speed = desired_speed
+
+    def __get__(self, *args, **kwargs) -> tuple[States3, dict]:
+        return States3(psi_deg=self.desired_heading_deg, x_dot=self.desired_speed), {}
 
     

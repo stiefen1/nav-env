@@ -52,7 +52,7 @@ class LOS(GuidanceBase):
         Y = np.linspace(*ylim, ny)
         for x in X:
             for y in Y:
-                desired_heading_degree = self.get_desired_heading(x, y, *args, **kwargs)
+                desired_heading_degree = self.get_desired_heading(x, y, *args, plot=True, **kwargs)
                 dx, dy = -np.sin(desired_heading_degree), np.cos(desired_heading_degree)
                 ax.quiver(x, y, dx, dy, width=width, scale=scale)
         return ax
@@ -75,8 +75,8 @@ class LOSLookAhead(LOS):
         low_pass_filter_params = low_pass_filter_params or DEFAULT_LOW_PASS_FILTER_PARAMS
         self.filter = LowPass(**low_pass_filter_params) 
 
-    def get_desired_heading(self, x, y, *args, degree=False, **kwargs):
-        if self.within_radius_of_acceptance(x, y):
+    def get_desired_heading(self, x, y, *args, degree=False, plot:bool=False, **kwargs):
+        if not plot and self.within_radius_of_acceptance(x, y):
             self.next_waypoint()
         prev_wpt = self.get_prev_waypoint()
         convert_unit = 1 if degree else np.pi/180.0
@@ -93,8 +93,8 @@ class LOSLoopEnclosure(LOS):
         super().__init__(waypoints=waypoints, current_wpt_idx=current_wpt_idx, radius_of_acceptance=radius_of_acceptance, desired_speed=desired_speed, *args, colav=colav, **kwargs)
         self._radius = radius
 
-    def get_desired_heading(self, x, y, *args, degree=False, **kwargs):
-        if self.within_radius_of_acceptance(x, y):
+    def get_desired_heading(self, x, y, *args, degree=False, plot:bool=False, **kwargs):
+        if not plot and self.within_radius_of_acceptance(x, y):
             self.next_waypoint()
         prev_wpt = self.get_prev_waypoint()
         convert_unit = 1 if degree else np.pi/180.0
@@ -132,8 +132,9 @@ class LOSLookAheadTrajectoryTracking(LOS):
         self._logs["projected_distance"] = np.append(self._logs["projected_distance"], np.array(self.distance).reshape(1, 1), axis=0)
         self._logs["target_waypoint"] = np.append(self._logs["target_waypoint"], np.array([[self.current_idx]]), axis=0)
 
-    def get_desired_heading(self, x, y, *args, degree=False, **kwargs):
-        if self.within_radius_of_acceptance(x, y):
+    def get_desired_heading(self, x, y, *args, degree=False, plot:bool=False, **kwargs):
+        if not plot and self.within_radius_of_acceptance(x, y):
+            print("############ NEXT WAYPOINT ############")
             self.next_waypoint()
         prev_wpt = self.get_prev_waypoint()
         convert_unit = 1 if degree else np.pi/180.0

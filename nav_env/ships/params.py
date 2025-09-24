@@ -2,7 +2,8 @@ from dataclasses import dataclass, field
 import json, os, pathlib
 
 PATH_TO_DEFAULT_JSON = os.path.join(pathlib.Path(__file__).parent, "default_ship_params.json")
-PATH_TO_DEFAULT_NEW_JSON = os.path.join(pathlib.Path(__file__).parent, "new_ship_params.json")
+# PATH_TO_DEFAULT_NEW_JSON = os.path.join(pathlib.Path(__file__).parent, "new_ship_params.json")
+PATH_TO_DEFAULT_NEW_JSON = os.path.join(pathlib.Path(__file__).parent, "blindheim_risk_2020.json")
 PATH_TO_JSON_WITH_ACTUATORS = os.path.join(pathlib.Path(__file__).parent, "ship_params_with_actuators.json")
 
 @dataclass

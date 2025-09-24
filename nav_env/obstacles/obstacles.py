@@ -169,13 +169,15 @@ class MovingObstacle(Obstacle):
                  domain_margin_wrt_enveloppe:float=0.,
                  name:str="MovingObstacle",
                  id:int=None,
-                 start_at:float=0.0
+                 start_at:float=0.0,
+                 stop_at:float=float('inf')
                  ):
         """
         pose_fn: Callable that returns the pose of the obstacle at a given time as a tuple (x, y, angle).
         """
         super().__init__(xy=xy, polygon=polygon, geometry_type=geometry_type, id=id)
         self.start_at = start_at
+        self.stop_at = stop_at
         # If a pose_fn is not provided, we use the initial states to compute the pose as x(t) = x0 + v * t
         if pose_fn is not None:
             self._pose_fn = pose_fn
@@ -565,10 +567,12 @@ class MovingObstacle(Obstacle):
         return self._initial_domain.rotate_and_translate(states_at_t.x, states_at_t.y, states_at_t.psi_deg, origin=self._initial_domain.centroid)
     
     def pose_fn(self, t) -> States3:
-        if t >= self.start_at:
+        if self.start_at <= t <= self.stop_at:
             return self._pose_fn(t-self.start_at)
-        else:
+        elif t < self.start_at:
             return self._pose_fn(0)
+        elif t > self.stop_at:
+            return self._pose_fn(self.stop_at-self.start_at)
     
     @property
     def dt(self) -> float:

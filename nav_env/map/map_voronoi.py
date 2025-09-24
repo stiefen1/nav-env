@@ -28,15 +28,15 @@ vor_boundary, seed_points_boundary = build_voronoi_from_boundary_samples(obstacl
 nav_graph = prune_graph(voronoi_to_navigation_graph(vor_boundary, obstacles, xlim, ylim, min_clearance=0.1))
 
 # Plot both approaches
-_, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(15, 7))
+_, (ax3) = plt.subplots(1, 1, figsize=(15, 7))
 
 # Plot centroid-based Voronoi
-plot_voronoi_with_obstacles(vor_centroids, obstacles, seed_points_centroids, xlim, ylim, ax1)
-ax1.set_title("Voronoi from Centroids")
+# plot_voronoi_with_obstacles(vor_centroids, obstacles, seed_points_centroids, xlim, ylim, ax1)
+# ax1.set_title("Voronoi from Centroids")
 
 # Plot boundary-based Voronoi
-plot_voronoi_with_obstacles(vor_boundary, obstacles, seed_points_boundary, xlim, ylim, ax2)
-ax2.set_title("Voronoi from Boundary Samples")
+# plot_voronoi_with_obstacles(vor_boundary, obstacles, seed_points_boundary, xlim, ylim, ax2)
+# ax2.set_title("Voronoi from Boundary Samples")
 # Adaptive collision-aware strategy
 plot_degree_2_straight_lines(nav_graph, vor_boundary, obstacles, xlim, ylim, 
                                 strategy='collision_aware', ax=ax3)

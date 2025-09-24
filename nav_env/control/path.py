@@ -317,7 +317,6 @@ class TimeStampedWaypoints(Waypoints):
     def plot(self, *args, t0:float=None, tf:float=None, N:int=None, mode='traj', ax=None, text:bool=False, grid:bool=False, **kwargs):
         if ax is None:
             _, ax = plt.subplots()
-            ax.legend()
         if t0 is None:
             t0 = self._t0
         if tf is None:

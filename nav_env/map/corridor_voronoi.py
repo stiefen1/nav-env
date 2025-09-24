@@ -30,7 +30,12 @@ def test() -> None:
     _, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(15, 7))
     
     # Plot centroid-based Voronoi
-    plot_voronoi_with_obstacles(vor_centroids, obstacles, seed_points_centroids, xlim, ylim, ax1)
+    # plot_voronoi_with_obstacles(vor_centroids, obstacles, seed_points_centroids, xlim, ylim, ax1)
+    for obs in obstacles:
+        obs.plot(ax=ax1, c='black')
+    ax1.set_xlim(xlim)
+    ax1.set_ylim(ylim)
+    ax1.set_aspect('equal')
     ax1.set_title("Voronoi from Centroids")
     
     # Plot boundary-based Voronoi
@@ -818,12 +823,13 @@ def plot_degree_2_straight_lines(G, vor, obstacles, xlim, ylim, min_degree=3, st
         _, ax = plt.subplots(figsize=(10, 10))
     
     # Plot Voronoi diagram (lightly)
-    voronoi_plot_2d(vor, ax=ax, show_vertices=False, line_colors='lightgray', 
-                     line_width=0.3, point_size=1, show_points=False)
+    # voronoi_plot_2d(vor, ax=ax, show_vertices=False, line_colors='lightgray', 
+    #                  line_width=0.3, point_size=1, show_points=False)
     
     # Plot obstacles
     for obs in obstacles:
-        obs.plot(ax=ax, alpha=0.7)
+        obs.plot(ax=ax, c='black')
+        obs.fill(ax=ax, c='lightgray', alpha=0.7)
     
     # Get node positions and classify nodes
     pos = nx.get_node_attributes(G, 'pos')
@@ -874,12 +880,12 @@ def plot_degree_2_straight_lines(G, vor, obstacles, xlim, ylim, min_degree=3, st
         for j, segment in enumerate(segments):
             start_pos, end_pos = segment
             ax.plot([start_pos[0], end_pos[0]], [start_pos[1], end_pos[1]], 
-                   color=colors[i], linewidth=4, alpha=0.9,
+                   color='red', linewidth=4, alpha=0.9,
                    label=f'Path {i+1}' if j == 0 else "")
             
             # Mark segment endpoints
             ax.plot([start_pos[0], end_pos[0]], [start_pos[1], end_pos[1]], 
-                   's', color=colors[i], markersize=6, alpha=0.8)
+                   's', color='red', markersize=6, alpha=0.8)
     
     ax.set_xlim(xlim)
     ax.set_ylim(ylim)

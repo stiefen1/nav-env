@@ -16,7 +16,7 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 from math import cos, sin, pi
 from nav_env.sensors.collection import SensorCollection
-
+import numpy as np
 
 
 class MovingShip(MovingObstacle):
@@ -36,6 +36,7 @@ class MovingShip(MovingObstacle):
                  dpsi:float=0.0,    # Uncertainty in psi angle (radians)
                  sensors:SensorCollection|list=SensorCollection.empty(),
                  start_at:float=0.0,
+                 stop_at:float=float('inf'),
                  **kwargs
                  ):
         
@@ -65,11 +66,29 @@ class MovingShip(MovingObstacle):
             domain_margin_wrt_enveloppe=domain_margin_wrt_enveloppe,
             name=name,
             id=id,
-            start_at=start_at
+            start_at=start_at,
+            stop_at=stop_at
             )
         
     def plot(self, *args, ax=None, params={'enveloppe':1}, c='r', **kwargs):
         return super().plot(*args, ax=ax, params=params, c=c, **kwargs)
+    
+    def sample_positions_at(self, t:float, sigma_u:float=None, sigma_chi_deg:float=None, N:int=1) -> list[Obstacle]:
+        sigma_chi = sigma_chi_deg*180/pi if sigma_chi_deg is not None else self.dpsi 
+        sigma_u = sigma_u or self.du
+        u_vec = np.random.normal(loc=self.states.u, scale=sigma_u, size=N)
+        chi_vec = np.random.normal(loc=self.states.psi_rad, scale=sigma_chi, size=N)
+        obstacles = []
+        xy_list = []
+        x, y = self.states.xy
+        for ui, chii in zip(u_vec, chi_vec):
+            # pose_at_t = self.pose_fn(t)
+            xy = x-(ui)*sin(chii)*t, y+(ui)*cos(chii)*t
+            # obs = self._initial_domain.rotate_and_translate(-(ui)*sin(chii)*t, (ui)*cos(chii)*t, chii*180/pi).translate(*self.states.xy)
+            # obstacles.append(obs)
+            xy_list.append(xy)
+        return xy_list
+        # return obstacles
 
     def plot_traj_to_enc(self, enc:ENC, times:list, colormap:str='viridis', alpha=1., width:float=None, thickness:float=None, edge_style:str | tuple=None, marker_type:str=None, color:str=None) -> None:
         rgb = mat_colors.to_rgb(color) if color is not None else None
@@ -162,8 +181,8 @@ class MovingShip(MovingObstacle):
         p9 = ship8.get_xy_as_list()[0]
         return Obstacle(xy=[p0, p1, p2, p3, p4, p5, p6, p7, p8, p9])
 
-
-    def plot3_polyhedron(self, t0, tf, *args, ax=None, **kwargs):
+    def plot3_polyhedron(self, t0, tf, *args, ax=None, face_alpha=0.3, 
+                        facecolor='dimgray', edgecolor='black', linewidth=2, **kwargs):
         if ax is None:
             _, ax = plt.subplots(subplot_kw={'projection': '3d'})
 
@@ -172,25 +191,100 @@ class MovingShip(MovingObstacle):
         z0 = [t0]*len(xy0[0])
         zf = [tf]*len(xyf[0])
 
+        # Plot faces with transparency
         for i, (xyz0, xyzf) in enumerate(zip(zip(xy0[0], xy0[1], z0), zip(xyf[0], xyf[1], zf))):            
             if i==0:
                 xyz0_prev = xyz0
                 xyzf_prev = xyzf
                 continue
 
-            polygon = Poly3DCollection([[xyz0_prev, xyz0, xyzf, xyzf_prev, xyz0_prev]], *args, **kwargs)
-            ax.add_collection(polygon)
+            # Face with transparency
+            face = Poly3DCollection(
+                [[xyz0_prev, xyz0, xyzf, xyzf_prev, xyz0_prev]], 
+                facecolors=facecolor,
+                alpha=face_alpha,
+                linewidths=0,  # No edge lines for faces
+                **kwargs
+            )
+            ax.add_collection(face)
+
+            # Edges with full opacity
+            edge_lines = [
+                [xyz0_prev, xyz0],
+                [xyz0, xyzf], 
+                [xyzf, xyzf_prev],
+                [xyzf_prev, xyz0_prev]
+            ]
+            
+            for line in edge_lines:
+                ax.plot([line[0][0], line[1][0]], 
+                    [line[0][1], line[1][1]], 
+                    [line[0][2], line[1][2]], 
+                    color=edgecolor, linewidth=linewidth, alpha=1.0)
 
             xyz0_prev = xyz0
             xyzf_prev = xyzf
 
-        polygon_at_t0 = Poly3DCollection([list(zip(xy0[0], xy0[1], z0))], *args, **kwargs)
-        polygon_at_tf = Poly3DCollection([list(zip(xyf[0], xyf[1], zf))], *args, **kwargs)
+        # Top and bottom faces
+        polygon_at_t0 = Poly3DCollection(
+            [list(zip(xy0[0], xy0[1], z0))], 
+            facecolors=facecolor,
+            alpha=face_alpha,
+            linewidths=0
+        )
+        
+        polygon_at_tf = Poly3DCollection(
+            [list(zip(xyf[0], xyf[1], zf))], 
+            facecolors=facecolor,
+            alpha=face_alpha,
+            linewidths=0
+        )
 
         ax.add_collection(polygon_at_t0)
         ax.add_collection(polygon_at_tf)
 
+        # Plot edges for top and bottom
+        for i in range(len(xy0[0])):
+            j = (i + 1) % len(xy0[0])
+            # Bottom edges
+            ax.plot([xy0[0][i], xy0[0][j]], [xy0[1][i], xy0[1][j]], [z0[i], z0[j]], 
+                color=edgecolor, linewidth=linewidth, alpha=1.0)
+            # Top edges  
+            ax.plot([xyf[0][i], xyf[0][j]], [xyf[1][i], xyf[1][j]], [zf[i], zf[j]], 
+                color=edgecolor, linewidth=linewidth, alpha=1.0)
+            # Vertical edges
+            ax.plot([xy0[0][i], xyf[0][i]], [xy0[1][i], xyf[1][i]], [z0[i], zf[i]], 
+                color=edgecolor, linewidth=linewidth, alpha=1.0)
+
         return ax
+    # def plot3_polyhedron(self, t0, tf, *args, ax=None, **kwargs):
+    #     if ax is None:
+    #         _, ax = plt.subplots(subplot_kw={'projection': '3d'})
+
+    #     xy0 = self.robust_polyhedron(t0).xy
+    #     xyf = self.robust_polyhedron(tf).xy
+    #     z0 = [t0]*len(xy0[0])
+    #     zf = [tf]*len(xyf[0])
+
+    #     for i, (xyz0, xyzf) in enumerate(zip(zip(xy0[0], xy0[1], z0), zip(xyf[0], xyf[1], zf))):            
+    #         if i==0:
+    #             xyz0_prev = xyz0
+    #             xyzf_prev = xyzf
+    #             continue
+
+    #         polygon = Poly3DCollection([[xyz0_prev, xyz0, xyzf, xyzf_prev, xyz0_prev]], *args, **kwargs)
+    #         ax.add_collection(polygon)
+
+    #         xyz0_prev = xyz0
+    #         xyzf_prev = xyzf
+
+    #     polygon_at_t0 = Poly3DCollection([list(zip(xy0[0], xy0[1], z0))], *args, **kwargs)
+    #     polygon_at_tf = Poly3DCollection([list(zip(xyf[0], xyf[1], zf))], *args, **kwargs)
+
+    #     ax.add_collection(polygon_at_t0)
+    #     ax.add_collection(polygon_at_tf)
+
+    #     return ax
 
     # def plot3_robust_polyhedron(self, t0:float, tf:float, *args, ax=None, **kwargs):
     #     """

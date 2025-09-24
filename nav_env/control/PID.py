@@ -96,6 +96,7 @@ class HeadingAndSpeedController(PID):
         u = super().__get__(x, xd, sat_fn=lambda h_and_s: np.array((wrap_angle_to_pmpi_degrees(h_and_s[0]), h_and_s[1])))
         # print(f"Heading (des, actual): {xd[0]:.1f}, {x[0]:.1f}")
         # print(f"Speed (des, actual): {xd[1]:.1f}, {x[1]:.1f}")
+        # print(u[1, 0], u[0, 0])
         self.last_commanded_force = GeneralizedForces(f_x=u[1, 0], tau_z=u[0, 0])
         return GeneralizedForces(f_x=u[1, 0], tau_z=u[0, 0])
     
