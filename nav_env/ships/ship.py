@@ -47,6 +47,8 @@ class ShipWithDynamicsBase(MovingShip):
                  width:float=None,
                  actuators:ActuatorCollection|list|Actuator=ActuatorCollection.empty(),
                  sensors:SensorCollection|list=SensorCollection.empty(),
+                 du:float=0.0,
+                 dpsi:float=0.0,
                  **kwargs
                  ):
         self._states = states
@@ -77,7 +79,9 @@ class ShipWithDynamicsBase(MovingShip):
             domain_margin_wrt_enveloppe=domain_margin_wrt_enveloppe,
             name=name,
             id=id,
-            sensors=sensors
+            sensors=sensors,
+            du=du,
+            dpsi=dpsi
         )
 
         self._logs.update({"dx": np.zeros((0, 6))})
@@ -407,7 +411,9 @@ class Ship(ShipWithDynamicsBase):
                  length:float=None,
                  width:float=None,
                  actuators:ActuatorCollection|list|Actuator=ActuatorCollection.empty(),
-                 sensors:SensorCollection|list|Sensor=SensorCollection.empty()
+                 sensors:SensorCollection|list|Sensor=SensorCollection.empty(),
+                 du:float=0.0,
+                 dpsi:float=0.0
                  ):
         states = states or States3()
         super().__init__(
@@ -424,7 +430,9 @@ class Ship(ShipWithDynamicsBase):
             length=length,
             width=width,
             actuators=actuators,
-            sensors=sensors
+            sensors=sensors,
+            du=du,
+            dpsi=dpsi
         )
 
     def update_derivatives(self, wind:WindVector, water:WaterVector, external_forces:GeneralizedForces):

@@ -34,6 +34,7 @@ class LOS(GuidanceBase):
                  **kwargs):
         super().__init__(waypoints=waypoints, current_wpt_idx=current_wpt_idx, radius_of_acceptance=radius_of_acceptance, *args, colav=colav, **kwargs)
         self._desired_speed = desired_speed # Desired forward speed
+        self.target_reached = False
 
     @abstractmethod
     def get_desired_heading(self, x, y, *args, degree=False, **kwargs) -> float:
@@ -118,7 +119,7 @@ class LOSLookAheadTrajectoryTracking(LOS):
                  low_pass_filter_speed_params:dict=None,
                  colav:COLAVBase=None,
                  **kwargs):
-        super().__init__(waypoints=trajectory.waypoints, current_wpt_idx=current_wpt_idx, radius_of_acceptance=radius_of_acceptance, desired_speed=None, colav=colav, **kwargs)
+        super().__init__(waypoints=trajectory.waypoints if trajectory is not None else None, current_wpt_idx=current_wpt_idx, radius_of_acceptance=radius_of_acceptance, desired_speed=None, colav=colav, **kwargs)
         self._kp_los = kp_los
         self._speed_pid = PID(kp=k_speed[0], ki=k_speed[1], kd=k_speed[2], anti_windup=anti_windup_speed, dt=dt)
         self._trajectory = trajectory

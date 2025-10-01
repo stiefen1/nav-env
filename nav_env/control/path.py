@@ -1,11 +1,11 @@
-from shapely import LineString
+from shapely import LineString, Point
 from nav_env.geometry.wrapper import GeometryWrapper
 from nav_env.obstacles.obstacles import Obstacle
 import matplotlib.pyplot as plt, matplotlib.colors as mat_colors
 import warnings, sqlite3, casadi as cd, numpy as np
 from datetime import datetime, timedelta
 from math import atan2, pi
-from typing import Any, Callable
+from typing import Any, Callable, Tuple
 from seacharts import ENC
 from shapely import Point
 TIME_FORMAT = "%d-%m-%Y %H:%M:%S"
@@ -50,6 +50,31 @@ class Waypoints(GeometryWrapper):
         Theta = np.linalg.inv(M) @ (p-p0)
         alpha, beta = Theta[0], Theta[1] # cross track error = beta * e_unit -> error is abs(beta)
         return tuple((p0 + alpha * dp_unit).tolist()) #, abs(beta)
+
+    def closest_point(self, x:float, y:float) -> Tuple[float, float]:
+        """
+        closest point from the path that belongs to it
+        """
+        linestring = LineString(self.waypoints)
+        point = Point(x, y)
+        distance_along = linestring.project(point) # distance along the path from starting point
+        closest_point = linestring.interpolate(distance_along)
+        return float(closest_point.x), float(closest_point.y)
+    
+    def get_target_point_from(self, x:float, y:float, dp:float) -> Tuple:
+        """
+        Returns a set of N waypoints (north, east) along the path, separated by a distance dp
+        if heading is True, a third dimension is added with desired heading values.
+
+        Projection of the current position is included to simplify MPC implementation.
+
+        dp can be computed using the desired speed and sampling time, for instance.
+        """
+        linestring = LineString(self.waypoints)
+        point = Point(x, y)
+        initial_distance_along = linestring.project(point)
+        target_point = linestring.interpolate(initial_distance_along + dp)
+        return tuple([q[0] for q in target_point.xy])
 
     def get_alphas(self) -> tuple:
         d = []

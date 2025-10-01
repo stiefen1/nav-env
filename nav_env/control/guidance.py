@@ -26,7 +26,7 @@ class GuidanceBase(ABC):
     #     self._colav.guidance = self
 
     def get(self, state:States3, *args, target_ships:list[MovingShip]=[], **kwargs) -> tuple[States3, dict]:
-        commanded_state, info = self.__get__(state, *args, **kwargs)
+        commanded_state, info = self.__get__(state, *args, target_ships=target_ships, **kwargs)
         colav_des_state = self.colav.get(state, commanded_state, target_ships, *args, **kwargs)
         # print(colav_des_state, commanded_state)
         return colav_des_state, info
@@ -51,6 +51,7 @@ class GuidanceBase(ABC):
     def next_waypoint(self):
         # If current waypoint is the final waypoint do not increment
         if self._current_wpt_idx >= self.n - 1:
+            self.target_reached = True
             return
         self._current_wpt_idx += 1
         return

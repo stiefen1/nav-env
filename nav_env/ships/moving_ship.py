@@ -148,6 +148,38 @@ class MovingShip(MovingObstacle):
                                                                   color=color
                                                                   )
     
+    def robust_polyhedron_from_current_pose(self, dt:float, *args, **kwargs) -> Obstacle:
+        u = self.states.u
+        x = self.states.x
+        y = self.states.y
+        psi_rad, psi_deg = self.states.psi_rad, self.states.psi_deg
+        dpsi = self.dpsi
+        du = self.du
+
+        # Extract virtual ships used to build robust envelope
+        ship1 = self.rotate_and_translate(-(u+du)*sin(psi_rad+dpsi/2)*dt, (u+du)*cos(psi_rad+dpsi/2)*dt, psi_deg+dpsi*180/pi/2, origin=(x, y))
+        ship2 = self.rotate_and_translate(-(u-du)*sin(psi_rad-dpsi)*dt, (u-du)*cos(psi_rad-dpsi)*dt, psi_deg-dpsi*180/pi, origin=(x, y))
+        ship3 = self.rotate_and_translate(-(u-du)*sin(psi_rad)*dt, (u-du)*cos(psi_rad)*dt, psi_deg, origin=(x, y))
+        ship4 = self.rotate_and_translate(-(u-du)*sin(psi_rad+dpsi)*dt, (u-du)*cos(psi_rad+dpsi)*dt, psi_deg+dpsi*180/pi, origin=(x, y))
+        ship5 = self.rotate_and_translate(-(u+du)*sin(psi_rad-dpsi)*dt, (u+du)*cos(psi_rad-dpsi)*dt, psi_deg-dpsi*180/pi, origin=(x, y))
+        ship6 = self.rotate_and_translate(-(u+du)*sin(psi_rad)*dt, (u+du)*cos(psi_rad)*dt, psi_deg, origin=(x, y))
+        ship7 = self.rotate_and_translate(-(u+du)*sin(psi_rad+dpsi)*dt, (u+du)*cos(psi_rad+dpsi)*dt, psi_deg+dpsi*180/pi, origin=(x, y))
+        ship8 = self.rotate_and_translate(-(u+du)*sin(psi_rad-dpsi/2)*dt, (u+du)*cos(psi_rad-dpsi/2)*dt, psi_deg-dpsi*180/pi/2, origin=(x, y))
+        
+        # Extract vertices of robust envelope
+        p0 = ship6.get_xy_as_list()[0]
+        p1 = ship1.get_xy_as_list()[0]
+        p2 = ship7.get_xy_as_list()[0]
+        p3 = ship7.get_xy_as_list()[4]
+        p4 = ship4.get_xy_as_list()[3]
+        p50, p51 = ship3.get_xy_as_list()[2], ship3.get_xy_as_list()[3]
+        p5 = ((p50[0]+p51[0])/2, (p50[1]+p51[1])/2)
+        p6 = ship2.get_xy_as_list()[2]
+        p7 = ship5.get_xy_as_list()[1]
+        p8 = ship5.get_xy_as_list()[0]
+        p9 = ship8.get_xy_as_list()[0]
+        return Obstacle(xy=[p0, p1, p2, p3, p4, p5, p6, p7, p8, p9])
+
     def robust_polyhedron(self, t:float, *args, **kwargs) -> Obstacle:
         u = self.states.u
         x = self.states.x

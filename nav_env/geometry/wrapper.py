@@ -215,7 +215,9 @@ class GeometryWrapper:
             # print("#-------------------------Moving Obstacle------------------------------#")
             new._initial_geometry = new._initial_geometry.buffer(distance, **kwargs)
             new._initial_domain = new._initial_domain.buffer(distance, **kwargs)
-            print(f"buffer initial geometry of {distance}")
+            new._geometry = new._initial_geometry
+            new.rotate_and_translate_inplace(*self.states.xy, self.states.psi_rad)
+            # print(f"buffer initial geometry of {distance}")
         except:
             # print("#-------------------------Static Obstacle------------------------------#")
             new.center_inplace()
@@ -245,4 +247,6 @@ def get_geometry_from_object(geometry: Geometry|GeometryWrapper|tuple) -> Geomet
         return geometry
     elif isinstance(geometry, tuple):
         return Point(*geometry)
+    elif isinstance(geometry, Point):
+        return geometry
     return geometry()
